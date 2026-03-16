@@ -10,33 +10,27 @@ export type Profile = {
   user_id: string
   first_name: string
   last_name: string
-  email: string
-  phone: string
-  grad_year: number
-  position: string
-  height: string
-  weight: string
-  throws: string
-  bats: string
+  username: string
+  profile_picture_url: string | null
+  city: string | null
+  state: string | null
   high_school: string
-  hometown: string
-  state: string
-  gpa: string
-  sat_score: string
-  act_score: string
-  bio: string
-  stats_json: any
+  teams_played_for: string | null
+  primary_position: string
+  secondary_position: string | null
+  bats: string | null
+  throws: string | null
+  grad_year: number
+  height: string | null
+  weight: string | null
+  exit_velocity: number | null
+  pitch_velocity: number | null
+  sixty_time: number | null
+  gpa: number | null
+  instagram: string | null
+  twitter: string | null
+  youtube: string | null
+  bio: string | null
   created_at: string
   updated_at: string
-  slug: string
-}
-
-export type Video = {
-  id: string
-  profile_id: string
-  title: string
-  url: string
-  description: string
-  video_type: string
-  created_at: string
 }

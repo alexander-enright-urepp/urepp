@@ -47,30 +47,74 @@ const states = [
 const currentYear = new Date().getFullYear()
 const gradYears = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4]
 
-export default function CreateProfile() {
+export default function EditProfile() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<ProfileFormData>()
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<ProfileFormData>()
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
-        router.push('/login?redirect=/profile/create')
+        router.push('/login?redirect=/edit-profile')
         return
       }
       setUser(session.user)
+
+      // Fetch user's profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (profileData) {
+        setProfile(profileData)
+        setImagePreview(profileData.profile_picture_url)
+        
+        // Reset form with existing data
+        reset({
+          firstName: profileData.first_name,
+          lastName: profileData.last_name,
+          username: profileData.username,
+          city: profileData.city || '',
+          state: profileData.state || '',
+          highSchool: profileData.high_school,
+          teamsPlayedFor: profileData.teams_played_for || '',
+          primaryPosition: profileData.primary_position,
+          secondaryPosition: profileData.secondary_position || '',
+          bats: profileData.bats || '',
+          throws: profileData.throws || '',
+          gradYear: profileData.grad_year.toString(),
+          height: profileData.height || '',
+          weight: profileData.weight || '',
+          exitVelocity: profileData.exit_velocity?.toString() || '',
+          pitchVelocity: profileData.pitch_velocity?.toString() || '',
+          sixtyTime: profileData.sixty_time?.toString() || '',
+          gpa: profileData.gpa?.toString() || '',
+          instagram: profileData.instagram || '',
+          twitter: profileData.twitter || '',
+          youtube: profileData.youtube || '',
+          bio: profileData.bio || '',
+        })
+      } else {
+        // No profile exists, redirect to create
+        router.push('/profile/create')
+        return
+      }
+      
       setLoading(false)
     }
-    checkAuth()
-  }, [router])
+    fetchData()
+  }, [router, reset])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -85,7 +129,7 @@ export default function CreateProfile() {
   }
 
   const uploadProfileImage = async (userId: string): Promise<string | null> => {
-    if (!profileImage) return null
+    if (!profileImage) return profile?.profile_picture_url
     
     setUploadingImage(true)
     const fileExt = profileImage.name.split('.').pop()
@@ -98,7 +142,7 @@ export default function CreateProfile() {
     if (uploadError) {
       console.error('Upload error:', uploadError)
       setUploadingImage(false)
-      return null
+      return profile?.profile_picture_url
     }
     
     const { data: { publicUrl } } = supabase.storage
@@ -114,63 +158,64 @@ export default function CreateProfile() {
     setSubmitError('')
 
     try {
-      // Check if username is taken
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', data.username.toLowerCase())
-        .single()
+      // Check if username changed and is taken
+      if (data.username !== profile.username) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', data.username.toLowerCase())
+          .single()
 
-      if (existingUser) {
-        setSubmitError('Username is already taken. Please choose another.')
-        setIsSubmitting(false)
-        return
+        if (existingUser) {
+          setSubmitError('Username is already taken. Please choose another.')
+          setIsSubmitting(false)
+          return
+        }
       }
 
       // Upload profile image if selected
-      let profilePictureUrl = null
+      let profilePictureUrl = profile?.profile_picture_url
       if (profileImage) {
         profilePictureUrl = await uploadProfileImage(user.id)
       }
 
       const { error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            user_id: user.id,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            username: data.username.toLowerCase(),
-            profile_picture_url: profilePictureUrl,
-            city: data.city || null,
-            state: data.state || null,
-            high_school: data.highSchool,
-            teams_played_for: data.teamsPlayedFor || null,
-            primary_position: data.primaryPosition,
-            secondary_position: data.secondaryPosition || null,
-            bats: data.bats || null,
-            throws: data.throws || null,
-            grad_year: parseInt(data.gradYear),
-            height: data.height || null,
-            weight: data.weight || null,
-            exit_velocity: data.exitVelocity ? parseInt(data.exitVelocity) : null,
-            pitch_velocity: data.pitchVelocity ? parseInt(data.pitchVelocity) : null,
-            sixty_time: data.sixtyTime ? parseFloat(data.sixtyTime) : null,
-            gpa: data.gpa ? parseFloat(data.gpa) : null,
-            instagram: data.instagram || null,
-            twitter: data.twitter || null,
-            youtube: data.youtube || null,
-            bio: data.bio || null,
-          }
-        ])
+        .update({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          username: data.username.toLowerCase(),
+          profile_picture_url: profilePictureUrl,
+          city: data.city || null,
+          state: data.state || null,
+          high_school: data.highSchool,
+          teams_played_for: data.teamsPlayedFor || null,
+          primary_position: data.primaryPosition,
+          secondary_position: data.secondaryPosition || null,
+          bats: data.bats || null,
+          throws: data.throws || null,
+          grad_year: parseInt(data.gradYear),
+          height: data.height || null,
+          weight: data.weight || null,
+          exit_velocity: data.exitVelocity ? parseInt(data.exitVelocity) : null,
+          pitch_velocity: data.pitchVelocity ? parseInt(data.pitchVelocity) : null,
+          sixty_time: data.sixtyTime ? parseFloat(data.sixtyTime) : null,
+          gpa: data.gpa ? parseFloat(data.gpa) : null,
+          instagram: data.instagram || null,
+          twitter: data.twitter || null,
+          youtube: data.youtube || null,
+          bio: data.bio || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
 
       if (error) throw error
 
       router.push('/dashboard')
       router.refresh()
     } catch (err: any) {
-      console.error('Profile creation error:', err)
-      setSubmitError(err.message || 'Failed to create profile. Please try again.')
+      console.error('Profile update error:', err)
+      setSubmitError(err.message || 'Failed to update profile. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -208,8 +253,8 @@ export default function CreateProfile() {
         </Link>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Profile</h1>
-          <p className="text-gray-600 mb-8">Build your professional baseball recruiting profile to get discovered by coaches.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Your Profile</h1>
+          <p className="text-gray-600 mb-8">Update your recruiting profile information.</p>
 
           {submitError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
@@ -515,21 +560,27 @@ export default function CreateProfile() {
             </div>
 
             {/* Submit */}
-            <div className="pt-4">
+            <div className="pt-4 flex gap-4">
               <button
                 type="submit"
                 disabled={isSubmitting || uploadingImage}
-                className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-babyblue-200"
+                className="flex-1 bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-babyblue-200"
               >
                 {isSubmitting || uploadingImage ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating Profile...
+                    Saving Changes...
                   </>
                 ) : (
-                  'Create Profile'
+                  'Save Changes'
                 )}
               </button>
+              <Link
+                href="/dashboard"
+                className="px-6 py-4 rounded-xl font-semibold text-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </Link>
             </div>
           </form>
         </div>

@@ -3,22 +3,22 @@ import Link from 'next/link'
 
 export default function SearchPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-xl font-bold text-blue-600">UREPP</Link>
+            <Link href="/" className="text-2xl font-bold text-babyblue-600">UREPP</Link>
             <div className="flex gap-4 items-center">
               <Link
                 href="/search"
-                className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-babyblue-600 font-medium transition-colors"
               >
                 Search
               </Link>
               <Link
-                href="/profile/create"
-                className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                href="/signup"
+                className="bg-babyblue-500 hover:bg-babyblue-600 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-md shadow-babyblue-200"
               >
                 Create Profile
               </Link>
@@ -29,7 +29,7 @@ export default function SearchPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Athletes</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Players</h1>
           <p className="text-gray-600">
             Find baseball players by name, position, graduation year, or location.
           </p>
@@ -39,9 +39,9 @@ export default function SearchPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-400">
-          <p>UREPP - Built for baseball players chasing their college dreams</p>
+      <footer className="border-t border-babyblue-200/50 bg-white/50 py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+          <p>UREPP - The Baseball Recruitment Platform</p>
         </div>
       </footer>
     </div>
