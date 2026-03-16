@@ -56,6 +56,8 @@ export default function CreateProfile() {
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [createdUsername, setCreatedUsername] = useState('')
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm<ProfileFormData>()
 
@@ -66,6 +68,20 @@ export default function CreateProfile() {
         router.push('/login?redirect=/profile/create')
         return
       }
+      
+      // Check if user already has a profile
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('user_id', session.user.id)
+        .single()
+      
+      if (existingProfile) {
+        // User already has a profile, redirect to edit
+        router.push('/edit-profile')
+        return
+      }
+      
       setUser(session.user)
       setLoading(false)
     }
@@ -166,8 +182,8 @@ export default function CreateProfile() {
 
       if (error) throw error
 
-      router.push('/dashboard')
-      router.refresh()
+      setCreatedUsername(data.username.toLowerCase())
+      setSuccess(true)
     } catch (err: any) {
       console.error('Profile creation error:', err)
       setSubmitError(err.message || 'Failed to create profile. Please try again.')
@@ -180,6 +196,50 @@ export default function CreateProfile() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-babyblue-600 animate-spin" />
+      </div>
+    )
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
+        <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <Link href="/" className="text-2xl font-bold text-babyblue-600">UREPP</Link>
+            </div>
+          </div>
+        </nav>
+
+        <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Profile Created!
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Your recruiting profile is now live and visible to coaches.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href={`/players/${createdUsername}`}
+                className="block w-full bg-babyblue-500 hover:bg-babyblue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              >
+                View Your Profile
+              </Link>
+              <Link
+                href="/dashboard"
+                className="block w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-semibold transition-colors"
+              >
+                Go to Dashboard
+              </Link>
+            </div>
+          </div>
+        </main>
       </div>
     )
   }
