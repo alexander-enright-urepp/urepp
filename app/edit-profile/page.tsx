@@ -30,6 +30,7 @@ interface ProfileFormData {
   twitter: string
   youtube: string
   bio: string
+  awards: string
 }
 
 const positions = [
@@ -104,6 +105,7 @@ export default function EditProfile() {
           twitter: profileData.twitter || '',
           youtube: profileData.youtube || '',
           bio: profileData.bio || '',
+          awards: profileData.awards || '',
         })
       } else {
         // No profile exists, redirect to create
@@ -205,6 +207,7 @@ export default function EditProfile() {
           twitter: data.twitter || null,
           youtube: data.youtube || null,
           bio: data.bio || null,
+          awards: data.awards || null,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id)
@@ -555,6 +558,22 @@ export default function EditProfile() {
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
                   placeholder="I'm a hard-working player focused on developing my skills..."
+                />
+              </div>
+            </div>
+
+            {/* Awards & Achievements */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Awards & Achievements</h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">List your awards and achievements (one per line)</label>
+                <textarea
+                  {...register('awards')}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                  placeholder="First-team All-Conference (2024)
+Team MVP (2023)
+Perfect Game All-American..."
                 />
               </div>
             </div>
