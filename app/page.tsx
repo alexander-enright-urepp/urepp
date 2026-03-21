@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Trophy, Video, Share2, User, LogOut, Plus, CheckCircle, Star, TrendingUp, Users, Target, Zap, ChevronRight } from 'lucide-react'
+import { ArrowRight, Trophy, Video, Share2, User, LogOut, Plus, CheckCircle, Star, TrendingUp, Users, Target, Zap, ChevronRight, BarChart3 } from 'lucide-react'
 import { getCurrentUser, signOut } from '@/lib/auth'
 
 export default function Home() {
@@ -321,6 +321,65 @@ export default function Home() {
               role="Head Coach • Texas A&M"
               position="Recruiting Coordinator"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Video Analytics Preview Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-babyblue-100 text-babyblue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <BarChart3 className="w-4 h-4" />
+              New Feature
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Track Your Performance</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Monitor video views, engagement, and recruiter interest with built-in analytics
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Stat Card 1 */}
+            <div className="bg-gradient-to-br from-babyblue-50 to-white border border-babyblue-100 rounded-2xl p-8 text-center shadow-lg shadow-babyblue-100/50">
+              <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Video className="w-8 h-8 text-babyblue-600" />
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">10,000+</div>
+              <div className="text-gray-600 font-medium">Total Video Views</div>
+              <div className="text-sm text-babyblue-600 mt-2">Track all your profile videos</div>
+            </div>
+
+            {/* Stat Card 2 */}
+            <div className="bg-gradient-to-br from-babyblue-50 to-white border border-babyblue-100 rounded-2xl p-8 text-center shadow-lg shadow-babyblue-100/50">
+              <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-babyblue-600" />
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-gray-600 font-medium">Coach Views</div>
+              <div className="text-sm text-babyblue-600 mt-2">See recruiter engagement</div>
+            </div>
+
+            {/* Stat Card 3 */}
+            <div className="bg-gradient-to-br from-babyblue-50 to-white border border-babyblue-100 rounded-2xl p-8 text-center shadow-lg shadow-babyblue-100/50">
+              <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-8 h-8 text-babyblue-600" />
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">+47%</div>
+              <div className="text-gray-600 font-medium">Profile Growth</div>
+              <div className="text-sm text-babyblue-600 mt-2">Month-over-month increase</div>
+            </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <p className="text-gray-500 mb-4">Available on all player profiles</p>
+            <Link
+              href="/profile/john-doe-2026"
+              className="inline-flex items-center gap-2 text-babyblue-600 font-semibold hover:text-babyblue-700 transition-colors"
+            >
+              See Example Analytics
+              <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </section>
