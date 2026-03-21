@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, GraduationCap, Calendar, Ruler, Scale } from 'lucide-react'
+import { AnalyticsWidget } from '@/components/AnalyticsWidget'
 
 // This would normally fetch from Supabase
 async function getProfile(slug: string) {
@@ -205,6 +206,11 @@ export default async function ProfilePage({ params }: PageProps) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Video Analytics */}
+        <div className="mt-6">
+          <AnalyticsWidget playerId={profile.id} />
         </div>
 
         {/* Videos Section */}
