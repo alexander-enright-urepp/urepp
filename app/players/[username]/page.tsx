@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Mail, MapPin, GraduationCap, Calendar, Ruler, Scale, Instagram, Twitter, Youtube, User, Trophy } from 'lucide-react'
 
+// Force dynamic rendering so awards are fetched fresh
+export const dynamic = 'force-dynamic'
+
 async function getProfile(username: string) {
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -134,8 +137,8 @@ export default async function PlayerProfilePage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Awards Section - DEBUG: Always show if awards exist */}
-            {profile.awards ? (
+            {/* Awards & Achievements */}
+            {profile.awards && profile.awards.trim() && (
               <div className="mb-6 bg-babyblue-50/50 rounded-xl p-5 border border-babyblue-100">
                 <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-babyblue-600" />
@@ -149,10 +152,6 @@ export default async function PlayerProfilePage({ params }: PageProps) {
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div className="mb-6 p-4 bg-gray-100 rounded-xl text-gray-500 text-sm">
-                No awards data found for this profile
               </div>
             )}
           </div>
