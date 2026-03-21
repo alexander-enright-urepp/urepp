@@ -88,7 +88,7 @@ export default function Home() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-babyblue-100 text-babyblue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Star className="w-4 h-4 fill-current" />
-              Trusted by 10,000+ Baseball Players
+              Trusted by 100 Baseball Players
             </div>
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Get Discovered by{' '}
@@ -149,10 +149,10 @@ export default function Home() {
       <section className="py-16 bg-white border-y border-babyblue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard number="10,000+" label="Player Profiles" />
-            <StatCard number="500+" label="College Coaches" />
-            <StatCard number="50+" label="States Represented" />
-            <StatCard number="1,200+" label="Recruitment Offers" />
+            <StatCard number="100+" label="Player Profiles" />
+            <StatCard number="50+" label="College Coaches" />
+            <StatCard number="50" label="States Represented" />
+            <StatCard number="100+" label="Recruitment Offers" />
           </div>
         </div>
       </section>
@@ -345,7 +345,7 @@ export default function Home() {
               <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Video className="w-8 h-8 text-babyblue-600" />
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">10,000+</div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">1,000+</div>
               <div className="text-gray-600 font-medium">Total Video Views</div>
               <div className="text-sm text-babyblue-600 mt-2">Track all your profile videos</div>
             </div>
@@ -355,7 +355,7 @@ export default function Home() {
               <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-babyblue-600" />
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">50+</div>
               <div className="text-gray-600 font-medium">Coach Views</div>
               <div className="text-sm text-babyblue-600 mt-2">See recruiter engagement</div>
             </div>
