@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, Mail, MapPin, GraduationCap, Calendar, Ruler, Scale, Instagram, Twitter, Youtube, User } from 'lucide-react'
+import { ArrowLeft, Mail, MapPin, GraduationCap, Calendar, Ruler, Scale, Instagram, Twitter, Youtube, User, Trophy } from 'lucide-react'
 
 async function getProfile(username: string) {
   const { data: profile, error } = await supabase
@@ -131,6 +131,24 @@ export default async function PlayerProfilePage({ params }: PageProps) {
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
                 <p className="text-gray-600 leading-relaxed">{profile.bio}</p>
+              </div>
+            )}
+
+            {/* Awards & Achievements */}
+            {profile.awards && (
+              <div className="mb-6 bg-babyblue-50/50 rounded-xl p-5 border border-babyblue-100">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-babyblue-600" />
+                  Awards & Achievements
+                </h2>
+                <div className="space-y-2">
+                  {profile.awards.split('\n').filter((line: string) => line.trim()).map((award: string, index: number) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <span className="w-2 h-2 bg-babyblue-400 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="text-gray-700">{award.trim()}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
