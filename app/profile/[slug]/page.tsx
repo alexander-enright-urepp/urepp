@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Phone, MapPin, GraduationCap, Calendar, Ruler, Scale } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, GraduationCap, Calendar, Ruler, Scale, Trophy } from 'lucide-react'
 import { AnalyticsWidget } from '@/components/AnalyticsWidget'
 
 // This would normally fetch from Supabase
@@ -39,6 +39,7 @@ async function getProfile(slug: string) {
         { id: '1', title: 'Summer Showcase Highlights', url: '#', description: 'Pitching and hitting from Perfect Game showcase' },
         { id: '2', title: 'Senior Year Skills Video', url: '#', description: '60-yard dash, throwing, fielding, and BP' }
       ],
+      awards: 'First-team All-Conference (2024)\nTeam MVP (2023)\nPerfect Game All-American',
       slug: 'john-doe-2026'
     }
   }
@@ -149,6 +150,24 @@ export default async function ProfilePage({ params }: PageProps) {
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
                 <p className="text-gray-600 leading-relaxed">{profile.bio}</p>
+              </div>
+            )}
+
+            {/* Awards & Achievements */}
+            {profile.awards && (
+              <div className="mb-6 bg-babyblue-50/50 rounded-xl p-5 border border-babyblue-100">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-babyblue-600" />
+                  Awards & Achievements
+                </h2>
+                <div className="space-y-2">
+                  {profile.awards.split('\n').filter(line => line.trim()).map((award, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <span className="w-2 h-2 bg-babyblue-400 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="text-gray-700">{award.trim()}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
