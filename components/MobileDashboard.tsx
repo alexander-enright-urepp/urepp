@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { User, LogOut, Edit, Eye, Plus, UserCircle } from "lucide-react"
+import { User, LogOut, Edit, Eye, Plus, UserCircle, Search } from "lucide-react"
+import { CreateProfile } from "./CreateProfile"
+import { EditProfile } from "./EditProfile"
+import { MobileSearch } from "./MobileSearch"
 
 interface Profile {
   id: string
@@ -17,9 +20,12 @@ interface Profile {
   state: string
 }
 
+type View = "dashboard" | "create" | "edit" | "search"
+
 export function MobileDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [currentView, setCurrentView] = useState<View>("dashboard")
 
   useEffect(() => {
     fetchProfile()
@@ -44,6 +50,29 @@ export function MobileDashboard() {
     window.location.reload()
   }
 
+  function handleCreateSuccess() {
+    fetchProfile()
+    setCurrentView("dashboard")
+  }
+
+  function handleEditSuccess() {
+    fetchProfile()
+    setCurrentView("dashboard")
+  }
+
+  // Render different views
+  if (currentView === "create") {
+    return <CreateProfile onBack={() => setCurrentView("dashboard")} onSuccess={handleCreateSuccess} />
+  }
+
+  if (currentView === "edit") {
+    return <EditProfile onBack={() => setCurrentView("dashboard")} onSuccess={handleEditSuccess} />
+  }
+
+  if (currentView === "search") {
+    return <MobileSearch onBack={() => setCurrentView("dashboard")} />
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
@@ -58,12 +87,21 @@ export function MobileDashboard() {
       <div className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50 px-4 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-babyblue-600">UREPP</h1>
-          <button
-            onClick={signOut}
-            className="p-2 text-gray-600 hover:text-gray-900"
-          >
-            <LogOut size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentView("search")}
+              className="p-2 text-gray-600 hover:text-babyblue-600"
+              aria-label="Search"
+            >
+              <Search size={20} />
+            </button>
+            <button
+              onClick={signOut}
+              className="p-2 text-gray-600 hover:text-gray-900"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -105,7 +143,7 @@ export function MobileDashboard() {
 
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => alert('Edit profile coming soon!')}
+                  onClick={() => setCurrentView("edit")}
                   className="flex-1 flex items-center justify-center gap-2 bg-babyblue-500 text-white px-4 py-3 rounded-xl font-medium"
                 >
                   <Edit size={18} />
@@ -153,7 +191,7 @@ export function MobileDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Profile</h2>
             <p className="text-gray-600 mb-6">Build your profile to get discovered by college coaches.</p>
             <button
-              onClick={() => alert('Create profile coming soon!')}
+              onClick={() => setCurrentView("create")}
               className="bg-babyblue-500 text-white px-6 py-3 rounded-xl font-semibold"
             >
               Create Profile
