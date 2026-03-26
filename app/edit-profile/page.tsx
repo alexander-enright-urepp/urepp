@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Upload, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { SPORT_OPTIONS, getSportConfig, Sport, isValidSport } from '@/lib/sports'
 
 interface ProfileFormData {
   firstName: string
   lastName: string
   username: string
+  sport: Sport
   city: string
   state: string
   highSchool: string
@@ -22,9 +24,9 @@ interface ProfileFormData {
   gradYear: string
   height: string
   weight: string
-  exitVelocity: string
-  pitchVelocity: string
-  sixtyTime: string
+  statPrimary: string
+  statSecondary: string
+  statTertiary: string
   gpa: string
   instagram: string
   twitter: string
@@ -32,10 +34,6 @@ interface ProfileFormData {
   bio: string
   awards: string
 }
-
-const positions = [
-  'RHP', 'LHP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'OF', 'UTIL'
-]
 
 const states = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -58,8 +56,27 @@ export default function EditProfile() {
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [selectedSport, setSelectedSport] = useState<Sport>('baseball')
 
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<ProfileFormData>()
+  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<ProfileFormData>()
+
+  const sportConfig = getSportConfig(selectedSport)
+
+  // Watch sport changes to update positions
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'sport') {
+        const newSport = value.sport as Sport
+        if (isValidSport(newSport)) {
+          setSelectedSport(newSport)
+          // Clear positions when sport changes
+          setValue('primaryPosition', '')
+          setValue('secondaryPosition', '')
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, setValue])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,11 +98,18 @@ export default function EditProfile() {
         setProfile(profileData)
         setImagePreview(profileData.profile_picture_url)
         
+        // Set the sport
+        const userSport = (profileData.sport || 'baseball') as Sport
+        if (isValidSport(userSport)) {
+          setSelectedSport(userSport)
+        }
+        
         // Reset form with existing data
         reset({
           firstName: profileData.first_name,
           lastName: profileData.last_name,
           username: profileData.username,
+          sport: userSport,
           city: profileData.city || '',
           state: profileData.state || '',
           highSchool: profileData.high_school,
@@ -97,9 +121,9 @@ export default function EditProfile() {
           gradYear: profileData.grad_year.toString(),
           height: profileData.height || '',
           weight: profileData.weight || '',
-          exitVelocity: profileData.exit_velocity?.toString() || '',
-          pitchVelocity: profileData.pitch_velocity?.toString() || '',
-          sixtyTime: profileData.sixty_time?.toString() || '',
+          statPrimary: profileData.stat_primary || profileData.exit_velocity?.toString() || '',
+          statSecondary: profileData.stat_secondary || profileData.pitch_velocity?.toString() || '',
+          statTertiary: profileData.stat_tertiary || profileData.sixty_time?.toString() || '',
           gpa: profileData.gpa?.toString() || '',
           instagram: profileData.instagram || '',
           twitter: profileData.twitter || '',
@@ -188,6 +212,7 @@ export default function EditProfile() {
           last_name: data.lastName,
           username: data.username.toLowerCase(),
           profile_picture_url: profilePictureUrl,
+          sport: data.sport,
           city: data.city || null,
           state: data.state || null,
           high_school: data.highSchool,
@@ -199,9 +224,9 @@ export default function EditProfile() {
           grad_year: parseInt(data.gradYear),
           height: data.height || null,
           weight: data.weight || null,
-          exit_velocity: data.exitVelocity ? parseInt(data.exitVelocity) : null,
-          pitch_velocity: data.pitchVelocity ? parseInt(data.pitchVelocity) : null,
-          sixty_time: data.sixtyTime ? parseFloat(data.sixtyTime) : null,
+          stat_primary: data.statPrimary || null,
+          stat_secondary: data.statSecondary || null,
+          stat_tertiary: data.statTertiary || null,
           gpa: data.gpa ? parseFloat(data.gpa) : null,
           instagram: data.instagram || null,
           twitter: data.twitter || null,
@@ -304,6 +329,23 @@ export default function EditProfile() {
               </div>
             </div>
 
+            {/* Sport Selection */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Sport</h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Your Sport *</label>
+                <select
+                  {...register('sport', { required: 'Sport is required' })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                >
+                  {SPORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                {errors.sport && <p className="text-red-500 text-sm mt-1">{errors.sport.message}</p>}
+              </div>
+            </div>
+
             {/* Basic Information */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Basic Information</h2>
@@ -399,9 +441,9 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Baseball Information */}
+            {/* Position Information */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Baseball Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Position Information</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Primary Position *</label>
@@ -410,7 +452,7 @@ export default function EditProfile() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
                   >
                     <option value="">Select Position</option>
-                    {positions.map(pos => (
+                    {sportConfig.positions.map(pos => (
                       <option key={pos} value={pos}>{pos}</option>
                     ))}
                   </select>
@@ -423,40 +465,44 @@ export default function EditProfile() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
                   >
                     <option value="">Select Position</option>
-                    {positions.map(pos => (
+                    {sportConfig.positions.map(pos => (
                       <option key={pos} value={pos}>{pos}</option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bats</label>
-                  <select
-                    {...register('bats')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select</option>
-                    <option value="R">Right</option>
-                    <option value="L">Left</option>
-                    <option value="S">Switch</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Throws</label>
-                  <select
-                    {...register('throws')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select</option>
-                    <option value="R">Right</option>
-                    <option value="L">Left</option>
-                  </select>
-                </div>
+                {selectedSport === 'baseball' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bats</label>
+                      <select
+                        {...register('bats')}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                      >
+                        <option value="">Select</option>
+                        <option value="R">Right</option>
+                        <option value="L">Left</option>
+                        <option value="S">Switch</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Throws</label>
+                      <select
+                        {...register('throws')}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                      >
+                        <option value="">Select</option>
+                        <option value="R">Right</option>
+                        <option value="L">Left</option>
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
                   <input
                     {...register('height')}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="6'1&quot;"
+                    placeholder={"6'1\""}
                   />
                 </div>
                 <div>
@@ -470,36 +516,35 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Metrics */}
+            {/* Sport-Specific Metrics */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Baseball Metrics</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">{sportConfig.displayName} Metrics</h2>
               <div className="grid md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Exit Velocity (mph)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{sportConfig.primaryStat.label} ({sportConfig.primaryStat.unit})</label>
                   <input
-                    type="number"
-                    {...register('exitVelocity')}
+                    type="text"
+                    {...register('statPrimary')}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="95"
+                    placeholder={sportConfig.primaryStat.placeholder}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pitch Velocity (mph)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{sportConfig.secondaryStat.label} ({sportConfig.secondaryStat.unit})</label>
                   <input
-                    type="number"
-                    {...register('pitchVelocity')}
+                    type="text"
+                    {...register('statSecondary')}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="88"
+                    placeholder={sportConfig.secondaryStat.placeholder}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">60 Yard Dash (sec)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{sportConfig.tertiaryStat.label} ({sportConfig.tertiaryStat.unit})</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    {...register('sixtyTime')}
+                    type="text"
+                    {...register('statTertiary')}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="6.8"
+                    placeholder={sportConfig.tertiaryStat.placeholder}
                   />
                 </div>
                 <div>

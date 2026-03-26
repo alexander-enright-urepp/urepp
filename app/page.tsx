@@ -31,7 +31,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <span className="text-2xl font-bold text-babyblue-600">UREPP</span>
-              <span className="ml-2 text-sm text-babyblue-500 hidden sm:inline">Baseball Recruitment</span>
+              <span className="ml-2 text-sm text-babyblue-500 hidden sm:inline">Sports Recruitment</span>
             </div>
             <div className="flex gap-3 items-center">
               {!loading && (
@@ -88,7 +88,7 @@ export default function Home() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-babyblue-100 text-babyblue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Star className="w-4 h-4 fill-current" />
-              Trusted by 100 Baseball Players
+              Trusted by Athletes Across 5 Sports
             </div>
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Get Discovered by{' '}
@@ -96,7 +96,7 @@ export default function Home() {
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
               Create your professional recruiting profile in minutes. Showcase your stats, 
-              skills, and achievements to 500+ college baseball programs actively scouting for talent.
+              skills, and achievements to college programs actively scouting for talent across Baseball, Football, Basketball, Soccer, and Hockey.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
               {user ? (
