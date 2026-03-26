@@ -7,7 +7,11 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'UREPP - Universal Recruitment Profile Platform',
-  description: 'Create and share your baseball recruitment profile',
+  description: 'Create and share your sports recruiting profile',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({
