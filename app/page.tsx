@@ -95,7 +95,7 @@ export default function Home() {
               <span className="text-babyblue-500">College Coaches</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Create your professional recruiting profile in minutes. Showcase your stats, 
+              Create your professional recruiting profile in minutes. Showcase your stats,
               skills, and achievements to college programs across Baseball, Football, Basketball, Soccer, Hockey, and Volleyball.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
@@ -125,7 +125,7 @@ export default function Home() {
                 </>
               )}
             </div>
-            
+
             {/* Trust Badges */}
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
               <div className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export default function Home() {
                 Your Profile, Your Story
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                A professional, clean layout that puts your achievements front and center. 
+                A professional, clean layout that puts your achievements front and center.
                 Coaches see your stats, videos, academics, and contact info all in one place.
               </p>
               <ul className="space-y-4 mb-8">
@@ -391,7 +391,7 @@ export default function Home() {
             Ready to Get Recruited?
           </h2>
           <p className="text-xl text-babyblue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of baseball players who are getting discovered by college coaches. 
+            Join thousands of athletes who are getting discovered by college coaches.
             Create your free profile in minutes.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -422,7 +422,7 @@ export default function Home() {
             <div>
               <h3 className="text-2xl font-bold text-babyblue-400 mb-4">UREPP</h3>
               <p className="text-gray-400">
-                The ultimate platform for baseball recruitment. Connecting players with college coaches since 2024.
+              The ultimate platform for sports recruitment. Connecting players with college coaches since 2024.
               </p>
             </div>
             <div>
