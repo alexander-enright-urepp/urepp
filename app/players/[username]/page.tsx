@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getSportConfig, Sport } from '@/lib/sports'
 import { ArrowLeft, Mail, MapPin, GraduationCap, Calendar, Ruler, Scale, Instagram, Twitter, Youtube, User, Trophy } from 'lucide-react'
 
 // Force dynamic rendering so awards are fetched fresh
@@ -32,6 +33,9 @@ export default async function PlayerProfilePage({ params }: PageProps) {
   if (!profile) {
     notFound()
   }
+
+  const sport = (profile.sport || 'baseball') as Sport
+  const sportConfig = getSportConfig(sport)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
@@ -89,9 +93,14 @@ export default async function PlayerProfilePage({ params }: PageProps) {
               
               {/* Name & Basic Info */}
               <div className="mt-4 md:mt-0 md:ml-6 flex-1">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {profile.first_name} {profile.last_name}
-                </h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {profile.first_name} {profile.last_name}
+                  </h1>
+                  <span className="bg-babyblue-100 text-babyblue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {sportConfig.displayName}
+                  </span>
+                </div>
                 <p className="text-babyblue-600 font-medium text-lg">@{profile.username}</p>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-gray-600">
                   <span className="flex items-center gap-1">
@@ -117,7 +126,7 @@ export default async function PlayerProfilePage({ params }: PageProps) {
                   GPA: {profile.gpa}
                 </span>
               )}
-              {(profile.bats || profile.throws) && (
+              {sport === 'baseball' && (profile.bats || profile.throws) && (
                 <span className="bg-babyblue-100 text-babyblue-800 px-3 py-1 rounded-full text-sm font-medium">
                   {profile.bats && `${profile.bats}H`}{profile.bats && profile.throws && ' / '}{profile.throws && `${profile.throws}H`}
                 </span>
@@ -170,22 +179,38 @@ export default async function PlayerProfilePage({ params }: PageProps) {
               <InfoRow label="State" value={profile.state} />
               <InfoRow label="Height" value={profile.height} />
               <InfoRow label="Weight" value={profile.weight ? `${profile.weight} lbs` : null} />
-              <InfoRow label="Bats" value={profile.bats} />
-              <InfoRow label="Throws" value={profile.throws} />
+              {sport === 'baseball' && (
+                <>
+                  <InfoRow label="Bats" value={profile.bats} />
+                  <InfoRow label="Throws" value={profile.throws} />
+                </>
+              )}
             </div>
           </div>
 
-          {/* Baseball Metrics */}
+          {/* Sport-Specific Metrics */}
           <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Ruler className="w-5 h-5 text-babyblue-500" />
-              Baseball Metrics
+              {sportConfig.displayName} Metrics
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <StatBox label="Exit Velocity" value={profile.exit_velocity ? `${profile.exit_velocity} mph` : '-'} />
-              <StatBox label="Pitch Velocity" value={profile.pitch_velocity ? `${profile.pitch_velocity} mph` : '-'} />
-              <StatBox label="60 Yard Dash" value={profile.sixty_time ? `${profile.sixty_time}s` : '-'} />
-              <StatBox label="GPA" value={profile.gpa || '-'} />
+              <StatBox 
+                label={sportConfig.primaryStat.label} 
+                value={profile.stat_primary || profile.exit_velocity?.toString() || '-'} 
+                unit={sportConfig.primaryStat.unit}
+              />
+              <StatBox 
+                label={sportConfig.secondaryStat.label} 
+                value={profile.stat_secondary || profile.pitch_velocity?.toString() || '-'} 
+                unit={sportConfig.secondaryStat.unit}
+              />
+              <StatBox 
+                label={sportConfig.tertiaryStat.label} 
+                value={profile.stat_tertiary || profile.sixty_time?.toString() || '-'} 
+                unit={sportConfig.tertiaryStat.unit}
+              />
+              <StatBox label="GPA" value={profile.gpa || '-'} unit="" />
             </div>
           </div>
 
@@ -262,17 +287,20 @@ export default async function PlayerProfilePage({ params }: PageProps) {
       {/* Footer */}
       <footer className="border-t border-babyblue-200/50 bg-white/50 py-8 mt-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          <p>UREPP - The Baseball Recruitment Platform</p>
+          <p>UREPP - The Sports Recruitment Platform</p>
         </div>
       </footer>
     </div>
   )
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
+function StatBox({ label, value, unit }: { label: string; value: string | number; unit: string }) {
+  const displayValue = value === '-' || value === null || value === undefined ? '-' : value
+  const displayUnit = displayValue === '-' ? '' : unit
+  
   return (
     <div className="text-center p-4 bg-babyblue-50 rounded-xl">
-      <p className="text-xl font-bold text-babyblue-700">{value}</p>
+      <p className="text-xl font-bold text-babyblue-700">{String(displayValue)}{displayUnit && <span className="text-sm">{displayUnit}</span>}</p>
       <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">{label}</p>
     </div>
   )
