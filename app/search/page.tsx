@@ -31,7 +31,7 @@ export default function SearchPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Players</h1>
           <p className="text-gray-600">
-            Find baseball players by name, position, graduation year, or location.
+            Find athletes by name, position, graduation year, or location.
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export default function SearchPage() {
       {/* Footer */}
       <footer className="border-t border-babyblue-200/50 bg-white/50 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          <p>UREPP - The Baseball Recruitment Platform</p>
+          <p>UREPP - The Sports Recruitment Platform</p>
         </div>
       </footer>
     </div>
