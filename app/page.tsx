@@ -31,7 +31,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <span className="text-2xl font-bold text-babyblue-600">UREPP</span>
-              <span className="ml-2 text-sm text-babyblue-500 hidden sm:inline">Baseball Recruitment</span>
+              <span className="ml-2 text-sm text-babyblue-500 hidden sm:inline">Sports Recruitment</span>
             </div>
             <div className="flex gap-3 items-center">
               {!loading && (

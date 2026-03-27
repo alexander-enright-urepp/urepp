@@ -1,7 +1,7 @@
 // Sport configuration for UREPP
 // Defines positions, metrics, and labels for each supported sport
 
-export type Sport = 'baseball' | 'football' | 'basketball' | 'soccer' | 'hockey';
+export type Sport = 'baseball' | 'football' | 'basketball' | 'soccer' | 'hockey' | 'volleyball';
 
 export interface SportConfig {
   name: string;
@@ -134,6 +134,28 @@ export const SPORTS: Record<Sport, SportConfig> = {
       placeholder: '.915',
       unit: ''
     }
+  },
+  volleyball: {
+    name: 'volleyball',
+    displayName: 'Volleyball',
+    positions: [
+      'OH', 'MB', 'S', 'OPP', 'L', 'DS'
+    ],
+    primaryStat: {
+      label: 'Vertical Jump',
+      placeholder: '28',
+      unit: 'in'
+    },
+    secondaryStat: {
+      label: 'Attack %',
+      placeholder: '.320',
+      unit: ''
+    },
+    tertiaryStat: {
+      label: 'Blocks Per Set',
+      placeholder: '1.2',
+      unit: ''
+    }
   }
 };
 
@@ -142,7 +164,8 @@ export const SPORT_OPTIONS: { value: Sport; label: string }[] = [
   { value: 'football', label: 'Football' },
   { value: 'basketball', label: 'Basketball' },
   { value: 'soccer', label: 'Soccer' },
-  { value: 'hockey', label: 'Hockey' }
+  { value: 'hockey', label: 'Hockey' },
+  { value: 'volleyball', label: 'Volleyball' }
 ];
 
 export function getSportConfig(sport: Sport): SportConfig {
