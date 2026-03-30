@@ -137,6 +137,12 @@ export default function EditProfile() {
     setSaving(true)
     setError('')
     
+    if (!profile?.id) {
+      setError('Profile not loaded. Please refresh.')
+      setSaving(false)
+      return
+    }
+    
     try {
       const updateData = {
         first_name: data.firstName,
@@ -161,9 +167,19 @@ export default function EditProfile() {
         awards: data.awards,
       }
       
-      await supabase.from('profiles').update(updateData).eq('id', profile.id)
+      console.log('Saving data:', updateData)
+      const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', profile.id)
+      
+      if (updateError) {
+        console.error('Save error:', updateError)
+        setError('Save failed: ' + updateError.message)
+        setSaving(false)
+        return
+      }
+      
       router.push('/dashboard')
     } catch (err: any) {
+      console.error('Catch error:', err)
       setError(err.message)
       setSaving(false)
     }
