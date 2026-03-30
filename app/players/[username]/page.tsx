@@ -334,30 +334,32 @@ function ResumeTab({ profile }: { profile: Profile }) {
 
       {/* Links */}
       {profile.profile_links && profile.profile_links.filter((l: any) => l.is_visible).length > 0 && (
-        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-          <div className="flex items-center gap-2 mb-3">
-            <LinkIcon className="w-5 h-5 text-babyblue-500" />
-            <h3 className="font-semibold text-gray-900">Links</h3>
-          </div>
-          <div className="space-y-2">
-            {profile.profile_links?.filter((l: any) => l.is_visible).map((link: any) => (
-              <a 
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+        <div className="space-y-3">
+          {profile.profile_links?.filter((l: any) => l.is_visible).map((link: any) => (
+            <a 
+              key={link.id}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 cursor-pointer group"
+            >
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                style={{ background: link.color || '#0ea5e9' }}
               >
-                <div 
-                  className="w-6 h-6 rounded flex items-center justify-center text-xs text-white"
-                  style={{ background: link.color || '#0ea5e9' }}
-                >
-                  {link.icon || '🔗'}
-                </div>
-                {link.title}
-              </a>
-            ))}
-          </div>
+                {link.icon || '🔗'}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{link.title}</h3>
+                {link.subtitle && <p className="text-sm text-gray-500">{link.subtitle}</p>}
+              </div>
+              <div className="text-gray-400 group-hover:text-babyblue-500 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+          ))}
         </div>
       )}
 
