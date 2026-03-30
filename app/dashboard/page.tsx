@@ -10,6 +10,7 @@ import { StatsEditor } from '@/components/StatsEditor'
 import { VideoUploader } from '@/components/VideoUploader'
 import { AnalyticsWidget } from '@/components/AnalyticsWidget'
 import { ShareableCard } from '@/components/ShareableCard'
+import { LinksEditor } from '@/components/LinksEditor'
 
 interface Profile {
   id: string
