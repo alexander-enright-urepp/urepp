@@ -17,7 +17,8 @@ import {
   Youtube,
   Linkedin,
   Check,
-  X
+  X,
+  Mail
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -552,6 +553,15 @@ export default function EditProfile() {
         <SectionCard title="Social Links" icon={<LinkIcon className="w-5 h-5" />}>
           <div className="space-y-3">
             <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <Input 
+                value={socials.email || ''} 
+                onChange={e => updateSocial('email', e.target.value)}
+                placeholder="your@email.com"
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
               <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pink-500" />
               <Input 
                 value={socials.instagram || ''} 
@@ -584,6 +594,33 @@ export default function EditProfile() {
                 value={socials.linkedin || ''} 
                 onChange={e => updateSocial('linkedin', e.target.value)}
                 placeholder="profile URL"
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-black">TT</span>
+              <Input 
+                value={socials.tiktok || ''} 
+                onChange={e => updateSocial('tiktok', e.target.value)}
+                placeholder="TikTok @username"
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-600">HUDL</span>
+              <Input 
+                value={socials.hudl || ''} 
+                onChange={e => updateSocial('hudl', e.target.value)}
+                placeholder="Hudl profile URL"
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-600">MAX</span>
+              <Input 
+                value={socials.maxpreps || ''} 
+                onChange={e => updateSocial('maxpreps', e.target.value)}
+                placeholder="MaxPreps profile URL"
                 className="pl-10"
               />
             </div>
