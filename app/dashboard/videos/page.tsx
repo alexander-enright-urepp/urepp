@@ -15,7 +15,11 @@ import {
   AlertCircle,
   CheckCircle,
   Play,
-  X
+  X,
+  GripVertical,
+  Save,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
@@ -26,6 +30,7 @@ interface Video {
   description: string
   url: string
   created_at: string
+  display_order: number
 }
 
 export default function VideosPage() {
@@ -33,6 +38,7 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [reordering, setReordering] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingVideo, setEditingVideo] = useState<Video | null>(null)
@@ -64,11 +70,12 @@ export default function VideosPage() {
     if (profileData) {
       setProfile(profileData)
       
-      // Get videos
+      // Get videos - ordered by display_order, then created_at
       const { data: videosData } = await supabase
         .from('videos')
         .select('*')
         .eq('profile_id', profileData.id)
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false })
       
       setVideos(videosData || [])
@@ -123,22 +130,30 @@ export default function VideosPage() {
 
     setSaving(true)
 
+    // Get the highest display_order
+    const maxOrder = videos.length > 0 ? Math.max(...videos.map(v => v.display_order || 0)) : 0
+
     const videoData = {
       profile_id: profile.id,
       title: title.trim(),
       description: description.trim(),
       url: url.trim(),
+      display_order: maxOrder + 1,
     }
 
     if (editingVideo) {
       // Update existing
       const { error } = await supabase
         .from('videos')
-        .update(videoData)
+        .update({
+          title: title.trim(),
+          description: description.trim(),
+          url: url.trim(),
+        })
         .eq('id', editingVideo.id)
       
       if (!error) {
-        setVideos(videos.map(v => v.id === editingVideo.id ? { ...v, ...videoData } : v))
+        setVideos(videos.map(v => v.id === editingVideo.id ? { ...v, title: title.trim(), description: description.trim(), url: url.trim() } : v))
       }
     } else {
       // Create new
@@ -149,7 +164,7 @@ export default function VideosPage() {
         .single()
       
       if (data && !error) {
-        setVideos([data, ...videos])
+        setVideos([...videos, data])
       }
     }
 
@@ -168,6 +183,42 @@ export default function VideosPage() {
     if (!error) {
       setVideos(videos.filter(v => v.id !== videoId))
     }
+  }
+
+  const moveVideo = (index: number, direction: 'up' | 'down') => {
+    const newVideos = [...videos]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    
+    if (targetIndex < 0 || targetIndex >= newVideos.length) return
+    
+    // Swap videos
+    const temp = newVideos[index]
+    newVideos[index] = newVideos[targetIndex]
+    newVideos[targetIndex] = temp
+    
+    // Update display_order
+    const updatedVideos = newVideos.map((video, idx) => ({
+      ...video,
+      display_order: idx
+    }))
+    
+    setVideos(updatedVideos)
+  }
+
+  const saveOrder = async () => {
+    if (!profile) return
+    
+    setReordering(true)
+    
+    // Update each video's display_order
+    for (let i = 0; i < videos.length; i++) {
+      await supabase
+        .from('videos')
+        .update({ display_order: i })
+        .eq('id', videos[i].id)
+    }
+    
+    setReordering(false)
   }
 
   const openAddModal = () => {
@@ -223,17 +274,43 @@ export default function VideosPage() {
                 <p className="text-sm text-gray-500">{videos.length} video{videos.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
-            <button
-              onClick={openAddModal}
-              className="w-10 h-10 rounded-xl bg-babyblue-500 hover:bg-babyblue-600 text-white flex items-center justify-center transition-colors shadow-md shadow-babyblue-200"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
+            <div className="flex gap-2">
+              {videos.length > 1 && (
+                <button
+                  onClick={saveOrder}
+                  disabled={reordering}
+                  className="w-10 h-10 rounded-xl bg-babyblue-100 hover:bg-babyblue-200 text-babyblue-600 flex items-center justify-center transition-colors"
+                  title="Save Order"
+                >
+                  {reordering ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Save className="w-5 h-5" />
+                  )}
+                </button>
+              )}
+              <button
+                onClick={openAddModal}
+                className="w-10 h-10 rounded-xl bg-babyblue-500 hover:bg-babyblue-600 text-white flex items-center justify-center transition-colors shadow-md shadow-babyblue-200"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-md mx-auto px-4 py-6">
+        {/* Reorder Hint */}
+        {videos.length > 1 && (
+          <div className="bg-babyblue-50 border border-babyblue-100 rounded-xl p-3 mb-4">
+            <p className="text-sm text-babyblue-700 flex items-center gap-2">
+              <GripVertical className="w-4 h-4" />
+              Use arrows to reorder videos. Click save when done.
+            </p>
+          </div>
+        )}
+
         {/* Empty State */}
         {videos.length === 0 && (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-babyblue-100">
@@ -257,38 +334,63 @@ export default function VideosPage() {
         {/* Video List */}
         {videos.length > 0 && (
           <div className="space-y-4">
-            {videos.map((video) => (
+            {videos.map((video, index) => (
               <div 
                 key={video.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-babyblue-100"
+                className="bg-white rounded-2xl overflow-hidden border border-babyblue-100"
               >
-                <YouTubeThumbnail 
-                  url={video.url} 
-                  title={video.title}
-                  onClick={() => window.open(video.url, '_blank')}
-                />
-                
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{video.title}</h3>
-                      {video.description && (
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{video.description}</p>
-                      )}
+                <div className="flex">
+                  {/* Reorder Controls */}
+                  {videos.length > 1 && (
+                    <div className="flex flex-col border-r border-babyblue-100">
+                      <button
+                        onClick={() => moveVideo(index, 'up')}
+                        disabled={index === 0}
+                        className="flex-1 px-2 py-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronUp className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => moveVideo(index, 'down')}
+                        disabled={index === videos.length - 1}
+                        className="flex-1 px-2 py-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronDown className="w-5 h-5" />
+                      </button>
                     </div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => openEditModal(video)}
-                        className="p-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 rounded-lg transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(video.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  )}
+                  
+                  {/* Video Content */}
+                  <div className="flex-1">
+                    <YouTubeThumbnail 
+                      url={video.url}
+                      title={video.title}
+                      onClick={() => window.open(video.url, '_blank')}
+                    />
+                    
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{video.title}</h3>
+                          {video.description && (
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{video.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => openEditModal(video)}
+                            className="p-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 rounded-lg transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(video.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -416,7 +518,7 @@ export default function VideosPage() {
               <button
                 onClick={closeModal}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition-colors"
-              >
+              
                 Cancel
               </button>
             </div>
