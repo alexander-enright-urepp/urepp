@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  GraduationCap, 
-  Calendar, 
-  Ruler, 
-  Scale, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
+  Calendar,
+  Ruler,
+  Scale,
   Trophy,
   Instagram,
   Twitter,
@@ -84,19 +84,19 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         .select('*, profile_links(*)')
         .eq('username', params.username.toLowerCase())
         .single()
-      
+
       if (!profileData) {
         notFound()
         return
       }
-      
+
       // Fetch videos separately
       const { data: videosData } = await supabase
         .from('videos')
         .select('*')
         .eq('profile_id', profileData.id)
         .order('created_at', { ascending: false })
-      
+
       setProfile({
         ...profileData,
         videos: videosData || []
@@ -183,7 +183,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
             {/* Social Icons */}
             <div className="flex justify-center gap-3 mt-5 flex-wrap">
               {profile.email && (
-                <a 
+                <a
                   href={`mailto:${profile.email}`}
                   className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
                 >
@@ -191,7 +191,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.instagram && (
-                <a 
+                <a
                   href={`https://instagram.com/${profile.instagram.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -201,7 +201,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.twitter && (
-                <a 
+                <a
                   href={`https://twitter.com/${profile.twitter.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -211,11 +211,11 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.tiktok && (
-                <a 
+                <a
                   href={`https://tiktok.com/@${profile.tiktok.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center text-white transition-colors"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
@@ -223,7 +223,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.youtube && (
-                <a 
+                <a
                   href={profile.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -233,7 +233,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.linkedin && (
-                <a 
+                <a
                   href={profile.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -243,21 +243,21 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                 </a>
               )}
               {profile.hudl && (
-                <a 
+                <a
                   href={profile.hudl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-orange-50 hover:bg-orange-100 flex items-center justify-center text-orange-600 hover:text-orange-700 transition-colors"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
                 >
                   <span className="text-xs font-bold">HUDL</span>
                 </a>
               )}
               {profile.maxpreps && (
-                <a 
+                <a
                   href={profile.maxpreps}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 hover:text-blue-700 transition-colors"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
                 >
                   <span className="text-xs font-bold">MP</span>
                 </a>
@@ -274,14 +274,14 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         {/* Action Cards */}
         <div className="mt-4 space-y-3">
           {profile.profile_links?.filter((l: any) => l.is_visible).map((link: any) => (
-            <a 
+            <a
               key={link.id}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 cursor-pointer group"
             >
-              <div 
+              <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
                 style={{ background: link.color || '#0ea5e9', color: 'white' }}
               >
@@ -298,7 +298,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
               </div>
             </a>
           ))}
-          
+
           {profile.awards && (
             <div className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -321,7 +321,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <Link 
+          <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
           >
@@ -341,20 +341,20 @@ function ProfileContent({ profile }: { profile: Profile }) {
     <div>
       {/* Tabs */}
       <div className="flex border-b border-babyblue-100">
-        <TabButton 
-          active={activeTab === 'resume'} 
+        <TabButton
+          active={activeTab === 'resume'}
           onClick={() => setActiveTab('resume')}
           icon={<FileText className="w-4 h-4" />}
           label="Resume"
         />
-        <TabButton 
-          active={activeTab === 'media'} 
+        <TabButton
+          active={activeTab === 'media'}
           onClick={() => setActiveTab('media')}
           icon={<Play className="w-4 h-4" />}
           label="Media"
         />
-        <TabButton 
-          active={activeTab === 'stats'} 
+        <TabButton
+          active={activeTab === 'stats'}
           onClick={() => setActiveTab('stats')}
           icon={<BarChart3 className="w-4 h-4" />}
           label="Stats"
@@ -371,23 +371,23 @@ function ProfileContent({ profile }: { profile: Profile }) {
   )
 }
 
-function TabButton({ 
-  active, 
-  onClick, 
-  icon, 
-  label 
-}: { 
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label
+}: {
   active: boolean
   onClick: () => void
   icon: React.ReactNode
-  label: string 
+  label: string
 }) {
   return (
     <button
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-colors ${
-        active 
-          ? 'text-babyblue-600 border-b-2 border-babyblue-500 bg-babyblue-50/50' 
+        active
+          ? 'text-babyblue-600 border-b-2 border-babyblue-500 bg-babyblue-50/50'
           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
       }`}
     >
@@ -522,7 +522,7 @@ function ResumeTab({ profile }: { profile: Profile }) {
         <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
         <div className="space-y-2">
           {profile.email && (
-            <a 
+            <a
               href={`mailto:${profile.email}`}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
             >
@@ -531,7 +531,7 @@ function ResumeTab({ profile }: { profile: Profile }) {
             </a>
           )}
           {profile.phone && (
-            <a 
+            <a
               href={`tel:${profile.phone}`}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
             >
@@ -558,11 +558,11 @@ function MediaTab({ videos }: { videos?: any[] }) {
   return (
     <div className="space-y-3">
       {videos.map((video) => (
-        <div 
-          key={video.id} 
+        <div
+          key={video.id}
           className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors"
         >
-          <YouTubeThumbnail 
+          <YouTubeThumbnail
             url={video.url}
             title={video.title}
             onClick={() => window.open(video.url, '_blank')}

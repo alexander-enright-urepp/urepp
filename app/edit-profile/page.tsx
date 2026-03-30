@@ -175,6 +175,16 @@ export default function EditProfile() {
         avatar_url: imagePreview,
         high_school_sports: highSchoolSports,
         college_sports: collegeSports,
+        // Save social links as individual columns (for public profile)
+        email: socials.email,
+        instagram: socials.instagram,
+        twitter: socials.twitter,
+        youtube: socials.youtube,
+        linkedin: socials.linkedin,
+        tiktok: socials.tiktok,
+        hudl: socials.hudl,
+        maxpreps: socials.maxpreps,
+        // Keep social_links for backwards compatibility
         social_links: socials,
       }
       
