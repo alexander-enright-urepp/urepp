@@ -15,7 +15,11 @@ import {
   Share2,
   ArrowLeft,
   FileText,
-  Play
+  Play,
+  BarChart3,
+  Trophy,
+  Link as LinkIcon,
+  ExternalLink
 } from 'lucide-react'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -35,6 +39,7 @@ interface Profile {
   sat_score?: string
   act_score?: string
   bio?: string
+  awards?: string
   profile_picture_url?: string
   college_name?: string
   college_city?: string
@@ -42,6 +47,15 @@ interface Profile {
   college_grad_year?: number
   high_school_sports?: string[]
   college_sports?: string[]
+  stats_json?: {
+    batting_avg?: string
+    obp?: string
+    slg?: string
+    era?: string
+    whip?: string
+    k_per_9?: string
+    innings?: string
+  }
   videos?: any[]
   instagram?: string
   twitter?: string
@@ -50,6 +64,7 @@ interface Profile {
   tiktok?: string
   hudl?: string
   maxpreps?: string
+  profile_links?: any[]
 }
 
 export default function PlayerProfilePage({ params }: { params: { username: string } }) {
@@ -61,7 +76,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
     const fetchProfile = async () => {
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, profile_links(*)')
         .eq('username', params.username.toLowerCase())
         .single()
 
@@ -168,7 +183,9 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
               )}
               {profile.tiktok && (
                 <a href={`https://tiktok.com/@${profile.tiktok.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
                 </a>
               )}
               {profile.youtube && (
@@ -211,18 +228,20 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 }
 
 function ProfileContent({ profile }: { profile: Profile }) {
-  const [activeTab, setActiveTab] = useState<'resume' | 'media'>('resume')
+  const [activeTab, setActiveTab] = useState<'resume' | 'media' | 'stats'>('resume')
 
   return (
     <div>
       <div className="flex border-b border-babyblue-100">
         <TabButton active={activeTab === 'resume'} onClick={() => setActiveTab('resume')} icon={<FileText className="w-4 h-4" />} label="Resume" />
         <TabButton active={activeTab === 'media'} onClick={() => setActiveTab('media')} icon={<Play className="w-4 h-4" />} label="Media" />
+        <TabButton active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} icon={<BarChart3 className="w-4 h-4" />} label="Stats" />
       </div>
 
       <div className="p-6 bg-gray-50/50 min-h-[200px]">
         {activeTab === 'resume' && <ResumeTab profile={profile} />}
         {activeTab === 'media' && <MediaTab videos={profile.videos} />}
+        {activeTab === 'stats' && <StatsTab stats={profile.stats_json} />}
       </div>
     </div>
   )
@@ -245,6 +264,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
 function ResumeTab({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-4">
+      {/* High School */}
       {profile.high_school && (
         <div className="bg-white rounded-xl p-4 border border-babyblue-100">
           <div className="flex items-center gap-2 mb-3">
@@ -270,6 +290,7 @@ function ResumeTab({ profile }: { profile: Profile }) {
         </div>
       )}
 
+      {/* College */}
       {(profile.college_name || profile.college_city) && (
         <div className="bg-white rounded-xl p-4 border border-babyblue-100">
           <div className="flex items-center gap-2 mb-3">
@@ -293,6 +314,54 @@ function ResumeTab({ profile }: { profile: Profile }) {
         </div>
       )}
 
+      {/* Awards */}
+      {profile.awards && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-5 h-5 text-yellow-500" />
+            <h3 className="font-semibold text-gray-900">Awards</h3>
+          </div>
+          <div className="space-y-2">
+            {profile.awards.split('\n').filter(a => a.trim()).map((award, index) => (
+              <div key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mt-1.5 flex-shrink-0"></span>
+                <span>{award.trim()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Links */}
+      {profile.profile_links?.filter((l: any) => l.is_visible).length > 0 && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <div className="flex items-center gap-2 mb-3">
+            <LinkIcon className="w-5 h-5 text-babyblue-500" />
+            <h3 className="font-semibold text-gray-900">Links</h3>
+          </div>
+          <div className="space-y-2">
+            {profile.profile_links.filter((l: any) => l.is_visible).map((link: any) => (
+              <a 
+                key={link.id}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+              >
+                <div 
+                  className="w-6 h-6 rounded flex items-center justify-center text-xs text-white"
+                  style={{ background: link.color || '#0ea5e9' }}
+                >
+                  {link.icon || '🔗'}
+                </div>
+                {link.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contact */}
       <div className="bg-white rounded-xl p-4 border border-babyblue-100">
         <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
         <div className="space-y-2">
@@ -335,6 +404,81 @@ function MediaTab({ videos }: { videos?: any[] }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function StatsTab({ stats }: { stats?: Profile['stats_json'] }) {
+  if (!stats || (!stats.batting_avg && !stats.obp && !stats.slg && !stats.era && !stats.whip)) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <BarChart3 className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
+        <p>No stats added yet</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Hitting Stats */}
+      {(stats.batting_avg || stats.obp || stats.slg) && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Hitting</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {stats.batting_avg && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-xl font-bold text-babyblue-700">{stats.batting_avg}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">AVG</p>
+              </div>
+            )}
+            {stats.obp && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-xl font-bold text-babyblue-700">{stats.obp}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">OBP</p>
+              </div>
+            )}
+            {stats.slg && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-xl font-bold text-babyblue-700">{stats.slg}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">SLG</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pitching Stats */}
+      {(stats.era || stats.whip || stats.k_per_9 || stats.innings) && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Pitching</h3>
+          <div className="grid grid-cols-4 gap-2">
+            {stats.era && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-lg font-bold text-babyblue-700">{stats.era}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">ERA</p>
+              </div>
+            )}
+            {stats.whip && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-lg font-bold text-babyblue-700">{stats.whip}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">WHIP</p>
+              </div>
+            )}
+            {stats.k_per_9 && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-lg font-bold text-babyblue-700">{stats.k_per_9}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">K/9</p>
+              </div>
+            )}
+            {stats.innings && (
+              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
+                <p className="text-lg font-bold text-babyblue-700">{stats.innings}</p>
+                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">IP</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
