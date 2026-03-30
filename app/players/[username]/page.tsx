@@ -22,6 +22,7 @@ import {
   Play,
   BarChart3
 } from 'lucide-react'
+import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 
@@ -47,6 +48,10 @@ interface Profile {
   bio?: string
   awards?: string
   profile_picture_url?: string
+  college_name?: string
+  college_city?: string
+  college_state?: string
+  college_grad_year?: number
   stats_json?: {
     batting_avg?: string
     obp?: string
@@ -71,17 +76,28 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*, profile_links(*)')
         .eq('username', params.username.toLowerCase())
         .single()
       
-      if (!data) {
+      if (!profileData) {
         notFound()
+        return
       }
       
-      setProfile(data)
+      // Fetch videos separately
+      const { data: videosData } = await supabase
+        .from('videos')
+        .select('*')
+        .eq('profile_id', profileData.id)
+        .order('created_at', { ascending: false })
+      
+      setProfile({
+        ...profileData,
+        videos: videosData || []
+      })
       setLoading(false)
     }
     fetchProfile()
@@ -411,6 +427,34 @@ function ResumeTab({ profile }: { profile: Profile }) {
         </div>
       )}
 
+      {/* College */}
+      {(profile.college_name || profile.college_grad_year || profile.college_city) && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <div className="flex items-center gap-2 mb-3">
+            <GraduationCap className="w-5 h-5 text-purple-500" />
+            <h3 className="font-semibold text-gray-900">College</h3>
+          </div>
+          <div className="space-y-2 text-sm">
+            {profile.college_name && (
+              <p className="font-medium text-gray-900">{profile.college_name}</p>
+            )}
+            {(profile.college_city || profile.college_state) && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <MapPin className="w-4 h-4 text-purple-500" />
+                {profile.college_city}, {profile.college_state}
+              </div>
+            )}
+            {profile.college_grad_year && (
+              <div className="flex gap-3 pt-2">
+                <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">
+                  Class of {profile.college_grad_year}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Contact */}
       <div className="bg-white rounded-xl p-4 border border-babyblue-100">
         <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
@@ -454,18 +498,13 @@ function MediaTab({ videos }: { videos?: any[] }) {
       {videos.map((video) => (
         <div 
           key={video.id} 
-          className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors cursor-pointer group"
+          className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors"
         >
-          <div className="aspect-video bg-gray-900 relative flex items-center justify-center">
-            {video.thumbnail ? (
-              <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
-            )}
-            <div className="relative w-14 h-14 bg-babyblue-500/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-              <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
-            </div>
-          </div>
+          <YouTubeThumbnail 
+            url={video.url}
+            title={video.title}
+            onClick={() => window.open(video.url, '_blank')}
+          />
           <div className="p-4">
             <h3 className="font-semibold text-gray-900">{video.title}</h3>
             {video.description && <p className="text-sm text-gray-500 mt-1">{video.description}</p>}

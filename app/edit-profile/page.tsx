@@ -8,14 +8,11 @@ import {
   Loader2, 
   Upload, 
   User, 
-  Trophy, 
   GraduationCap, 
   BarChart3,
   Link as LinkIcon,
   Save,
   ChevronDown,
-  Plus,
-  Trash2,
   Instagram,
   Twitter,
   Youtube,
@@ -24,8 +21,6 @@ import {
 import { supabase } from '@/lib/supabase'
 
 const YEARS = Array.from({length: 10}, (_, i) => (2025 + i).toString())
-const POSITIONS = ['RHP', 'LHP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'OF', 'UTL', 'DH']
-const THROWS_BATS = ['R', 'L', 'S']
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']
 
 interface ProfileData {
@@ -36,11 +31,6 @@ interface ProfileData {
   username: string
   slug: string
   grad_year: number
-  position: string
-  height: string
-  weight: string
-  throws: string
-  bats: string
   high_school: string
   hometown: string
   state: string
@@ -48,8 +38,11 @@ interface ProfileData {
   sat_score: string
   act_score: string
   bio: string
-  awards: string
   avatar_url: string | null
+  college_name?: string
+  college_city?: string
+  college_state?: string
+  college_grad_year?: number
   social_links: {
     instagram?: string
     twitter?: string
@@ -112,11 +105,6 @@ export default function EditProfile() {
       username: profileData.username || '',
       slug: profileData.slug || '',
       grad_year: profileData.grad_year || 2026,
-      position: profileData.position || '',
-      height: profileData.height || '',
-      weight: profileData.weight || '',
-      throws: profileData.throws || 'R',
-      bats: profileData.bats || 'R',
       high_school: profileData.high_school || '',
       hometown: profileData.hometown || '',
       state: profileData.state || '',
@@ -124,7 +112,10 @@ export default function EditProfile() {
       sat_score: profileData.sat_score || '',
       act_score: profileData.act_score || '',
       bio: profileData.bio || '',
-      awards: profileData.awards || '',
+      college_name: profileData.college_name || '',
+      college_city: profileData.college_city || '',
+      college_state: profileData.college_state || '',
+      college_grad_year: profileData.college_grad_year || undefined,
     })
     setStats(profileData.stats_json || {})
     setSocials(profileData.social_links || {})
@@ -357,11 +348,11 @@ export default function EditProfile() {
           </div>
         </SectionCard>
 
-        {/* Player Info */}
-        <SectionCard title="Player Information" icon={<Trophy className="w-5 h-5" />}>
+        {/* Graduation Years */}
+        <SectionCard title="Graduation Information" icon={<GraduationCap className="w-5 h-5" />}>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Grad Year</Label>
+              <Label>High School Graduation Year</Label>
               <Select 
                 value={formData.grad_year?.toString() || ''} 
                 onChange={e => updateForm('grad_year', parseInt(e.target.value))}
@@ -369,53 +360,21 @@ export default function EditProfile() {
               />
             </div>
             <div>
-              <Label>Position</Label>
+              <Label>College Graduation Year</Label>
               <Select 
-                value={formData.position || ''} 
-                onChange={e => updateForm('position', e.target.value)}
-                options={POSITIONS.map(p => ({ value: p, label: p }))}
-              />
-            </div>
-            <div>
-              <Label>Height</Label>
-              <Input 
-                value={formData.height || ''} 
-                onChange={e => updateForm('height', e.target.value)}
-                placeholder="6'1"
-              />
-            </div>
-            <div>
-              <Label>Weight (lbs)</Label>
-              <Input 
-                value={formData.weight || ''} 
-                onChange={e => updateForm('weight', e.target.value)}
-                placeholder="185"
-              />
-            </div>
-            <div>
-              <Label>Throws</Label>
-              <Select 
-                value={formData.throws || 'R'} 
-                onChange={e => updateForm('throws', e.target.value)}
-                options={THROWS_BATS.map(t => ({ value: t, label: t }))}
-              />
-            </div>
-            <div>
-              <Label>Bats</Label>
-              <Select 
-                value={formData.bats || 'R'} 
-                onChange={e => updateForm('bats', e.target.value)}
-                options={THROWS_BATS.map(t => ({ value: t, label: t }))}
+                value={formData.college_grad_year?.toString() || ''} 
+                onChange={e => updateForm('college_grad_year', parseInt(e.target.value))}
+                options={[{value: '', label: 'Not in college'}, ...YEARS.map(y => ({ value: y, label: `Class of ${y}` }))]}
               />
             </div>
           </div>
         </SectionCard>
 
-        {/* School Info */}
-        <SectionCard title="School & Location" icon={<GraduationCap className="w-5 h-5" />}>
+        {/* High School Info */}
+        <SectionCard title="High School" icon={<GraduationCap className="w-5 h-5" />}>
           <div className="space-y-4">
             <div>
-              <Label>High School</Label>
+              <Label>High School Name</Label>
               <Input 
                 value={formData.high_school || ''} 
                 onChange={e => updateForm('high_school', e.target.value)}
@@ -465,6 +424,39 @@ export default function EditProfile() {
                   value={formData.act_score || ''} 
                   onChange={e => updateForm('act_score', e.target.value)}
                   placeholder="28"
+                />
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* College Info */}
+        <SectionCard title="College (Optional)" icon={<GraduationCap className="w-5 h-5" />}>
+          <div className="space-y-4">
+            <div>
+              <Label>College Name</Label>
+              <Input 
+                value={formData.college_name || ''} 
+                onChange={e => updateForm('college_name', e.target.value)}
+                placeholder="University of Example"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>College City</Label>
+                <Input 
+                  value={formData.college_city || ''} 
+                  onChange={e => updateForm('college_city', e.target.value)}
+                  placeholder="College Town"
+                />
+              </div>
+              <div>
+                <Label>College State</Label>
+                <Select 
+                  value={formData.college_state || ''} 
+                  onChange={e => updateForm('college_state', e.target.value)}
+                  options={[{value: '', label: 'Select...'}, ...STATES.map(s => ({ value: s, label: s }))]}
                 />
               </div>
             </div>
@@ -583,20 +575,6 @@ export default function EditProfile() {
                 className="pl-10"
               />
             </div>
-          </div>
-        </SectionCard>
-
-        {/* Awards */}
-        <SectionCard title="Awards & Achievements" icon={<Trophy className="w-5 h-5" />}>
-          <div>
-            <textarea 
-              value={formData.awards || ''} 
-              onChange={e => updateForm('awards', e.target.value)}
-              placeholder="First-team All-Conference (2024)&#10;Team MVP (2023)&#10;Perfect Game All-American"
-              rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all resize-none"
-            />
-            <p className="text-sm text-gray-500 mt-2">One award per line</p>
           </div>
         </SectionCard>
       </main>

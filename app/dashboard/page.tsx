@@ -236,7 +236,7 @@ export default function Dashboard() {
               icon={<Video className="w-5 h-5" />}
               title="Videos"
               subtitle="Upload highlights"
-              href="/edit-profile"
+              href="/dashboard/videos"
             />
             <QuickActionCard 
               icon={<BarChart3 className="w-5 h-5" />}
@@ -247,8 +247,8 @@ export default function Dashboard() {
             <QuickActionCard 
               icon={<Award className="w-5 h-5" />}
               title="Awards"
-              subtitle="Add achievements"
-              href="/edit-profile"
+              subtitle="View achievements"
+              href="/dashboard/awards"
             />
             <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}
