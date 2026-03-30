@@ -220,6 +220,11 @@ export default function Dashboard() {
                     <Eye className="w-4 h-4" /> View Public Profile
                   </Link>
                 </div>
+
+                {/* Links Section */}
+                <div className="mt-8 border-t pt-8">
+                  <LinksEditor profileId={profile.id} isPremium={isPremium || false} />
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">
