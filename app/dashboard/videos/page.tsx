@@ -71,14 +71,25 @@ export default function VideosPage() {
       setProfile(profileData)
       
       // Get videos - ordered by display_order, then created_at
-      const { data: videosData } = await supabase
+      const { data: videosData, error: videosError } = await supabase
         .from('videos')
         .select('*')
         .eq('profile_id', profileData.id)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false })
       
-      setVideos(videosData || [])
+      if (videosError) {
+        console.error('Error loading videos:', videosError)
+        // Fallback: try without display_order ordering
+        const { data: fallbackData } = await supabase
+          .from('videos')
+          .select('*')
+          .eq('profile_id', profileData.id)
+          .order('created_at', { ascending: false })
+        setVideos(fallbackData || [])
+      } else {
+        setVideos(videosData || [])
+      }
     }
     
     setLoading(false)
