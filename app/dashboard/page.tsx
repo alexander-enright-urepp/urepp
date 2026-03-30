@@ -112,8 +112,29 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex flex-col sm:flex-row justify-between items-center py-3 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             <Link href="/" className="text-2xl font-bold text-blue-600">UREPP</Link>
+            
+            {profile?.username && (
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1.5 w-full sm:w-auto justify-center">
+                <span className="text-xs text-gray-600 font-mono truncate max-w-[200px]">
+                  <span className="hidden sm:inline">urepp.vercel.app/players/</span>
+                  {profile.username}
+                </span>
+                <button
+                  onClick={copyProfileUrl}
+                  className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+                  title="Copy link"
+                >
+                  {copiedUrl ? (
+                    <Check className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-gray-500" />
+                  )}
+                </button>
+              </div>
+            )}
+            
             <div className="flex items-center gap-4">
               {isPremium && (
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
@@ -121,9 +142,6 @@ export default function Dashboard() {
                   Premium
                 </span>
               )}
-              <button onClick={handleSignOut} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-                <LogOut className="w-4 h-4" /> Sign Out
-              </button>
             </div>
           </div>
         </div>
@@ -275,6 +293,12 @@ export default function Dashboard() {
             <div className="space-y-4">
               <button className="w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-gray-50">
                 Change Password
+              </button>
+              <button 
+                onClick={handleSignOut}
+                className="w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-gray-50 text-red-600 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
               </button>
               <button className="w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-gray-50 text-red-600">
                 Delete Account
