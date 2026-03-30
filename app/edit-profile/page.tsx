@@ -441,9 +441,6 @@ export default function EditProfile() {
               </div>
             </div>
 
-                </div>
-              </div>
-            </div>
 
             {/* Social Links */}
             <div>
