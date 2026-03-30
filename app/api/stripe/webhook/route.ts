@@ -1,25 +1,40 @@
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-});
+// Check for required env vars
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+// Only initialize if all env vars exist
+let stripe: Stripe | undefined;
+let supabase: ReturnType<typeof createClient> | undefined;
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+if (stripeSecretKey && supabaseUrl && supabaseKey) {
+  stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2026-03-25.dahlia',
+  });
+
+  supabase = createClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
 export async function POST(request: Request) {
   try {
+    if (!stripe || !supabase || !webhookSecret) {
+      console.error('Stripe webhook not configured');
+      return new Response('Webhook not configured', { status: 503 });
+    }
+
     const payload = await request.text();
     const signature = request.headers.get('stripe-signature')!;
 

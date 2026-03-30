@@ -34,11 +34,6 @@ interface Profile {
   email?: string
   phone?: string
   grad_year?: number
-  position?: string
-  height?: string
-  weight?: string
-  throws?: string
-  bats?: string
   high_school?: string
   hometown?: string
   state?: string
@@ -52,6 +47,12 @@ interface Profile {
   college_city?: string
   college_state?: string
   college_grad_year?: number
+  high_school_current_year?: string
+  high_school_sports?: string[]
+  college_current_year?: string
+  college_sports?: string[]
+  bats?: string
+  throws?: string
   stats_json?: {
     batting_avg?: string
     obp?: string
@@ -619,28 +620,7 @@ function StatsTab({ stats, profile }: { stats?: Profile['stats_json'], profile: 
         </div>
       )}
 
-      {/* Physical */}
-      {(profile.height || profile.weight) && (
-        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-          <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Physical</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {profile.height && (
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-lg font-bold text-gray-900">{profile.height}</p>
-                <p className="text-xs text-gray-500 uppercase">Height</p>
-              </div>
-            )}
-            {profile.weight && (
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-lg font-bold text-gray-900">{profile.weight} <span className="text-sm font-normal">lbs</span></p>
-                <p className="text-xs text-gray-500 uppercase">Weight</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {!stats?.batting_avg && !stats?.era && !profile.height && !profile.weight && (
+      {!stats?.batting_avg && !stats?.era && (
         <div className="text-center py-8 text-gray-500">
           <BarChart3 className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
           <p>No stats added yet</p>

@@ -50,7 +50,7 @@ export default function AwardsPage() {
     if (profileData) {
       setProfile(profileData)
       if (profileData.awards) {
-        setAwards(profileData.awards.split('\n').filter(a => a.trim()))
+        setAwards(profileData.awards.split('\n').filter((a: string) => a.trim()))
       }
     }
     

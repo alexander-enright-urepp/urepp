@@ -1,24 +1,42 @@
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-});
+// Check for required env vars
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+// Only initialize Stripe if key exists (for build time)
+let stripe: Stripe | undefined;
+let supabase: ReturnType<typeof createClient> | undefined;
+
+if (stripeSecretKey && supabaseUrl && supabaseKey) {
+  stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2026-03-25.dahlia',
+  });
+
+  supabase = createClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
 // POST /api/stripe/checkout
 export async function POST(request: Request) {
   try {
+    if (!stripe || !supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Payment system not configured' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { user_id, email } = await request.json();
 
     if (!user_id || !email) {
@@ -29,13 +47,13 @@ export async function POST(request: Request) {
     }
 
     // Get or create Stripe customer
-    let { data: existingSub } = await supabase
+    const { data: existingSub } = await supabase
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', user_id)
       .single();
 
-    let customerId = existingSub?.stripe_customer_id;
+    let customerId = (existingSub as any)?.stripe_customer_id;
 
     if (!customerId) {
       // Create new Stripe customer
@@ -47,11 +65,11 @@ export async function POST(request: Request) {
 
       // Create subscription record
       await supabase.from('subscriptions').insert({
-        user_id,
+        user_id: user_id as string,
         stripe_customer_id: customerId,
         status: 'inactive',
         plan: 'free',
-      });
+      } as any);
     }
 
     // Create Stripe Checkout Session
@@ -71,14 +89,14 @@ export async function POST(request: Request) {
             },
           },
           quantity: 1,
-        },
+        } as any,
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?checkout=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?checkout=canceled`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard?checkout=canceled`,
       subscription_data: {
         metadata: { user_id },
-      },
+      } as any,
     });
 
     return new Response(

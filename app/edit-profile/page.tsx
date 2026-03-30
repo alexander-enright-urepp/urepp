@@ -60,10 +60,14 @@ interface ProfileData {
   college_current_year?: string
   college_sports?: string[]
   social_links: {
+    email?: string
     instagram?: string
     twitter?: string
     youtube?: string
     linkedin?: string
+    tiktok?: string
+    hudl?: string
+    maxpreps?: string
   }
 }
 
