@@ -44,7 +44,6 @@ const states = [
 ]
 
 const currentYear = new Date().getFullYear()
-const gradYears = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4]
 
 export default function EditProfile() {
   const router = useRouter()
@@ -383,15 +382,16 @@ export default function EditProfile() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Year *</label>
-                  <select
-                    {...register('gradYear', { required: 'Graduation year is required' })}
+                  <input
+                    type="number"
+                    {...register('gradYear', { 
+                      required: 'Graduation year is required',
+                      min: { value: 1900, message: 'Year must be after 1900' },
+                      max: { value: 2100, message: 'Year must be before 2100' }
+                    })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select Year</option>
-                    {gradYears.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
+                    placeholder="2026"
+                  />
                   {errors.gradYear && <p className="text-red-500 text-sm mt-1">{errors.gradYear.message}</p>}
                 </div>
               </div>
