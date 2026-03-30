@@ -163,19 +163,19 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
               </p>
             )}
 
-            {/* Tags */}
-            <div className="flex justify-center gap-2 mt-4 flex-wrap">
-              {profile.grad_year && (
-                <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-sm font-medium">
-                  Class of {profile.grad_year}
-                </span>
-              )}
-              {profile.position && (
-                <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                  {profile.position}
-                </span>
-              )}
-            </div>
+            {/* Sports Played */}
+            {(profile.high_school_sports?.length || profile.college_sports?.length) && (
+              <div className="mt-4">
+                <p className="text-xs text-gray-500 mb-2">Sports Played</p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {Array.from(new Set([...(profile.high_school_sports || []), ...(profile.college_sports || [])])).map((sport, idx) => (
+                    <span key={idx} className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-sm font-medium">
+                      {sport}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Social Icons */}
             <div className="flex justify-center gap-3 mt-5">
@@ -357,37 +357,18 @@ function TabButton({
 function ResumeTab({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-4">
-      {/* Quick Info Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {profile.grad_year && (
-          <InfoCard 
-            icon={<Calendar className="w-4 h-4" />}
-            label="Class"
-            value={`${profile.grad_year}`}
-          />
-        )}
-        {profile.position && (
-          <InfoCard 
-            icon={<Trophy className="w-4 h-4" />}
-            label="Position"
-            value={profile.position}
-          />
-        )}
-        {profile.height && (
-          <InfoCard 
-            icon={<Ruler className="w-4 h-4" />}
-            label="Height"
-            value={profile.height}
-          />
-        )}
-        {profile.weight && (
-          <InfoCard 
-            icon={<Scale className="w-4 h-4" />}
-            label="Weight"
-            value={`${profile.weight} lbs`}
-          />
-        )}
-      </div>
+      {/* Graduation Year */}
+      {profile.grad_year && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-babyblue-500" />
+            <div>
+              <p className="text-xs text-gray-500">Graduation Year</p>
+              <p className="font-semibold text-gray-900">Class of {profile.grad_year}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* High School */}
       {profile.high_school && (
@@ -402,6 +383,25 @@ function ResumeTab({ profile }: { profile: Profile }) {
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="w-4 h-4 text-babyblue-500" />
                 {profile.hometown}, {profile.state}
+              </div>
+            )}
+            {profile.high_school_current_year && (
+              <div className="flex items-center gap-2">
+                <span className="bg-babyblue-50 text-babyblue-700 px-2 py-1 rounded text-xs">
+                  {profile.high_school_current_year}
+                </span>
+              </div>
+            )}
+            {profile.high_school_sports && profile.high_school_sports.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs text-gray-500 mb-1">Sports Played:</p>
+                <div className="flex flex-wrap gap-1">
+                  {profile.high_school_sports.map((sport, idx) => (
+                    <span key={idx} className="bg-babyblue-100 text-babyblue-700 px-2 py-0.5 rounded text-xs">
+                      {sport}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
             {(profile.gpa || profile.sat_score || profile.act_score) && (
@@ -428,7 +428,7 @@ function ResumeTab({ profile }: { profile: Profile }) {
       )}
 
       {/* College */}
-      {(profile.college_name || profile.college_grad_year || profile.college_city) && (
+      {(profile.college_name || profile.college_city || profile.college_grad_year) && (
         <div className="bg-white rounded-xl p-4 border border-babyblue-100">
           <div className="flex items-center gap-2 mb-3">
             <GraduationCap className="w-5 h-5 text-purple-500" />
@@ -442,6 +442,25 @@ function ResumeTab({ profile }: { profile: Profile }) {
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="w-4 h-4 text-purple-500" />
                 {profile.college_city}, {profile.college_state}
+              </div>
+            )}
+            {profile.college_current_year && (
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">
+                  {profile.college_current_year}
+                </span>
+              </div>
+            )}
+            {profile.college_sports && profile.college_sports.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs text-gray-500 mb-1">Sports Played:</p>
+                <div className="flex flex-wrap gap-1">
+                  {profile.college_sports.map((sport, idx) => (
+                    <span key={idx} className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">
+                      {sport}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
             {profile.college_grad_year && (

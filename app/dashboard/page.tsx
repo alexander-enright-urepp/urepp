@@ -26,7 +26,8 @@ import {
   ChevronRight,
   Share2,
   Award,
-  TrendingUp
+  TrendingUp,
+  LayoutTemplate
 } from 'lucide-react'
 
 interface Profile {
@@ -239,22 +240,34 @@ export default function Dashboard() {
               href="/dashboard/videos"
             />
             <QuickActionCard 
-              icon={<BarChart3 className="w-5 h-5" />}
-              title="Stats"
-              subtitle="Update numbers"
-              href="/edit-profile"
-            />
-            <QuickActionCard 
               icon={<Award className="w-5 h-5" />}
               title="Awards"
               subtitle="View achievements"
               href="/dashboard/awards"
             />
             <QuickActionCard 
+              icon={<BarChart3 className="w-5 h-5" />}
+              title="Stats"
+              subtitle="Update numbers"
+              href="/edit-profile"
+            />
+            <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}
               title="Links"
               subtitle="Manage links"
               href="/edit-profile"
+            />
+            <QuickActionCard 
+              icon={<TrendingUp className="w-5 h-5" />}
+              title="Analytics"
+              subtitle="View insights"
+              href="/dashboard/analytics"
+            />
+            <QuickActionCard 
+              icon={<LayoutTemplate className="w-5 h-5" />}
+              title="Themes"
+              subtitle="Customize look"
+              href="/dashboard/themes"
             />
           </div>
         )}

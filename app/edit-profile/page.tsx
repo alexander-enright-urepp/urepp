@@ -8,20 +8,30 @@ import {
   Loader2, 
   Upload, 
   User, 
-  GraduationCap, 
-  BarChart3,
+  GraduationCap,
   Link as LinkIcon,
   Save,
   ChevronDown,
   Instagram,
   Twitter,
   Youtube,
-  Linkedin
+  Linkedin,
+  Check,
+  X
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-const YEARS = Array.from({length: 10}, (_, i) => (2025 + i).toString())
+// Extended years from 1975-2035
+const GRADUATION_YEARS = Array.from({length: 61}, (_, i) => (1975 + i).toString())
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']
+const CURRENT_YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduated']
+const SPORTS_LIST = [
+  'Baseball', 'Basketball', 'Football', 'Soccer', 'Volleyball',
+  'Tennis', 'Golf', 'Swimming', 'Track & Field', 'Cross Country',
+  'Wrestling', 'Hockey', 'Lacrosse', 'Softball', 'Gymnastics',
+  'Cheerleading', 'Water Polo', 'Field Hockey', 'Rugby', 'Cricket',
+  'Other'
+]
 
 interface ProfileData {
   id: string
@@ -43,20 +53,16 @@ interface ProfileData {
   college_city?: string
   college_state?: string
   college_grad_year?: number
+  // New fields
+  high_school_current_year?: string
+  high_school_sports?: string[]
+  college_current_year?: string
+  college_sports?: string[]
   social_links: {
     instagram?: string
     twitter?: string
     youtube?: string
     linkedin?: string
-  }
-  stats_json: {
-    batting_avg?: string
-    obp?: string
-    slg?: string
-    era?: string
-    whip?: string
-    k_per_9?: string
-    innings?: string
   }
 }
 
@@ -72,7 +78,8 @@ export default function EditProfile() {
   
   // Form state
   const [formData, setFormData] = useState<Partial<ProfileData>>({})
-  const [stats, setStats] = useState<ProfileData['stats_json']>({})
+  const [highSchoolSports, setHighSchoolSports] = useState<string[]>([])
+  const [collegeSports, setCollegeSports] = useState<string[]>([])
   const [socials, setSocials] = useState<ProfileData['social_links']>({})
 
   useEffect(() => {
@@ -116,8 +123,13 @@ export default function EditProfile() {
       college_city: profileData.college_city || '',
       college_state: profileData.college_state || '',
       college_grad_year: profileData.college_grad_year || undefined,
+      high_school_current_year: profileData.high_school_current_year || '',
+      high_school_sports: profileData.high_school_sports || [],
+      college_current_year: profileData.college_current_year || '',
+      college_sports: profileData.college_sports || [],
     })
-    setStats(profileData.stats_json || {})
+    setHighSchoolSports(profileData.high_school_sports || [])
+    setCollegeSports(profileData.college_sports || [])
     setSocials(profileData.social_links || {})
     setImagePreview(profileData.avatar_url)
     setLoading(false)
@@ -160,7 +172,8 @@ export default function EditProfile() {
       const updateData = {
         ...formData,
         avatar_url: imagePreview,
-        stats_json: stats,
+        high_school_sports: highSchoolSports,
+        college_sports: collegeSports,
         social_links: socials,
       }
       
@@ -188,8 +201,20 @@ export default function EditProfile() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const updateStat = (key: string, value: string) => {
-    setStats(prev => ({ ...prev, [key]: value }))
+  const toggleSport = (section: 'high_school' | 'college', sport: string) => {
+    if (section === 'high_school') {
+      setHighSchoolSports(prev => 
+        prev.includes(sport) 
+          ? prev.filter(s => s !== sport)
+          : [...prev, sport]
+      )
+    } else {
+      setCollegeSports(prev => 
+        prev.includes(sport) 
+          ? prev.filter(s => s !== sport)
+          : [...prev, sport]
+      )
+    }
   }
 
   const updateSocial = (key: string, value: string) => {
@@ -259,15 +284,15 @@ export default function EditProfile() {
         )}
 
         {/* Preview Link */}
-        {formData.slug && (
+        {formData.username && (
           <div className="mb-6 bg-babyblue-50 border border-babyblue-100 rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-700">Public Profile</p>
-                <p className="text-babyblue-600 text-sm">urepp.com/profile/{formData.slug}</p>
+                <p className="text-babyblue-600 text-sm">urepp.com/players/{formData.username}</p>
               </div>
               <Link
-                href={`/profile/${formData.slug}`}
+                href={`/players/${formData.username}`}
                 target="_blank"
                 className="text-sm text-babyblue-600 hover:text-babyblue-700 font-medium"
               >
@@ -348,28 +373,6 @@ export default function EditProfile() {
           </div>
         </SectionCard>
 
-        {/* Graduation Years */}
-        <SectionCard title="Graduation Information" icon={<GraduationCap className="w-5 h-5" />}>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>High School Graduation Year</Label>
-              <Select 
-                value={formData.grad_year?.toString() || ''} 
-                onChange={e => updateForm('grad_year', parseInt(e.target.value))}
-                options={YEARS.map(y => ({ value: y, label: `Class of ${y}` }))}
-              />
-            </div>
-            <div>
-              <Label>College Graduation Year</Label>
-              <Select 
-                value={formData.college_grad_year?.toString() || ''} 
-                onChange={e => updateForm('college_grad_year', parseInt(e.target.value))}
-                options={[{value: '', label: 'Not in college'}, ...YEARS.map(y => ({ value: y, label: `Class of ${y}` }))]}
-              />
-            </div>
-          </div>
-        </SectionCard>
-
         {/* High School Info */}
         <SectionCard title="High School" icon={<GraduationCap className="w-5 h-5" />}>
           <div className="space-y-4">
@@ -380,6 +383,47 @@ export default function EditProfile() {
                 onChange={e => updateForm('high_school', e.target.value)}
                 placeholder="Lincoln High School"
               />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Graduation Year</Label>
+                <Select 
+                  value={formData.grad_year?.toString() || ''} 
+                  onChange={e => updateForm('grad_year', parseInt(e.target.value))}
+                  options={GRADUATION_YEARS.map(y => ({ value: y, label: `Class of ${y}` }))}
+                />
+              </div>
+              <div>
+                <Label>Current Year</Label>
+                <Select 
+                  value={formData.high_school_current_year || ''} 
+                  onChange={e => updateForm('high_school_current_year', e.target.value)}
+                  options={[{value: '', label: 'Select...'}, ...CURRENT_YEAR_OPTIONS.map(y => ({ value: y, label: y }))]}
+                />
+              </div>
+            </div>
+
+            {/* Sports Played */}
+            <div>
+              <Label>Sports Played</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {SPORTS_LIST.map(sport => (
+                  <button
+                    key={sport}
+                    type="button"
+                    onClick={() => toggleSport('high_school', sport)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      highSchoolSports.includes(sport)
+                        ? 'bg-babyblue-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {highSchoolSports.includes(sport) && <Check className="w-3 h-3 inline mr-1" />}
+                    {sport}
+                  </button>
+                ))}
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
@@ -444,6 +488,47 @@ export default function EditProfile() {
             
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <Label>Graduation Year</Label>
+                <Select 
+                  value={formData.college_grad_year?.toString() || ''} 
+                  onChange={e => updateForm('college_grad_year', e.target.value ? parseInt(e.target.value) : undefined)}
+                  options={[{value: '', label: 'Not in college'}, ...GRADUATION_YEARS.map(y => ({ value: y, label: `Class of ${y}` }))]}
+                />
+              </div>
+              <div>
+                <Label>Current Year</Label>
+                <Select 
+                  value={formData.college_current_year || ''} 
+                  onChange={e => updateForm('college_current_year', e.target.value)}
+                  options={[{value: '', label: 'Select...'}, ...CURRENT_YEAR_OPTIONS.map(y => ({ value: y, label: y }))]}
+                />
+              </div>
+            </div>
+
+            {/* Sports Played */}
+            <div>
+              <Label>Sports Played</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {SPORTS_LIST.map(sport => (
+                  <button
+                    key={sport}
+                    type="button"
+                    onClick={() => toggleSport('college', sport)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      collegeSports.includes(sport)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {collegeSports.includes(sport) && <Check className="w-3 h-3 inline mr-1" />}
+                    {sport}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
                 <Label>College City</Label>
                 <Input 
                   value={formData.college_city || ''} 
@@ -458,79 +543,6 @@ export default function EditProfile() {
                   onChange={e => updateForm('college_state', e.target.value)}
                   options={[{value: '', label: 'Select...'}, ...STATES.map(s => ({ value: s, label: s }))]}
                 />
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* Stats */}
-        <SectionCard title="Statistics" icon={<BarChart3 className="w-5 h-5" />}>
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Hitting</h4>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label>AVG</Label>
-                  <Input 
-                    value={stats.batting_avg || ''} 
-                    onChange={e => updateStat('batting_avg', e.target.value)}
-                    placeholder=".325"
-                  />
-                </div>
-                <div>
-                  <Label>OBP</Label>
-                  <Input 
-                    value={stats.obp || ''} 
-                    onChange={e => updateStat('obp', e.target.value)}
-                    placeholder=".415"
-                  />
-                </div>
-                <div>
-                  <Label>SLG</Label>
-                  <Input 
-                    value={stats.slg || ''} 
-                    onChange={e => updateStat('slg', e.target.value)}
-                    placeholder=".485"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Pitching</h4>
-              <div className="grid grid-cols-4 gap-3">
-                <div>
-                  <Label>ERA</Label>
-                  <Input 
-                    value={stats.era || ''} 
-                    onChange={e => updateStat('era', e.target.value)}
-                    placeholder="2.45"
-                  />
-                </div>
-                <div>
-                  <Label>WHIP</Label>
-                  <Input 
-                    value={stats.whip || ''} 
-                    onChange={e => updateStat('whip', e.target.value)}
-                    placeholder="1.12"
-                  />
-                </div>
-                <div>
-                  <Label>K/9</Label>
-                  <Input 
-                    value={stats.k_per_9 || ''} 
-                    onChange={e => updateStat('k_per_9', e.target.value)}
-                    placeholder="8.5"
-                  />
-                </div>
-                <div>
-                  <Label>IP</Label>
-                  <Input 
-                    value={stats.innings || ''} 
-                    onChange={e => updateStat('innings', e.target.value)}
-                    placeholder="45.2"
-                  />
-                </div>
               </div>
             </div>
           </div>
