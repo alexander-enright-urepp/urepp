@@ -80,6 +80,8 @@ export default function Dashboard() {
 
   const [copiedUrl, setCopiedUrl] = useState(false)
 
+  const isPremium = profile?.is_premium
+
   const copyProfileUrl = () => {
     if (!profile?.username) return
     const url = `${window.location.origin}/players/${profile.username}`
