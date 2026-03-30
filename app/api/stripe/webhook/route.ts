@@ -63,7 +63,7 @@ export async function POST(request: Request) {
               status: 'active',
               plan: 'premium',
               current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            })
+            } as any)
             .eq('user_id', userId);
 
           // Update profile to premium
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
             .update({
               is_premium: true,
               premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            })
+            } as any)
             .eq('user_id', userId);
 
           console.log(`Activated premium for user: ${userId}`);
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
           // Update subscription status
           await supabase
             .from('subscriptions')
-            .update({ status: 'past_due' })
+            .update({ status: 'past_due' } as any)
             .eq('user_id', userId);
         }
         break;
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
             .update({
               status: 'canceled',
               plan: 'free',
-            })
+            } as any)
             .eq('user_id', userId);
 
           await supabase
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
             .update({
               is_premium: false,
               premium_until: null,
-            })
+            } as any)
             .eq('user_id', userId);
 
           console.log(`Downgraded user: ${userId} to free`);
