@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { LogOut, Edit, Eye, Plus, Loader2, UserCircle, Video, Palette, BarChart3, CreditCard, Settings, Crown } from 'lucide-react'
+import { LogOut, Edit, Eye, Plus, Loader2, UserCircle, Video, Palette, BarChart3, CreditCard, Settings, Crown, Link as LinkIcon, Check, Copy } from 'lucide-react'
 import { ThemeCustomizer } from '@/components/ThemeCustomizer'
 import { StatsEditor } from '@/components/StatsEditor'
 import { VideoUploader } from '@/components/VideoUploader'
@@ -78,7 +78,15 @@ export default function Dashboard() {
     router.push('/')
   }
 
-  const isPremium = profile?.is_premium
+  const [copiedUrl, setCopiedUrl] = useState(false)
+
+  const copyProfileUrl = () => {
+    if (!profile?.username) return
+    const url = `${window.location.origin}/players/${profile.username}`
+    navigator.clipboard.writeText(url)
+    setCopiedUrl(true)
+    setTimeout(() => setCopiedUrl(false), 2000)
+  }
 
   if (loading) {
     return (
