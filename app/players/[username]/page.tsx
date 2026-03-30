@@ -333,14 +333,14 @@ function ResumeTab({ profile }: { profile: Profile }) {
       )}
 
       {/* Links */}
-      {profile.profile_links?.filter((l: any) => l.is_visible).length > 0 && (
+      {profile.profile_links && profile.profile_links.filter((l: any) => l.is_visible).length > 0 && (
         <div className="bg-white rounded-xl p-4 border border-babyblue-100">
           <div className="flex items-center gap-2 mb-3">
             <LinkIcon className="w-5 h-5 text-babyblue-500" />
             <h3 className="font-semibold text-gray-900">Links</h3>
           </div>
           <div className="space-y-2">
-            {profile.profile_links.filter((l: any) => l.is_visible).map((link: any) => (
+            {profile.profile_links?.filter((l: any) => l.is_visible).map((link: any) => (
               <a 
                 key={link.id}
                 href={link.url}
