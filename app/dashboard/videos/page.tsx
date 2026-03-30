@@ -518,7 +518,7 @@ export default function VideosPage() {
               <button
                 onClick={closeModal}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition-colors"
-              
+              >
                 Cancel
               </button>
             </div>
