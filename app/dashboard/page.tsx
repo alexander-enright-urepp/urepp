@@ -221,11 +221,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'themes' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-4">Themes</h2>
-            <p className="text-gray-600">Theme customization here</p>
-          </div>
+        {activeTab === 'themes' && profile && (
+          <ThemeCustomizer profile={profile} isPremium={isPremium || false} />
         )}
 
         {activeTab === 'analytics' && (
