@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { LogOut, Edit, Eye, Plus, Loader2, UserCircle, Video, Palette, BarChart3, CreditCard, Settings, Crown } from 'lucide-react'
 import { ThemeCustomizer } from '@/components/ThemeCustomizer'
+import { StatsEditor } from '@/components/StatsEditor'
 
 interface Profile {
   id: string
@@ -214,11 +215,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'stats' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-4">Stats</h2>
-            <p className="text-gray-600">Stats content here</p>
-          </div>
+        {activeTab === 'stats' && profile && (
+          <StatsEditor profile={profile} isPremium={isPremium || false} />
         )}
 
         {activeTab === 'themes' && profile && (
