@@ -7,6 +7,9 @@ import { supabase } from '@/lib/supabase'
 import { LogOut, Edit, Eye, Plus, Loader2, UserCircle, Video, Palette, BarChart3, CreditCard, Settings, Crown } from 'lucide-react'
 import { ThemeCustomizer } from '@/components/ThemeCustomizer'
 import { StatsEditor } from '@/components/StatsEditor'
+import { VideoUploader } from '@/components/VideoUploader'
+import { AnalyticsWidget } from '@/components/AnalyticsWidget'
+import { ShareableCard } from '@/components/ShareableCard'
 
 interface Profile {
   id: string
@@ -208,11 +211,8 @@ export default function Dashboard() {
         )}
 
         {/* Other tabs */}
-        {activeTab === 'video' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-4">Video</h2>
-            <p className="text-gray-600">Video upload here</p>
-          </div>
+        {activeTab === 'video' && profile && (
+          <VideoUploader profile={profile} isPremium={isPremium || false} />
         )}
 
         {activeTab === 'stats' && profile && (

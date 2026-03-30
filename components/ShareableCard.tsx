@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Download, Check } from 'lucide-react';
+import { Share2, Download, Check, Crown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ShareableCardProps {
@@ -9,30 +9,33 @@ interface ShareableCardProps {
     id: string;
     first_name: string;
     last_name: string;
-    position: string;
-    high_school: string;
-    stats_json: any;
+    username: string;
+    primary_position?: string;
+    grad_year?: number;
+    high_school?: string;
+    stat_primary?: string;
+    stat_secondary?: string;
     is_premium?: boolean;
   };
 }
 
 export function ShareableCard({ profile }: ShareableCardProps) {
   const [copied, setCopied] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const isPremium = profile.is_premium;
 
-  const generateCard = async () => {
-    setGenerating(true);
-    
-    // Track share
-    await supabase.rpc('increment_share_count', {
-      profile_id: profile.id
-    });
-    
-    setGenerating(false);
+  const generateCardData = () => {
+    return {
+      name: `${profile.first_name} ${profile.last_name}`,
+      position: profile.primary_position || 'Athlete',
+      class: profile.grad_year ? `Class of ${profile.grad_year}` : '',
+      school: profile.high_school || '',
+      stats: profile.stat_primary ? `Stat 1: ${profile.stat_primary}` : '',
+      url: `${window.location.origin}/players/${profile.username}`,
+    };
   };
 
   const shareCard = async () => {
-    const cardUrl = `${window.location.origin}/card/${profile.id}`;
+    const cardUrl = `${window.location.origin}/card/${profile.username}`;
     
     if (navigator.share) {
       await navigator.share({
@@ -45,100 +48,99 @@ export function ShareableCard({ profile }: ShareableCardProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-    
-    generateCard();
+
+    // Track share
+    await supabase.from('shareable_cards').insert({
+      profile_id: profile.id,
+      shared_at: new Date().toISOString(),
+    });
   };
 
-  // Premium styling
-  const isPremium = profile.is_premium;
-  
+  const downloadCard = async () => {
+    if (!isPremium) return;
+    // Generate and download image - would need html2canvas or similar
+    alert('Card download feature coming soon for Premium users!');
+  };
+
   return (
-    <div className={`relative rounded-2xl overflow-hidden shadow-xl ${
-      isPremium 
-        ? 'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-1' 
-        : 'bg-gray-200'
-    }`}>
-      <div className={`${isPremium ? 'bg-white/95 backdrop-blur-sm' : 'bg-white'} rounded-xl p-6`}>
-        {/* Premium Badge */}
-        {isPremium && (
-          <div className="absolute top-4 right-4">
-            <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-              ⭐ FEATURED ATHLETE
-            </span>
-          </div>
-        )}
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <h3 className="text-lg font-bold mb-4">Recruiting Card</h3>
 
-        {/* Card Content */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold ${
-            isPremium 
-              ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' 
-              : 'bg-gray-200 text-gray-600'
-          }`}>
-            {profile.first_name[0]}{profile.last_name[0]}
+      {/* Card Preview */}
+      <div className={`relative rounded-xl overflow-hidden mb-4 ${
+        isPremium 
+          ? 'bg-gradient-to-br from-blue-600 to-purple-600 p-1'
+          : 'bg-gray-200'
+      }`}>
+        <div className={`bg-white rounded-lg p-4 ${isPremium ? '' : 'opacity-75'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold ${
+              isPremium ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {profile.first_name[0]}{profile.last_name[0]}
+            </div>
+            
+            <div className="flex-1">
+              <p className="font-bold text-lg">{profile.first_name} {profile.last_name}</p>
+              <p className="text-sm text-gray-600">{profile.primary_position || 'Athlete'}</p>
+              <p className="text-xs text-gray-500">{profile.high_school}</p>
+            </div>
           </div>
-          
-          <div>
-            <h3 className={`text-xl font-bold ${isPremium ? 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent' : 'text-gray-900'}`}>
-              {profile.first_name} {profile.last_name}
-            </h3>
-            <p className="text-gray-600">{profile.position}</p>
-            <p className="text-sm text-gray-500">{profile.high_school}</p>
-          </div>
-        </div>
 
-        {/* Stats Preview */}
-        <div className="grid grid-cols-3 gap-2 text-center mb-4">
-          <div className={`p-2 rounded-lg ${isPremium ? 'bg-gradient-to-br from-blue-50 to-purple-50' : 'bg-gray-50'}`}>
-            <p className="text-xs text-gray-500">Batting Avg</p>
-            <p className={`font-bold ${isPremium ? 'text-blue-600' : 'text-gray-700'}`}>
-              {profile.stats_json?.batting_avg || '---'}
-            </p>
-          </div>
-          <div className={`p-2 rounded-lg ${isPremium ? 'bg-gradient-to-br from-blue-50 to-purple-50' : 'bg-gray-50'}`}>
-            <p className="text-xs text-gray-500">ERA</p>
-            <p className={`font-bold ${isPremium ? 'text-blue-600' : 'text-gray-700'}`}>
-              {profile.stats_json?.era || '---'}
-            </p>
-          </div>
-          <div className={`p-2 rounded-lg ${isPremium ? 'bg-gradient-to-br from-blue-50 to-purple-50' : 'bg-gray-50'}`}>
-            <p className="text-xs text-gray-500">Height</p>
-            <p className={`font-bold ${isPremium ? 'text-blue-600' : 'text-gray-700'}`}>
-              {profile.stats_json?.height || '---'}
-            </p>
-          </div>
-        </div>
+          {isPremium && profile.stat_primary && (
+            <div className="mt-3 pt-3 border-t flex gap-4">
+              <div className="text-center">
+                <p className="text-xs text-gray-500">Primary Stat</p>
+                <p className="font-bold text-blue-600">{profile.stat_primary}</p>
+              </div>
+              {profile.stat_secondary && (
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Secondary Stat</p>
+                  <p className="font-bold text-blue-600">{profile.stat_secondary}</p>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* UREPP Branding */}
-        <div className={`text-center pt-4 border-t ${isPremium ? 'border-purple-200' : 'border-gray-200'}`}>
-          <p className={`text-xs font-medium ${isPremium ? 'text-purple-600' : 'text-gray-400'}`}>
-            UREPP - Student Athlete Recruitment Platform
-          </p>
+          {!isPremium && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+              <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                Premium Feature
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Share Button */}
-      <button
-        onClick={shareCard}
-        disabled={generating}
-        className={`mt-4 w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-          isPremium
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-purple-200'
-            : 'bg-gray-800 hover:bg-gray-900 text-white'
-        }`}
-      >
-        {copied ? (
-          <>
-            <Check className="w-5 h-5" />
-            Copied!
-          </>
-        ) : (
-          <>
-            <Share2 className="w-5 h-5" /
-            Share Card
-          </>
-        )}
-      </button>
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={shareCard}
+          className="flex-1 flex items-center justify-center gap-2 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+        >
+          {copied ? (
+            <>
+              <Check className="w-4 h-4" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Share2 className="w-4 h-4" />
+              Share
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={downloadCard}
+          disabled={!isPremium}
+          className="flex-1 flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          Download
+          {!isPremium && <Crown className="w-3 h-3" />}
+        </button>
+      </div>
     </div>
   );
 }
