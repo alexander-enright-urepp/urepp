@@ -1,16 +1,36 @@
+'use client'
+
+import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Phone, MapPin, GraduationCap, Calendar, Ruler, Scale, Trophy } from 'lucide-react'
-import { AnalyticsWidget } from '@/components/AnalyticsWidget'
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  GraduationCap, 
+  Calendar, 
+  Ruler, 
+  Scale, 
+  Trophy,
+  Instagram,
+  Twitter,
+  Youtube,
+  Linkedin,
+  Share2,
+  ArrowLeft,
+  FileText,
+  Play,
+  BarChart3
+} from 'lucide-react'
 
-// This would normally fetch from Supabase
-async function getProfile(slug: string) {
-  // Mock data for demo
+// Mock data for demo - would fetch from Supabase
+function getProfile(slug: string) {
   if (slug === 'john-doe-2026') {
     return {
       id: '1',
       first_name: 'John',
       last_name: 'Doe',
+      username: 'johndoe2026',
       email: 'john.doe@email.com',
       phone: '(555) 123-4567',
       grad_year: 2026,
@@ -25,7 +45,8 @@ async function getProfile(slug: string) {
       gpa: '3.8',
       sat_score: '1350',
       act_score: '28',
-      bio: 'Hard-working two-way player with strong arm strength and gap-to-gap power. Looking to compete at the Division I level while pursuing a degree in Business. First-team All-Conference selection as a junior.',
+      bio: 'Hard-working two-way player with strong arm strength and gap-to-gap power. Looking to compete at the Division I level while pursuing a degree in Business.',
+      avatar_url: null,
       stats_json: {
         batting_avg: '.325',
         obp: '.415',
@@ -36,10 +57,16 @@ async function getProfile(slug: string) {
         innings: '45.2'
       },
       videos: [
-        { id: '1', title: 'Summer Showcase Highlights', url: '#', description: 'Pitching and hitting from Perfect Game showcase' },
-        { id: '2', title: 'Senior Year Skills Video', url: '#', description: '60-yard dash, throwing, fielding, and BP' }
+        { id: '1', title: 'Summer Showcase Highlights', url: '#', description: 'Pitching and hitting from Perfect Game showcase', thumbnail: null },
+        { id: '2', title: 'Senior Year Skills Video', url: '#', description: '60-yard dash, throwing, fielding, and BP', thumbnail: null }
       ],
       awards: 'First-team All-Conference (2024)\nTeam MVP (2023)\nPerfect Game All-American',
+      social_links: {
+        instagram: '@johndoe2026',
+        twitter: '@johndoe',
+        youtube: null,
+        linkedin: null
+      },
       slug: 'john-doe-2026'
     }
   }
@@ -52,262 +79,450 @@ interface PageProps {
   }
 }
 
-export default async function ProfilePage({ params }: PageProps) {
-  const profile = await getProfile(params.slug)
+type TabType = 'resume' | 'media' | 'stats'
+
+export default function ProfilePage({ params }: PageProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('resume')
+  const profile = getProfile(params.slug)
   
   if (!profile) {
     notFound()
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 py-8 px-4">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-xl font-bold text-babyblue-600">UREPP</Link>
-            <Link
-              href="/profile/create"
-              className="bg-babyblue-500 hover:bg-babyblue-600 text-white px-4 py-2 rounded-xl font-medium text-sm transition-colors shadow-md shadow-babyblue-200"
-            >
-              Create Your Profile
-            </Link>
-          </div>
+      <nav className="max-w-md mx-auto mb-6">
+        <div className="flex justify-between items-center">
+          <Link href="/" className="text-babyblue-600 hover:text-babyblue-700 flex items-center gap-1 text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+          <button className="text-babyblue-600 hover:text-babyblue-700 p-2 rounded-full hover:bg-babyblue-100/50 transition-colors">
+            <Share2 className="w-5 h-5" />
+          </button>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
-
-        {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
-          {/* Cover Banner */}
-          <div className="h-48 bg-gradient-to-r from-babyblue-400 via-babyblue-500 to-babyblue-600"></div>
-          
-          {/* Profile Info */}
-          <div className="px-6 pb-6">
-            <div className="flex flex-col md:flex-row md:items-end -mt-16 mb-6">
-              {/* Avatar */}
-              <div className="w-32 h-32 bg-babyblue-100 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-babyblue-600 text-4xl font-bold">
-                {profile.first_name[0]}{profile.last_name[0]}
-              </div>
-              
-              {/* Name & Basic Info */}
-              <div className="mt-4 md:mt-0 md:ml-6 flex-1">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {profile.first_name} {profile.last_name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3 mt-2 text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-babyblue-500" />
-                    Class of {profile.grad_year}
+      {/* Main Profile Card */}
+      <main className="max-w-md mx-auto">
+        <div className="bg-white rounded-3xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
+          {/* Profile Header */}
+          <div className="px-6 pt-8 pb-6 text-center">
+            {/* Avatar */}
+            <div className="relative mx-auto mb-4">
+              <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={`${profile.first_name} ${profile.last_name}`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-4xl font-bold text-babyblue-600">
+                    {profile.first_name[0]}{profile.last_name[0]}
                   </span>
-                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>{profile.position}</span>
-                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span className="flex items-center gap-1">
-                    <Ruler className="w-4 h-4 text-babyblue-500" />
-                    {profile.height}
-                  </span>
-                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span className="flex items-center gap-1">
-                    <Scale className="w-4 h-4 text-babyblue-500" />
-                    {profile.weight} lbs
-                  </span>
-                </div>
-              </div>
-
-              {/* Contact Buttons */}
-              <div className="mt-4 md:mt-0 flex gap-2">
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="flex items-center gap-2 bg-babyblue-500 hover:bg-babyblue-600 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-md shadow-babyblue-200"
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact
-                </a>
+                )}
               </div>
             </div>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-babyblue-100 text-babyblue-800 px-3 py-1 rounded-full text-sm font-medium">
-                GPA: {profile.gpa}
-              </span>
-              <span className="bg-babyblue-100 text-babyblue-800 px-3 py-1 rounded-full text-sm font-medium">
-                {profile.bats}H / {profile.throws}H
-              </span>
-              <span className="bg-babyblue-100 text-babyblue-800 px-3 py-1 rounded-full text-sm font-medium">
-                {profile.hometown}, {profile.state}
-              </span>
-            </div>
+            {/* Name */}
+            <h1 className="text-2xl font-bold text-gray-900">
+              {profile.first_name} {profile.last_name}
+            </h1>
+
+            {/* Username */}
+            <p className="text-babyblue-500 font-medium mt-1">@{profile.username}</p>
 
             {/* Bio */}
-            {profile.bio && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
-                <p className="text-gray-600 leading-relaxed">{profile.bio}</p>
-              </div>
-            )}
+            <p className="text-gray-600 mt-3 text-sm leading-relaxed px-2">
+              {profile.bio}
+            </p>
 
-            {/* Awards & Achievements */}
-            {profile.awards && (
-              <div className="mb-6 bg-babyblue-50/50 rounded-xl p-5 border border-babyblue-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-babyblue-600" />
-                  Awards & Achievements
-                </h2>
-                <div className="space-y-2">
-                  {profile.awards.split('\n').filter(line => line.trim()).map((award, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <span className="w-2 h-2 bg-babyblue-400 rounded-full mt-2 flex-shrink-0"></span>
-                      <span className="text-gray-700">{award.trim()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
-          {/* Stats Section */}
-          <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-babyblue-100 rounded-xl flex items-center justify-center">
-                <span className="text-babyblue-600 font-bold text-sm">%</span>
-              </span>
-              Statistics
-            </h2>
-            
-            {/* Hitting Stats */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Hitting</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <StatBox label="AVG" value={profile.stats_json?.batting_avg || '-'} />
-                <StatBox label="OBP" value={profile.stats_json?.obp || '-'} />
-                <StatBox label="SLG" value={profile.stats_json?.slg || '-'} />
-              </div>
-            </div>
-
-            {/* Pitching Stats */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Pitching</h3>
-              <div className="grid grid-cols-4 gap-3">
-                <StatBox label="ERA" value={profile.stats_json?.era || '-'} />
-                <StatBox label="WHIP" value={profile.stats_json?.whip || '-'} />
-                <StatBox label="K/9" value={profile.stats_json?.k_per_9 || '-'} />
-                <StatBox label="IP" value={profile.stats_json?.innings || '-'} />
-              </div>
-            </div>
-          </div>
-
-          {/* Academic Info */}
-          <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-babyblue-500" />
-              Academics
-            </h2>
-            <div className="space-y-4">
-              <InfoRow label="GPA" value={profile.gpa} />
-              <InfoRow label="SAT Score" value={profile.sat_score} />
-              <InfoRow label="ACT Score" value={profile.act_score} />
-              <InfoRow label="High School" value={profile.high_school} />
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-babyblue-500 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">Hometown</p>
-                  <p className="font-medium text-gray-900">{profile.hometown}, {profile.state}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Video Analytics */}
-        <div className="mt-6">
-          <AnalyticsWidget playerId={profile.id} />
-        </div>
-
-        {/* Videos Section */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Highlight Videos</h2>
-          {profile.videos && profile.videos.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {profile.videos.map((video) => (
-                <div key={video.id} className="border border-babyblue-200 rounded-xl p-4 hover:border-babyblue-400 hover:shadow-md transition-all cursor-pointer bg-babyblue-50/50">
-                  <div className="aspect-video bg-gray-900 rounded-lg mb-3 flex items-center justify-center group">
-                    <div className="w-12 h-12 bg-babyblue-500/20 rounded-full flex items-center justify-center group-hover:bg-babyblue-500/40 transition-colors">
-                      <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[12px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                    </div>
-                  </div>
-                  <h3 className="font-medium text-gray-900">{video.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{video.description}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No videos uploaded yet.</p>
-          )}
-        </div>
-
-        {/* Contact Section */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
-          <div className="flex flex-col sm:flex-row gap-4">
-            {profile.email && (
-              <a
+            {/* Social Icons */}
+            <div className="flex justify-center gap-3 mt-5">
+              {profile.social_links?.instagram && (
+                <a 
+                  href={`https://instagram.com/${profile.social_links.instagram.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {profile.social_links?.twitter && (
+                <a 
+                  href={`https://twitter.com/${profile.social_links.twitter.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+              )}
+              {profile.social_links?.youtube && (
+                <a 
+                  href={profile.social_links.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
+                >
+                  <Youtube className="w-5 h-5" />
+                </a>
+              )}
+              {profile.social_links?.linkedin && (
+                <a 
+                  href={profile.social_links.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              )}
+              <a 
                 href={`mailto:${profile.email}`}
-                className="flex items-center gap-3 text-gray-600 hover:text-babyblue-600 transition-colors"
+                className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
               >
-                <div className="w-10 h-10 bg-babyblue-100 rounded-xl flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-babyblue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{profile.email}</p>
-                </div>
+                <Mail className="w-5 h-5" />
               </a>
-            )}
-            {profile.phone && (
-              <a
-                href={`tel:${profile.phone}`}
-                className="flex items-center gap-3 text-gray-600 hover:text-babyblue-600 transition-colors"
-              >
-                <div className="w-10 h-10 bg-babyblue-100 rounded-xl flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-babyblue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Phone</p>
-                  <p className="font-medium">{profile.phone}</p>
-                </div>
-              </a>
-            )}
+              <button className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors">
+                <Share2 className="w-5 h-5" />
+              </button>
+            </div>
           </div>
+
+          {/* Tabs */}
+          <div className="border-t border-babyblue-100">
+            <div className="flex">
+              <TabButton 
+                active={activeTab === 'resume'} 
+                onClick={() => setActiveTab('resume')}
+                icon={<FileText className="w-4 h-4" />}
+                label="Resume"
+              />
+              <TabButton 
+                active={activeTab === 'media'} 
+                onClick={() => setActiveTab('media')}
+                icon={<Play className="w-4 h-4" />}
+                label="Media"
+              />
+              <TabButton 
+                active={activeTab === 'stats'} 
+                onClick={() => setActiveTab('stats')}
+                icon={<BarChart3 className="w-4 h-4" />}
+                label="Stats"
+              />
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6 bg-gray-50/50 min-h-[200px]">
+            {activeTab === 'resume' && <ResumeTab profile={profile} />}
+            {activeTab === 'media' && <MediaTab videos={profile.videos} />}
+            {activeTab === 'stats' && <StatsTab stats={profile.stats_json} profile={profile} />}
+          </div>
+        </div>
+
+        {/* Action Cards */}
+        <div className="mt-4 space-y-3">
+          <ActionCard 
+            icon={<FileText className="w-5 h-5" />}
+            title="View Full Resume"
+            subtitle="Download PDF"
+            href="#"
+          />
+          <ActionCard 
+            icon={<Trophy className="w-5 h-5" />}
+            title="Awards & Achievements"
+            subtitle={profile.awards ? `${profile.awards.split('\n').filter(a => a.trim()).length} awards` : 'No awards yet'}
+            onClick={() => {}}
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
+          >
+            <span className="text-lg">🏀</span>
+            Made with UREPP
+          </Link>
         </div>
       </main>
     </div>
   )
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
+// Tab Button Component
+function TabButton({ 
+  active, 
+  onClick, 
+  icon, 
+  label 
+}: { 
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string 
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-colors ${
+        active 
+          ? 'text-babyblue-600 border-b-2 border-babyblue-500 bg-babyblue-50/50' 
+          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  )
+}
+
+// Resume Tab Content
+function ResumeTab({ profile }: { profile: any }) {
+  return (
+    <div className="space-y-4">
+      {/* Quick Info Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <InfoCard 
+          icon={<Calendar className="w-4 h-4" />}
+          label="Class"
+          value={`${profile.grad_year}`}
+        />
+        <InfoCard 
+          icon={<Trophy className="w-4 h-4" />}
+          label="Position"
+          value={profile.position}
+        />
+        <InfoCard 
+          icon={<Ruler className="w-4 h-4" />}
+          label="Height"
+          value={profile.height}
+        />
+        <InfoCard 
+          icon={<Scale className="w-4 h-4" />}
+          label="Weight"
+          value={`${profile.weight} lbs`}
+        />
+      </div>
+
+      {/* Academics */}
+      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+        <div className="flex items-center gap-2 mb-3">
+          <GraduationCap className="w-5 h-5 text-babyblue-500" />
+          <h3 className="font-semibold text-gray-900">Academics</h3>
+        </div>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500">GPA</span>
+            <span className="font-medium text-gray-900">{profile.gpa}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">SAT</span>
+            <span className="font-medium text-gray-900">{profile.sat_score || 'N/A'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">ACT</span>
+            <span className="font-medium text-gray-900">{profile.act_score || 'N/A'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">High School</span>
+            <span className="font-medium text-gray-900">{profile.high_school}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Hometown</span>
+            <span className="font-medium text-gray-900">{profile.hometown}, {profile.state}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+        <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
+        <div className="space-y-2">
+          {profile.email && (
+            <a 
+              href={`mailto:${profile.email}`}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+            >
+              <Mail className="w-4 h-4 text-babyblue-500" />
+              {profile.email}
+            </a>
+          )}
+          {profile.phone && (
+            <a 
+              href={`tel:${profile.phone}`}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+            >
+              <Phone className="w-4 h-4 text-babyblue-500" />
+              {profile.phone}
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Media Tab Content
+function MediaTab({ videos }: { videos: any[] }) {
+  if (!videos || videos.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Play className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
+        <p>No videos uploaded yet</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {videos.map((video) => (
+        <div 
+          key={video.id} 
+          className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors cursor-pointer group"
+        >
+          {/* Video Thumbnail */}
+          <div className="aspect-video bg-gray-900 relative flex items-center justify-center">
+            {video.thumbnail ? (
+              <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
+            )}
+            <div className="relative w-14 h-14 bg-babyblue-500/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+            </div>
+          </div>
+          {/* Video Info */}
+          <div className="p-4">
+            <h3 className="font-semibold text-gray-900">{video.title}</h3>
+            <p className="text-sm text-gray-500 mt-1">{video.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Stats Tab Content
+function StatsTab({ stats, profile }: { stats: any, profile: any }) {
+  return (
+    <div className="space-y-4">
+      {/* Hitting Stats */}
+      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Hitting</h3>
+        <div className="grid grid-cols-3 gap-3">
+          <StatBox label="AVG" value={stats?.batting_avg || '-'} />
+          <StatBox label="OBP" value={stats?.obp || '-'} />
+          <StatBox label="SLG" value={stats?.slg || '-'} />
+        </div>
+        <div className="flex gap-2 mt-3">
+          <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-xs font-medium">
+            Bats: {profile.bats}
+          </span>
+          <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-xs font-medium">
+            Throws: {profile.throws}
+          </span>
+        </div>
+      </div>
+
+      {/* Pitching Stats */}
+      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Pitching</h3>
+        <div className="grid grid-cols-4 gap-2">
+          <StatBox label="ERA" value={stats?.era || '-'} />
+          <StatBox label="WHIP" value={stats?.whip || '-'} />
+          <StatBox label="K/9" value={stats?.k_per_9 || '-'} />
+          <StatBox label="IP" value={stats?.innings || '-'} />
+        </div>
+      </div>
+
+      {/* Physical */}
+      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Physical</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <p className="text-lg font-bold text-gray-900">{profile.height}</p>
+            <p className="text-xs text-gray-500 uppercase">Height</p>
+          </div>
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <p className="text-lg font-bold text-gray-900">{profile.weight} <span className="text-sm font-normal">lbs</span></p>
+            <p className="text-xs text-gray-500 uppercase">Weight</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Info Card Component
+function InfoCard({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+  return (
+    <div className="bg-white rounded-xl p-3 border border-babyblue-100 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-lg bg-babyblue-50 flex items-center justify-center text-babyblue-500">
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">{label}</p>
+        <p className="font-semibold text-gray-900 text-sm">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+// Stat Box Component
+function StatBox({ label, value }: { label: string, value: string }) {
   return (
     <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-      <p className="text-2xl font-bold text-babyblue-700">{value}</p>
+      <p className="text-xl font-bold text-babyblue-700">{value}</p>
       <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">{label}</p>
     </div>
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null
-  return (
-    <div className="flex justify-between items-center py-2 border-b border-babyblue-100 last:border-0">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-900">{value}</span>
+// Action Card Component
+function ActionCard({ 
+  icon, 
+  title, 
+  subtitle, 
+  href,
+  onClick
+}: { 
+  icon: React.ReactNode
+  title: string
+  subtitle: string
+  href?: string
+  onClick?: () => void
+}) {
+  const content = (
+    <div className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 cursor-pointer group">
+      <div className="w-12 h-12 rounded-xl bg-babyblue-50 flex items-center justify-center text-babyblue-500 group-hover:bg-babyblue-100 transition-colors">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+      <div className="text-gray-400 group-hover:text-babyblue-500 transition-colors">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
     </div>
+  )
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <button onClick={onClick} className="w-full text-left">
+      {content}
+    </button>
   )
 }

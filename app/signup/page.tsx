@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/auth'
-import { Loader2, Mail, Lock, User } from 'lucide-react'
+import { Loader2, Mail, Lock, ArrowLeft, Home, Search, User, CheckCircle } from 'lucide-react'
 
 export default function SignUp() {
   const router = useRouter()
@@ -46,30 +46,33 @@ export default function SignUp() {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
-        <nav className="border-b border-babyblue-200/50 bg-white/80 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="text-2xl font-bold text-babyblue-600">
-                UREPP
+        <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100">
+          <div className="max-w-md mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/" 
+                className="w-10 h-10 rounded-xl bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-600 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
               </Link>
+              <h1 className="text-xl font-bold text-gray-900">Success</h1>
             </div>
           </div>
-        </nav>
+        </header>
 
-        <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8 text-center">
-            <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-babyblue-600" />
+        <main className="max-w-md mx-auto px-4 py-6">
+          <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8 text-center">
+            <div className="w-20 h-20 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-babyblue-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Check Your Email
-            </h1>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
             <p className="text-gray-600 mb-6">
-              We've sent you a confirmation link. Click it to verify your account.
+              We've sent a confirmation link to{' '}
+              <span className="font-medium text-gray-900">{email}</span>
             </p>
             <Link
               href="/login"
-              className="inline-block bg-babyblue-500 hover:bg-babyblue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              className="inline-block w-full bg-babyblue-500 hover:bg-babyblue-600 text-white py-3 rounded-xl font-semibold transition-colors"
             >
               Go to Login
             </Link>
@@ -80,46 +83,46 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
-      {/* Navigation */}
-      <nav className="border-b border-babyblue-200/50 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-babyblue-600">
-              UREPP
-            </Link>
-            <Link
-              href="/login"
-              className="text-babyblue-600 hover:text-babyblue-700 font-medium transition-colors"
-            >
-              Sign In
-            </Link>
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/" 
+                className="w-10 h-10 rounded-xl bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-600 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Sign Up</h1>
+                <p className="text-sm text-gray-500">Create your account</p>
+              </div>
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Account
-            </h1>
-            <p className="text-gray-600">
-              Join UREPP and build your recruitment profile
-            </p>
+      <main className="max-w-md mx-auto px-4 py-6">
+        <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-babyblue-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Create Account</h2>
+            <p className="text-sm text-gray-500 mt-1">Join UREPP and get discovered</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -127,16 +130,14 @@ export default function SignUp() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -144,16 +145,14 @@ export default function SignUp() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
                   placeholder="At least 6 characters"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -161,8 +160,8 @@ export default function SignUp() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  placeholder="Confirm your password"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  placeholder="Confirm password"
                 />
               </div>
             </div>
@@ -170,12 +169,12 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white py-3 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-babyblue-200"
+              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md shadow-babyblue-200"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating Account...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating...
                 </>
               ) : (
                 'Create Account'
@@ -184,7 +183,7 @@ export default function SignUp() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link href="/login" className="text-babyblue-600 hover:text-babyblue-700 font-medium">
                 Sign in
@@ -192,7 +191,38 @@ export default function SignUp() {
             </p>
           </div>
         </div>
+
+        {/* Trust badges */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-gray-500 mb-2">Free forever. No credit card required.</p>
+          <div className="flex justify-center gap-4 text-xs text-gray-400">
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" /> 100% Free
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" /> No Spam
+            </span>
+          </div>
+        </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs font-medium">Search</span>
+          </Link>
+          <Link href="/login" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs font-medium">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
