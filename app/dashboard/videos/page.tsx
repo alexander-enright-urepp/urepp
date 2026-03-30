@@ -80,7 +80,6 @@ export default function VideosPage() {
         .select('*')
         .eq('profile_id', profileData.id)
         .order('display_order', { ascending: true })
-        .order('created_at', { ascending: false })
       
       if (videosError) {
         const { data: fallbackData } = await supabase

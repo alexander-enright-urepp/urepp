@@ -90,12 +90,12 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         return
       }
 
-      // Fetch videos separately
+      // Fetch videos separately - ordered by display_order
       const { data: videosData } = await supabase
         .from('videos')
         .select('*')
         .eq('profile_id', profileData.id)
-        .order('created_at', { ascending: false })
+        .order('display_order', { ascending: true })
 
       setProfile({
         ...profileData,
