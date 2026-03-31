@@ -18,7 +18,8 @@ import {
   Linkedin,
   Check,
   X,
-  Mail
+  Mail,
+  Trash2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -49,7 +50,7 @@ interface ProfileData {
   sat_score: string
   act_score: string
   bio: string
-  avatar_url: string | null
+  profile_picture_url: string | null
   college_name?: string
   college_city?: string
   college_state?: string
@@ -136,7 +137,7 @@ export default function EditProfile() {
     setHighSchoolSports(profileData.high_school_sports || [])
     setCollegeSports(profileData.college_sports || [])
     setSocials(profileData.social_links || {})
-    setImagePreview(profileData.avatar_url)
+    setImagePreview(profileData.profile_picture_url)
     setLoading(false)
   }
 
@@ -206,7 +207,7 @@ export default function EditProfile() {
     try {
       const updateData = {
         ...formData,
-        avatar_url: imagePreview,
+        profile_picture_url: imagePreview,
         high_school_sports: highSchoolSports,
         college_sports: collegeSports,
         // Save social links as individual columns (for public profile)
@@ -359,13 +360,22 @@ export default function EditProfile() {
                 </span>
               )}
             </div>
-            <div>
+            <div className="flex flex-col gap-2">
               <label className="inline-flex items-center gap-2 bg-babyblue-100 hover:bg-babyblue-200 text-babyblue-700 px-4 py-2 rounded-xl cursor-pointer transition-colors font-medium">
                 <Upload className="w-4 h-4" />
-                {uploadingImage ? 'Uploading...' : 'Change Photo'}
+                {uploadingImage ? 'Uploading...' : (imagePreview ? 'Change Photo' : 'Upload Photo')}
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
               </label>
-              <p className="text-sm text-gray-500 mt-2">JPG or PNG, max 5MB</p>
+              {imagePreview && (
+                <button 
+                  onClick={() => setImagePreview(null)}
+                  className="inline-flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-xl transition-colors font-medium text-sm"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Remove
+                </button>
+              )}
+              <p className="text-sm text-gray-500">JPG or PNG, max 5MB</p>
             </div>
           </div>
         </SectionCard>
