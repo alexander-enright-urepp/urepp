@@ -11,7 +11,6 @@ import {
   Pencil,
   Trash2,
   X,
-  Check,
   Home,
   Search,
   User,
@@ -21,24 +20,18 @@ import { supabase } from '@/lib/supabase'
 
 interface LinkItem {
   id: string
+  profile_id: string
   title: string
   subtitle?: string
   url: string
   icon?: string
-  color?: string
-  visible: boolean
-}
-
-interface Profile {
-  id: string
-  links?: string
 }
 
 export default function LinksPage() {
   const router = useRouter()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [profileId, setProfileId] = useState<string | null>(null)
   const [links, setLinks] = useState<LinkItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null)
   
@@ -47,9 +40,7 @@ export default function LinksPage() {
     title: '',
     subtitle: '',
     url: '',
-    icon: '👍',
-    color: '#ffffff',
-    visible: true
+    icon: '👍'
   })
 
   useEffect(() => {
@@ -63,83 +54,89 @@ export default function LinksPage() {
       return
     }
 
-    const { data } = await supabase
+    // Get profile
+    const { data: profile } = await supabase
       .from('profiles')
-      .select('id, links')
+      .select('id')
       .eq('user_id', session.user.id)
       .single()
 
-    if (data) {
-      setProfile(data)
-      if (data.links) {
-        try {
-          const parsed = JSON.parse(data.links)
-          setLinks(Array.isArray(parsed) ? parsed : [])
-        } catch {
-          setLinks([])
-        }
+    if (profile) {
+      setProfileId(profile.id)
+      // Load links from profile_links table
+      const { data: linksData } = await supabase
+        .from('profile_links')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true })
+      
+      if (linksData) {
+        setLinks(linksData)
       }
     }
     setLoading(false)
   }
 
-  const handleSave = async () => {
-    if (!profile) return
+  const addLink = async () => {
+    if (!formData.title || !formData.url || !profileId) return
     
-    await supabase
-      .from('profiles')
-      .update({
-        links: JSON.stringify(links),
-        updated_at: new Date().toISOString()
+    const { data, error } = await supabase
+      .from('profile_links')
+      .insert({
+        profile_id: profileId,
+        title: formData.title,
+        subtitle: formData.subtitle || null,
+        url: formData.url,
+        icon: formData.icon || '👍'
       })
-      .eq('id', profile.id)
-  }
-
-  const addLink = () => {
-    if (!formData.title || !formData.url) return
+      .select()
+      .single()
     
-    const newLink: LinkItem = {
-      id: Date.now().toString(),
-      ...formData
+    if (data && !error) {
+      setLinks([...links, data])
     }
     
-    const updatedLinks = [...links, newLink]
-    setLinks(updatedLinks)
-    saveLinks(updatedLinks)
-    
     // Reset form
-    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍' })
     setShowAddModal(false)
   }
 
-  const updateLink = () => {
+  const updateLink = async () => {
     if (!editingLink) return
     
-    const updatedLinks = links.map(link => 
-      link.id === editingLink.id ? { ...formData, id: link.id } : link
-    )
-    setLinks(updatedLinks)
-    saveLinks(updatedLinks)
+    const { error } = await supabase
+      .from('profile_links')
+      .update({
+        title: formData.title,
+        subtitle: formData.subtitle || null,
+        url: formData.url,
+        icon: formData.icon
+      })
+      .eq('id', editingLink.id)
+    
+    if (!error) {
+      const updatedLinks = links.map(link => 
+        link.id === editingLink.id 
+          ? { ...link, ...formData }
+          : link
+      )
+      setLinks(updatedLinks)
+    }
     
     setEditingLink(null)
-    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍' })
+    setShowAddModal(false)
   }
 
-  const deleteLink = (id: string) => {
-    const updatedLinks = links.filter(link => link.id !== id)
-    setLinks(updatedLinks)
-    saveLinks(updatedLinks)
-  }
-
-  const saveLinks = async (updatedLinks: LinkItem[]) => {
-    if (!profile) return
-    await supabase
-      .from('profiles')
-      .update({
-        links: JSON.stringify(updatedLinks),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', profile.id)
+  const deleteLink = async (id: string) => {
+    const { error } = await supabase
+      .from('profile_links')
+      .delete()
+      .eq('id', id)
+    
+    if (!error) {
+      setLinks(links.filter(link => link.id !== id))
+    }
   }
 
   const openEditModal = (link: LinkItem) => {
@@ -148,16 +145,14 @@ export default function LinksPage() {
       title: link.title,
       subtitle: link.subtitle || '',
       url: link.url,
-      icon: link.icon || '👍',
-      color: link.color || '#ffffff',
-      visible: link.visible
+      icon: link.icon || '👍'
     })
     setShowAddModal(true)
   }
 
   const openAddModal = () => {
     setEditingLink(null)
-    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍' })
     setShowAddModal(true)
   }
 
@@ -324,53 +319,19 @@ export default function LinksPage() {
               />
             </div>
 
-            {/* Icon & Color */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Icon
-                </label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => setFormData({...formData, icon: e.target.value})}
-                  placeholder="👍"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all text-center text-xl"
-                />
-                <p className="text-xs text-gray-500 mt-1">Icon name or emoji</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Color
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({...formData, color: e.target.value})}
-                    className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.color}
-                    onChange={(e) => setFormData({...formData, color: e.target.value})}
-                    placeholder="#ffffff"
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all font-mono text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Visible Toggle */}
-            <div className="flex items-center gap-3 py-2">
-              <div 
-                onClick={() => setFormData({...formData, visible: !formData.visible})}
-                className={`w-12 h-7 rounded-full cursor-pointer transition-colors ${formData.visible ? 'bg-babyblue-500' : 'bg-gray-300'}`}
-              >
-                <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform m-1 ${formData.visible ? 'translate-x-5' : 'translate-x-0'}`} />
-              </div>
-              <span className="text-sm text-gray-700">Visible on public page</span>
+            {/* Icon */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Icon
+              </label>
+              <input
+                type="text"
+                value={formData.icon}
+                onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                placeholder="👍"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all text-center text-xl"
+              />
+              <p className="text-xs text-gray-500 mt-1">Icon name or emoji</p>
             </div>
 
             {/* Buttons */}

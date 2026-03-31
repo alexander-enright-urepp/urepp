@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     act_score TEXT,
     bio TEXT,
     stats_json JSONB DEFAULT '{}',
+    links JSONB DEFAULT '[]',
     slug TEXT UNIQUE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -61,8 +62,33 @@ CREATE TABLE IF NOT EXISTS videos (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index on slug for fast lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_slug ON profiles(slug);
+-- Create profile_teams table
+CREATE TABLE IF NOT EXISTS profile_teams (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    team_name TEXT NOT NULL,
+    sport TEXT NOT NULL,
+    position TEXT,
+    year_played TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create profile_links table
+CREATE TABLE IF NOT EXISTS profile_links (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    subtitle TEXT,
+    icon TEXT DEFAULT '👍',
+    color TEXT DEFAULT '#ffffff',
+    visible BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_profile_teams_profile_id ON profile_teams(profile_id);
+CREATE INDEX IF NOT EXISTS idx_profile_links_profile_id ON profile_links(profile_id);
 
 -- Create index on user_id
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);

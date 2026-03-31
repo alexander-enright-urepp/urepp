@@ -38,7 +38,7 @@ export default function AcademicsPage() {
   const handleSave = async () => {
     if (!profile) return
     setSaving(true)
-    await supabase.from('profiles').update({ high_school: academics.high_school || null, gpa: academics.gpa || null, sat_score: academics.sat_score || null, act_score: academics.act_score || null, grad_year: academics.grad_year ? parseInt(academics.grad_year) : null, updated_at: new Date().toISOString() }).eq('id', profile.id)
+    await supabase.from('profiles').update({ high_school: academics.high_school || null, gpa: academics.gpa || null, sat_score: academics.sat_score || null, act_score: academics.act_score || null, grad_year: academics.grad_year || null, updated_at: new Date().toISOString() }).eq('id', profile.id)
     setSaving(false)
   }
 
@@ -62,7 +62,7 @@ export default function AcademicsPage() {
           <div className="space-y-4">
             <div><label className="flex items-center gap-2 text-sm font-medium mb-2"><BookOpen className="w-4 h-4 text-babyblue-500" />High School</label><input type="text" value={academics.high_school} onChange={(e) => setAcademics({...academics, high_school: e.target.value})} placeholder="Lincoln High School" className="w-full px-4 py-3 rounded-xl border" /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-sm font-medium mb-2">Graduation Year</label><select value={academics.grad_year} onChange={(e) => setAcademics({...academics, grad_year: e.target.value})} className="w-full px-4 py-3 rounded-xl border"><option value="">Select Year</option>{gradYears.map(year => <option key={year} value={year}>{year}</option>)}</select></div>
+              <div><label className="block text-sm font-medium mb-2">Graduation Year</label><input type="text" value={academics.grad_year} onChange={(e) => setAcademics({...academics, grad_year: e.target.value})} placeholder="2026" className="w-full px-4 py-3 rounded-xl border" /></div>
               <div><label className="block text-sm font-medium mb-2">GPA</label><input type="text" value={academics.gpa} onChange={(e) => setAcademics({...academics, gpa: e.target.value})} placeholder="3.8" className="w-full px-4 py-3 rounded-xl border" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
