@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signIn } from '@/lib/auth'
-import { Loader2, Mail, Lock, ArrowLeft, Home, Search, User } from 'lucide-react'
+import { Loader2, Mail, Lock, ArrowLeft, Home, Search, User, Tv } from 'lucide-react'
 
 export default function Login() {
   const router = useRouter()
@@ -131,6 +131,10 @@ export default function Login() {
           <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
             <Home className="w-6 h-6" />
             <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs font-medium">TV</span>
           </Link>
           <Link href="/search" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
             <Search className="w-6 h-6" />

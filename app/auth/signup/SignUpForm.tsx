@@ -5,12 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
-interface AuthFormProps {
-  mode: 'signin' | 'signup'
-  onSuccess?: () => void
-}
-
-export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
+export default function SignUpForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -23,53 +18,33 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
     setError('')
 
     try {
-      if (mode === 'signup') {
-        // Redirect immediately before signup
-        window.location.href = '/profile/create'
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+
+      if (error) throw error
+
+      if (data.user) {
+        // Create profile
+        await supabase.from('profiles').insert({
+          user_id: data.user.id,
+          email: email,
+          username: email.split('@')[0].toLowerCase(),
+          first_name: '',
+          last_name: '',
+          position: 'Athlete',
+          high_school: '',
+          slug: email.split('@')[0].toLowerCase(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
         
-        // Sign up user
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
-
-        if (error) throw error
-
-        if (data.user) {
-          // Create profile
-          await supabase.from('profiles').insert({
-            user_id: data.user.id,
-            email: email,
-            username: email.split('@')[0].toLowerCase(),
-            first_name: '',
-            last_name: '',
-            position: 'Athlete',
-            high_school: '',
-            slug: email.split('@')[0].toLowerCase(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          
-          // Force redirect immediately
-          setTimeout(() => {
-            window.location.replace('/profile/create')
-          }, 100)
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-
-        if (error) throw error
-
-        if (data.user) {
-          onSuccess?.()
-        }
+        // HARD redirect to create profile
+        window.location.assign('/profile/create')
       }
     } catch (err: any) {
-      console.error('Auth error:', err)
-      setError(err.message || 'Authentication failed')
+      setError(err.message || 'Signup failed')
     } finally {
       setLoading(false)
     }
@@ -78,14 +53,8 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-          {mode === 'signup' ? 'Create Account' : 'Sign In'}
-        </h2>
-        <p className="text-gray-600 text-center mb-6">
-          {mode === 'signup'
-            ? 'Join UREPP and create your recruitment profile'
-            : 'Welcome back to UREPP'}
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Create Account</h2>
+        <p className="text-gray-600 text-center mb-6">Join UREPP and create your recruitment profile</p>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
@@ -95,9 +64,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -112,9 +79,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -138,9 +103,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
                 )}
               </button>
             </div>
-            {mode === 'signup' && (
-              <p className="text-sm text-gray-500 mt-1">Must be at least 6 characters</p>
-            )}
+            <p className="text-sm text-gray-500 mt-1">Must be at least 6 characters</p>
           </div>
 
           <button
@@ -151,22 +114,19 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                {mode === 'signup' ? 'Creating account...' : 'Signing in...'}
+                Creating account...
               </>
             ) : (
-              mode === 'signup' ? 'Create Account' : 'Sign In'
+              'Create Account'
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
-            {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <Link
-              href={mode === 'signup' ? '/auth/signin' : '/auth/signup'}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              {mode === 'signup' ? 'Sign in' : 'Create one'}
+            Already have an account?{' '}
+            <Link href="/auth/signin" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in
             </Link>
           </p>
         </div>
