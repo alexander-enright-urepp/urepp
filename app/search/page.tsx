@@ -260,12 +260,12 @@ function ProfileCard({ profile }: { profile: Profile }) {
           {profile.grad_year && (
             <span className="flex items-center gap-0.5">
               <Calendar className="w-3 h-3" />
-              {profile.grad_year}
+              Class of {profile.grad_year}
             </span>
           )}
-          {profile.position && (
+          {(profile.high_school_sports?.[0] || profile.position) && (
             <span className="bg-babyblue-50 text-babyblue-600 px-1.5 py-0.5 rounded">
-              {profile.position}
+              {profile.high_school_sports?.[0] || profile.position}
             </span>
           )}
           {profile.state && (
