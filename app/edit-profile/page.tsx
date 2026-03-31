@@ -164,7 +164,7 @@ export default function EditProfile() {
       const fileName = `${profile.user_id}-${Date.now()}.${fileExt}`
       
       const { error: uploadError } = await supabase.storage
-        .from('PROFILE-PICTURES')
+        .from('profile-pictures')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -178,7 +178,7 @@ export default function EditProfile() {
       }
       
       const { data } = supabase.storage
-        .from('PROFILE-PICTURES')
+        .from('profile-pictures')
         .getPublicUrl(fileName)
       
       if (!data?.publicUrl) {
