@@ -16,28 +16,41 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setMessage('')
 
     try {
       if (mode === 'signup') {
+        // Sign up user
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
         })
 
         if (error) throw error
 
         if (data.user) {
-          setMessage('Check your email to confirm your account!')
+          // Create profile
+          await supabase.from('profiles').insert({
+            user_id: data.user.id,
+            email: email,
+            username: email.split('@')[0].toLowerCase(),
+            first_name: '',
+            last_name: '',
+            position: 'Athlete',
+            high_school: '',
+            slug: email.split('@')[0].toLowerCase(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          
+          // Force redirect immediately
+          setTimeout(() => {
+            window.location.replace('/profile/create')
+          }, 100)
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -74,12 +87,6 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
             {error}
-          </div>
-        )}
-
-        {message && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-            {message}
           </div>
         )}
 

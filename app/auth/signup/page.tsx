@@ -1,7 +1,17 @@
+'use client'
+
 import AuthForm from '@/components/AuthForm'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function SignUpPage() {
+  const router = useRouter()
+  
+  const handleSuccess = () => {
+    // Force immediate redirect to create profile
+    window.location.href = '/profile/create'
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -14,7 +24,7 @@ export default function SignUpPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <AuthForm mode="signup" />
+        <AuthForm mode="signup" onSuccess={handleSuccess} />
       </main>
     </div>
   )
