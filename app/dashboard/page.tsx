@@ -359,9 +359,12 @@ export default function Dashboard() {
         <div className="text-center py-4">
           <p className="text-sm text-gray-500">
             Need help?{' '}
-            <Link href="/support" className="text-babyblue-600 hover:underline">
+            <a 
+              href="mailto:alex@urepp.tv?subject=UREPP Support Request" 
+              className="text-babyblue-600 hover:underline"
+            >
               Contact support
-            </Link>
+            </a>
           </p>
         </div>
       </main>
