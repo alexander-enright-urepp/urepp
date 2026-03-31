@@ -217,6 +217,10 @@ export default function VideosPage() {
     setDraggedItem(index)
   }
 
+  const handleDragEnd = () => {
+    setDraggedItem(null)
+  }
+
   const moveVideoUp = (index: number) => {
     if (index === 0) return
     const newVideos = [...videos]
@@ -350,6 +354,25 @@ export default function VideosPage() {
                           {video.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{video.description}</p>}
                         </div>
                         <div className="flex gap-1">
+                          {/* Mobile reorder arrows */}
+                          {videos.length > 1 && (
+                            <>
+                              <button
+                                onClick={() => moveVideoUp(index)}
+                                disabled={index === 0}
+                                className="p-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 rounded-lg transition-colors disabled:opacity-30 md:hidden"
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => moveVideoDown(index)}
+                                disabled={index === videos.length - 1}
+                                className="p-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 rounded-lg transition-colors disabled:opacity-30 md:hidden"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => openEditModal(video)}
                             className="p-2 text-gray-400 hover:text-babyblue-600 hover:bg-babyblue-50 rounded-lg transition-colors"
