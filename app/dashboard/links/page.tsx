@@ -3,64 +3,420 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Instagram, Twitter, Youtube, Globe, Save, Loader2 } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Plus,
+  GripVertical,
+  Eye,
+  Pencil,
+  Trash2,
+  X,
+  Check,
+  Home,
+  Search,
+  User,
+  Tv
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+
+interface LinkItem {
+  id: string
+  title: string
+  subtitle?: string
+  url: string
+  icon?: string
+  color?: string
+  visible: boolean
+}
 
 interface Profile {
   id: string
-  instagram?: string
-  twitter?: string
-  youtube?: string
-  website?: string
+  links?: string
 }
 
 export default function LinksPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [links, setLinks] = useState({ instagram: '', twitter: '', youtube: '', website: '' })
+  const [links, setLinks] = useState<LinkItem[]>([])
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingLink, setEditingLink] = useState<LinkItem | null>(null)
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    subtitle: '',
+    url: '',
+    icon: '👍',
+    color: '#ffffff',
+    visible: true
+  })
 
-  useEffect(() => { loadProfile() }, [])
+  useEffect(() => {
+    loadProfile()
+  }, [])
 
   const loadProfile = async () => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) { router.push('/login'); return }
-    const { data } = await supabase.from('profiles').select('id, instagram, twitter, youtube, website').eq('user_id', session.user.id).single()
-    if (data) { setProfile(data); setLinks({ instagram: data.instagram || '', twitter: data.twitter || '', youtube: data.youtube || '', website: data.website || '' }) }
+    if (!session?.user) {
+      router.push('/login')
+      return
+    }
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, links')
+      .eq('user_id', session.user.id)
+      .single()
+
+    if (data) {
+      setProfile(data)
+      if (data.links) {
+        try {
+          const parsed = JSON.parse(data.links)
+          setLinks(Array.isArray(parsed) ? parsed : [])
+        } catch {
+          setLinks([])
+        }
+      }
+    }
     setLoading(false)
   }
 
   const handleSave = async () => {
     if (!profile) return
-    setSaving(true)
-    await supabase.from('profiles').update({ instagram: links.instagram || null, twitter: links.twitter || null, youtube: links.youtube || null, website: links.website || null, updated_at: new Date().toISOString() }).eq('id', profile.id)
-    setSaving(false)
+    
+    await supabase
+      .from('profiles')
+      .update({
+        links: JSON.stringify(links),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', profile.id)
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
+  const addLink = () => {
+    if (!formData.title || !formData.url) return
+    
+    const newLink: LinkItem = {
+      id: Date.now().toString(),
+      ...formData
+    }
+    
+    const updatedLinks = [...links, newLink]
+    setLinks(updatedLinks)
+    saveLinks(updatedLinks)
+    
+    // Reset form
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+    setShowAddModal(false)
+  }
+
+  const updateLink = () => {
+    if (!editingLink) return
+    
+    const updatedLinks = links.map(link => 
+      link.id === editingLink.id ? { ...formData, id: link.id } : link
+    )
+    setLinks(updatedLinks)
+    saveLinks(updatedLinks)
+    
+    setEditingLink(null)
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+  }
+
+  const deleteLink = (id: string) => {
+    const updatedLinks = links.filter(link => link.id !== id)
+    setLinks(updatedLinks)
+    saveLinks(updatedLinks)
+  }
+
+  const saveLinks = async (updatedLinks: LinkItem[]) => {
+    if (!profile) return
+    await supabase
+      .from('profiles')
+      .update({
+        links: JSON.stringify(updatedLinks),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', profile.id)
+  }
+
+  const openEditModal = (link: LinkItem) => {
+    setEditingLink(link)
+    setFormData({
+      title: link.title,
+      subtitle: link.subtitle || '',
+      url: link.url,
+      icon: link.icon || '👍',
+      color: link.color || '#ffffff',
+      visible: link.visible
+    })
+    setShowAddModal(true)
+  }
+
+  const openAddModal = () => {
+    setEditingLink(null)
+    setFormData({ title: '', subtitle: '', url: '', icon: '👍', color: '#ffffff', visible: true })
+    setShowAddModal(true)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-babyblue-500"></div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
-      <header className="bg-white border-b sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <header className="bg-white sticky top-0 z-50 border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="w-10 h-10 rounded-xl bg-babyblue-50 flex items-center justify-center"><ArrowLeft className="w-5 h-5" /></Link>
-            <div><h1 className="text-xl font-bold">Links</h1><p className="text-sm text-gray-500">Social media links</p></div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/dashboard"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </Link>
+              <h1 className="text-lg font-bold text-gray-900">Your Links</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-green-600 text-sm font-medium">Unlimited links</span>
+              <button 
+                onClick={openAddModal}
+                className="w-10 h-10 bg-babyblue-500 hover:bg-babyblue-600 rounded-full flex items-center justify-center text-white shadow-lg transition-colors"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
-      <main className="max-w-md mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="space-y-4">
-            <div><label className="flex items-center gap-2 text-sm font-medium mb-2"><Instagram className="w-4 h-4 text-pink-500" />Instagram</label><input type="text" value={links.instagram} onChange={(e) => setLinks({...links, instagram: e.target.value})} placeholder="@username" className="w-full px-4 py-3 rounded-xl border" /></div>
-            <div><label className="flex items-center gap-2 text-sm font-medium mb-2"><Twitter className="w-4 h-4 text-blue-400" />Twitter</label><input type="text" value={links.twitter} onChange={(e) => setLinks({...links, twitter: e.target.value})} placeholder="@username" className="w-full px-4 py-3 rounded-xl border" /></div>
-            <div><label className="flex items-center gap-2 text-sm font-medium mb-2"><Youtube className="w-4 h-4 text-red-500" />YouTube</label><input type="text" value={links.youtube} onChange={(e) => setLinks({...links, youtube: e.target.value})} placeholder="youtube.com/..." className="w-full px-4 py-3 rounded-xl border" /></div>
-            <div><label className="flex items-center gap-2 text-sm font-medium mb-2"><Globe className="w-4 h-4 text-gray-500" />Website</label><input type="text" value={links.website} onChange={(e) => setLinks({...links, website: e.target.value})} placeholder="https://..." className="w-full px-4 py-3 rounded-xl border" /></div>
-          </div>
-          <button onClick={handleSave} disabled={saving} className="w-full mt-6 bg-babyblue-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2">{saving ? <><Loader2 className="w-5 h-5 animate-spin" />Saving...</> : <><Save className="w-5 h-5" />Save Changes</>}</button>
+
+      <main className="max-w-md mx-auto px-4 py-6 space-y-3">
+        {/* Add Link Button (Dashed) */}
+        <button 
+          onClick={openAddModal}
+          className="w-full py-6 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center gap-2 text-gray-500 hover:border-babyblue-400 hover:text-babyblue-500 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          <span className="font-medium">Add Link</span>
+        </button>
+
+        {/* Links List */}
+        <div className="space-y-3">
+          {links.length === 0 ? (
+            <p className="text-center text-gray-400 py-8">No links yet. Add your first link!</p>
+          ) : (
+            links.map((link) => (
+              <div 
+                key={link.id} 
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3"
+              >
+                {/* Drag Handle */}
+                <div className="text-gray-300 cursor-grab">
+                  <GripVertical className="w-5 h-5" />
+                </div>
+
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-gray-50">
+                  {link.icon || '👍'}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">{link.title}</h3>
+                  {link.subtitle && (
+                    <p className="text-sm text-gray-500 truncate">{link.subtitle}</p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => window.open(link.url, '_blank')}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => openEditModal(link)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => deleteLink(link.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </main>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingLink ? 'Edit Link' : 'Add Link'}
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowAddModal(false)
+                  setEditingLink(null)
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="My Website"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+              />
+            </div>
+
+            {/* Subtitle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={formData.subtitle}
+                onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
+                placeholder="Optional description"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+              />
+            </div>
+
+            {/* URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                URL <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="url"
+                value={formData.url}
+                onChange={(e) => setFormData({...formData, url: e.target.value})}
+                placeholder="https://example.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+              />
+            </div>
+
+            {/* Icon & Color */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Icon
+                </label>
+                <input
+                  type="text"
+                  value={formData.icon}
+                  onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                  placeholder="👍"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all text-center text-xl"
+                />
+                <p className="text-xs text-gray-500 mt-1">Icon name or emoji</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Color
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={formData.color}
+                    onChange={(e) => setFormData({...formData, color: e.target.value})}
+                    className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={formData.color}
+                    onChange={(e) => setFormData({...formData, color: e.target.value})}
+                    placeholder="#ffffff"
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all font-mono text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Visible Toggle */}
+            <div className="flex items-center gap-3 py-2">
+              <div 
+                onClick={() => setFormData({...formData, visible: !formData.visible})}
+                className={`w-12 h-7 rounded-full cursor-pointer transition-colors ${formData.visible ? 'bg-babyblue-500' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform m-1 ${formData.visible ? 'translate-x-5' : 'translate-x-0'}`} />
+              </div>
+              <span className="text-sm text-gray-700">Visible on public page</span>
+            </div>
+
+            {/* Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <button
+                onClick={() => {
+                  setShowAddModal(false)
+                  setEditingLink(null)
+                }}
+                className="py-3 px-6 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={editingLink ? updateLink : addLink}
+                disabled={!formData.title || !formData.url}
+                className="py-3 px-6 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {editingLink ? 'Save Changes' : 'Add Link'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs font-medium">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs font-medium">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2 px-6 text-babyblue-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs font-medium">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
