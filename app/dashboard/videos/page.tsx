@@ -14,7 +14,9 @@ import {
   AlertCircle,
   CheckCircle,
   X,
-  GripVertical
+  GripVertical,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
@@ -215,8 +217,22 @@ export default function VideosPage() {
     setDraggedItem(index)
   }
 
-  const handleDragEnd = () => {
-    setDraggedItem(null)
+  const moveVideoUp = (index: number) => {
+    if (index === 0) return
+    const newVideos = [...videos]
+    const temp = newVideos[index]
+    newVideos[index] = newVideos[index - 1]
+    newVideos[index - 1] = temp
+    setVideos(newVideos.map((v, i) => ({ ...v, display_order: i })))
+  }
+
+  const moveVideoDown = (index: number) => {
+    if (index === videos.length - 1) return
+    const newVideos = [...videos]
+    const temp = newVideos[index]
+    newVideos[index] = newVideos[index + 1]
+    newVideos[index + 1] = temp
+    setVideos(newVideos.map((v, i) => ({ ...v, display_order: i })))
   }
 
   const openAddModal = () => {
