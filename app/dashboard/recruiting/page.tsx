@@ -11,6 +11,7 @@ interface Profile {
   recruiting_status?: string
   offers?: string
   interested_schools?: string
+  committed_school?: string
 }
 
 const recruitingStatuses = [
@@ -32,10 +33,10 @@ export default function RecruitingPage() {
   const loadProfile = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/login'); return }
-    const { data } = await supabase.from('profiles').select('id, recruiting_status, offers, interested_schools').eq('user_id', session.user.id).single()
+    const { data } = await supabase.from('profiles').select('id, recruiting_status, committed_school, offers, interested_schools').eq('user_id', session.user.id).single()
     if (data) {
       setProfile(data)
-      setRecruiting({ status: data.recruiting_status || '', committed_school: '', offers: data.offers || '', interested_schools: data.interested_schools || '' })
+      setRecruiting({ status: data.recruiting_status || '', committed_school: data.committed_school || '', offers: data.offers || '', interested_schools: data.interested_schools || '' })
     }
     setLoading(false)
   }
@@ -43,7 +44,13 @@ export default function RecruitingPage() {
   const handleSave = async () => {
     if (!profile) return
     setSaving(true)
-    await supabase.from('profiles').update({ recruiting_status: recruiting.status || null, offers: recruiting.offers || null, interested_schools: recruiting.interested_schools || null, updated_at: new Date().toISOString() }).eq('id', profile.id)
+    await supabase.from('profiles').update({ 
+      recruiting_status: recruiting.status || null, 
+      committed_school: recruiting.committed_school || null,
+      offers: recruiting.offers || null, 
+      interested_schools: recruiting.interested_schools || null, 
+      updated_at: new Date().toISOString() 
+    }).eq('id', profile.id)
     setSaving(false)
   }
 
