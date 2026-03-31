@@ -349,6 +349,7 @@ export default function Dashboard() {
             <h3 className="font-semibold text-gray-900">Settings</h3>
           </div>
           <div className="divide-y divide-babyblue-50">
+            <SettingsLink href="/dashboard/subscription" icon={<CreditCard className="w-5 h-5" />} label="Subscription" />
             <SettingsLink href="/edit-profile" icon={<Settings className="w-5 h-5" />} label="Account Settings" />
             <SettingsButton onClick={handleSignOut} icon={<LogOut className="w-5 h-5" />} label="Sign Out" danger />
           </div>
