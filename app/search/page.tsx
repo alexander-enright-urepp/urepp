@@ -225,7 +225,7 @@ export default function SearchPage() {
             <Search className="w-6 h-6" />
             <span className="text-xs font-medium">Search</span>
           </Link>
-          <Link href="/login" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
             <UserIcon className="w-6 h-6" />
             <span className="text-xs font-medium">Profile</span>
           </Link>
