@@ -29,6 +29,7 @@ interface Profile {
   hometown: string | null
   state: string | null
   sport?: string
+  high_school_sports?: string[]
 }
 
 export default function SearchPage() {
