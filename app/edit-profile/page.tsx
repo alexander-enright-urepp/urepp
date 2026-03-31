@@ -144,25 +144,55 @@ export default function EditProfile() {
     const file = e.target.files?.[0]
     if (!file || !profile) return
 
-    setUploadingImage(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${profile.user_id}-${Date.now()}.${fileExt}`
-    
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, file)
-    
-    if (uploadError) {
-      setError('Upload failed: ' + uploadError.message)
-      setUploadingImage(false)
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Max 5MB.')
       return
     }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file.')
+      return
+    }
+
+    setUploadingImage(true)
+    setError('')
     
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${profile.user_id}-${Date.now()}.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('PROFILE-PICTURES')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+      
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        setError(`Upload failed: ${uploadError.message}`)
+        setUploadingImage(false)
+        return
+      }
+      
+      const { data } = supabase.storage
+        .from('PROFILE-PICTURES')
+        .getPublicUrl(fileName)
+      
+      if (!data?.publicUrl) {
+        setError('Failed to get image URL')
+        setUploadingImage(false)
+        return
+      }
+      
+      setImagePreview(data.publicUrl)
+    } catch (err: any) {
+      console.error('Upload exception:', err)
+      setError('Upload failed. Check console for details.')
+    }
     
-    setImagePreview(publicUrl)
     setUploadingImage(false)
   }
 
