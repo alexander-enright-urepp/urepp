@@ -269,7 +269,7 @@ export default function Dashboard() {
               icon={<LinkIcon className="w-5 h-5" />}
               title="Links"
               subtitle="Manage links"
-              href="/edit-profile"
+              href="/dashboard/links"
             />
             <QuickActionCard 
               icon={<TrendingUp className="w-5 h-5" />}
@@ -287,25 +287,25 @@ export default function Dashboard() {
               icon={<Users className="w-5 h-5" />}
               title="Teams"
               subtitle="Team history"
-              href="/edit-profile?tab=teams"
+              href="/dashboard/teams"
             />
             <QuickActionCard 
               icon={<GraduationCap className="w-5 h-5" />}
               title="Academics"
               subtitle="GPA & scores"
-              href="/edit-profile?tab=academics"
+              href="/dashboard/academics"
             />
             <QuickActionCard 
               icon={<Ruler className="w-5 h-5" />}
               title="Measurements"
               subtitle="Height & weight"
-              href="/edit-profile?tab=measurements"
+              href="/dashboard/measurements"
             />
             <QuickActionCard 
               icon={<ClipboardList className="w-5 h-5" />}
               title="Recruiting Info"
               subtitle="Status & offers"
-              href="/edit-profile?tab=recruiting"
+              href="/dashboard/recruiting"
             />
           </div>
         )}

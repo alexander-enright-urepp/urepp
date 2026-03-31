@@ -1,4 +1,8 @@
-'use client'
+#!/usr/bin/env python3
+import re
+
+# Fix subscription page
+subscription_content = ''''use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -123,14 +127,19 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          {/* Force showing Cancel button for testing */}
-          <button 
-            onClick={() => setShowCancelConfirm(true)}
-            className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            <X className="w-5 h-5" />
-            Cancel Subscription
-          </button>
+          {isPremium ? (
+            <button 
+              onClick={() => setShowCancelConfirm(true)}
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              <X className="w-5 h-5" />
+              Cancel Subscription
+            </button>
+          ) : (
+            <button className="w-full bg-babyblue-500 hover:bg-babyblue-600 text-white py-3 rounded-xl font-semibold transition-colors">
+              Upgrade to Premium
+            </button>
+          )}
         </div>
 
         {/* Premium Plan */}
@@ -212,3 +221,10 @@ export default function SubscriptionPage() {
     </div>
   )
 }
+'''
+
+# Write subscription page
+with open('/Users/alexenright/.openclaw/workspace/urepp/app/dashboard/subscription/page.tsx', 'w') as f:
+    f.write(subscription_content)
+
+print("Subscription page updated with Cancel Subscription")
