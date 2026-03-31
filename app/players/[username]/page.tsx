@@ -19,7 +19,8 @@ import {
   BarChart3,
   Trophy,
   Link as LinkIcon,
-  ExternalLink
+  ExternalLink,
+  Star
 } from 'lucide-react'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -128,7 +129,15 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 
       <main className="max-w-md mx-auto">
         <div className="bg-white rounded-3xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
-          <div className="px-6 pt-8 pb-6 text-center">
+          <div className="px-6 pt-8 pb-6 text-center relative">
+            {/* Verified Badge - Premium Only */}
+            {profile.is_premium && (
+              <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                <Star className="w-3 h-3 fill-current" />
+                VERIFIED
+              </div>
+            )}
+
             <div className="relative mx-auto mb-4">
               <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
                 {profile.profile_picture_url ? (

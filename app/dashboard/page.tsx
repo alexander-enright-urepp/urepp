@@ -27,7 +27,13 @@ import {
   Share2,
   Award,
   TrendingUp,
-  LayoutTemplate
+  LayoutTemplate,
+  Users,
+  GraduationCap,
+  Ruler,
+  ClipboardList,
+  Tv,
+  Star
 } from 'lucide-react'
 
 interface Profile {
@@ -137,7 +143,15 @@ export default function Dashboard() {
         {profile ? (
           <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
             {/* Profile Header */}
-            <div className="p-6 text-center">
+            <div className="p-6 text-center relative">
+              {/* Verified Badge - Premium Only */}
+              {isPremium && (
+                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                  <Star className="w-3 h-3 fill-current" />
+                  VERIFIED
+                </div>
+              )}
+
               {/* Avatar */}
               <div className="relative mx-auto mb-4">
                 <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
@@ -269,6 +283,30 @@ export default function Dashboard() {
               subtitle="Customize look"
               href="/dashboard/themes"
             />
+            <QuickActionCard 
+              icon={<Users className="w-5 h-5" />}
+              title="Teams"
+              subtitle="Team history"
+              href="/edit-profile?tab=teams"
+            />
+            <QuickActionCard 
+              icon={<GraduationCap className="w-5 h-5" />}
+              title="Academics"
+              subtitle="GPA & scores"
+              href="/edit-profile?tab=academics"
+            />
+            <QuickActionCard 
+              icon={<Ruler className="w-5 h-5" />}
+              title="Measurements"
+              subtitle="Height & weight"
+              href="/edit-profile?tab=measurements"
+            />
+            <QuickActionCard 
+              icon={<ClipboardList className="w-5 h-5" />}
+              title="Recruiting Info"
+              subtitle="Status & offers"
+              href="/edit-profile?tab=recruiting"
+            />
           </div>
         )}
 
@@ -331,6 +369,7 @@ export default function Dashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
         <div className="max-w-md mx-auto flex justify-around">
           <BottomNavLink href="/" icon={<Home className="w-6 h-6" />} label="Home" />
+          <BottomNavLink href="/tv" icon={<Tv className="w-6 h-6" />} label="TV" />
           <BottomNavLink href="/search" icon={<Search className="w-6 h-6" />} label="Search" />
           <BottomNavLink href="/dashboard" icon={<User className="w-6 h-6" />} label="Profile" active />
         </div>
