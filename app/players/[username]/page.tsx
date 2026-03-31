@@ -48,6 +48,7 @@ interface Profile {
   college_grad_year?: number
   high_school_sports?: string[]
   college_sports?: string[]
+  is_premium?: boolean
   stats_json?: {
     batting_avg?: string
     obp?: string
