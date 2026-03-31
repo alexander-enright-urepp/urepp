@@ -118,7 +118,18 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
       setProfile({
         ...profileData,
         teams: profileData.profile_teams || [],
-        videos: videosData || []
+        videos: videosData || [],
+        measurements: {
+          height: profileData.height,
+          weight: profileData.weight,
+          forty_yard_dash: profileData.forty_yard_dash,
+          wingspan: profileData.wingspan,
+          vertical_jump: profileData.vertical_jump,
+          broad_jump: profileData.broad_jump,
+          bench_press: profileData.bench_press,
+          squat: profileData.squat,
+          shuttle_run: profileData.shuttle_run
+        }
       })
       setLoading(false)
     }
