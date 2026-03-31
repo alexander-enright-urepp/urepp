@@ -16,7 +16,6 @@ import {
 export default function SubscriptionPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
@@ -35,7 +34,6 @@ export default function SubscriptionPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-6 space-y-4">
-        {/* Current Plan */}
         <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-babyblue-100 rounded-xl flex items-center justify-center">
@@ -58,7 +56,7 @@ export default function SubscriptionPage() {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Check className="w-4 h-4 text-green-500" />
-              <span>Stats & achievements</span>
+              <span>Stats and achievements</span>
             </div>
           </div>
 
@@ -67,14 +65,12 @@ export default function SubscriptionPage() {
           </button>
         </div>
 
-        {/* Premium Plan */}
         <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-2">
             <Star className="w-5 h-5 fill-current" />
             <span className="font-bold">Premium</span>
           </div>
-          <p className="text-3xl font-bold mb-1">$10</span>
-          <p className="text-yellow-100 text-sm mb-4">per month</p>
+          <p className="text-3xl font-bold mb-1">$10<span className="text-lg font-normal">/month</span></p>
 
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 text-sm">
@@ -100,7 +96,6 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {/* Payment Method */}
         <div className="bg-white rounded-2xl shadow-sm border border-babyblue-100 overflow-hidden">
           <div className="px-4 py-3 border-b border-babyblue-50">
             <h3 className="font-semibold text-gray-900">Payment Method</h3>
@@ -114,7 +109,6 @@ export default function SubscriptionPage() {
         </div>
       </main>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
         <div className="max-w-md mx-auto flex justify-around">
           <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
