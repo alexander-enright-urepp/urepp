@@ -189,7 +189,14 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
             <h1 className="text-2xl font-bold text-gray-900">
               {profile.first_name} {profile.last_name}
             </h1>
-            <p className="text-babyblue-500 font-medium mt-1">@{profile.username}</p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <p className="text-babyblue-500 font-medium">@{profile.username}</p>
+              {profile.role && (
+                <span className="bg-babyblue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium uppercase">
+                  {profile.role}
+                </span>
+              )}
+            </div>
 
             {profile.bio && (
               <p className="text-gray-600 text-sm mt-3 leading-relaxed">{profile.bio}</p>

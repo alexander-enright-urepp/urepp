@@ -117,6 +117,7 @@ export default function EditProfile() {
       first_name: profileData.first_name || '',
       last_name: profileData.last_name || '',
       username: profileData.username || '',
+      role: profileData.role || '',
       slug: profileData.slug || '',
       grad_year: profileData.grad_year || 2026,
       high_school: profileData.high_school || '',
@@ -428,11 +429,12 @@ export default function EditProfile() {
             </div>
 
             <div>
-              <Label>Role</Label>
+              <Label>Role <span className="text-red-500">*</span></Label>
               <select
                 value={formData.role || ''}
                 onChange={e => updateForm('role', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                required
               >
                 <option value="">Select your role</option>
                 <option value="athlete">Athlete</option>
@@ -440,6 +442,9 @@ export default function EditProfile() {
                 <option value="parent">Parent</option>
                 <option value="fan">Fan</option>
               </select>
+              {!formData.role && (
+                <p className="text-sm text-red-500 mt-1">Role is required</p>
+              )}
             </div>
           </div>
         </SectionCard>
