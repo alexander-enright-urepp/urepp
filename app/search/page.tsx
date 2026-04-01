@@ -28,6 +28,7 @@ interface Profile {
   high_school: string | null
   hometown: string | null
   state: string | null
+  role?: string
   sport?: string
   high_school_sports?: string[]
 }
@@ -55,6 +56,7 @@ export default function SearchPage() {
     const { data } = await supabase
       .from('profiles')
       .select('*')
+      .in('role', ['athlete', 'coach'])
       .order('created_at', { ascending: false })
       .limit(20)
     
@@ -64,7 +66,7 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     setLoading(true)
-    let queryBuilder = supabase.from('profiles').select('*')
+    let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach'])
     
     if (query.trim()) {
       queryBuilder = queryBuilder.or(
@@ -253,9 +255,16 @@ function ProfileCard({ profile }: { profile: Profile }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate">
-          {profile.first_name} {profile.last_name}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 truncate">
+            {profile.first_name} {profile.last_name}
+          </h3>
+          {profile.role && (
+            <span className="bg-babyblue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium uppercase">
+              {profile.role}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-babyblue-500">@{profile.username}</p>
         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
           {profile.grad_year && (
