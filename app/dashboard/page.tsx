@@ -262,8 +262,8 @@ export default function Dashboard() {
             <QuickActionCard 
               icon={<BarChart3 className="w-5 h-5" />}
               title="Stats"
-              subtitle="Update numbers"
-              href="/edit-profile"
+              subtitle="View analytics"
+              href="/dashboard/stats"
             />
             <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}

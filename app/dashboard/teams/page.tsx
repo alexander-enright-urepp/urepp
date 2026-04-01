@@ -300,7 +300,7 @@ export default function TeamsPage() {
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">
@@ -411,7 +411,7 @@ export default function TeamsPage() {
             </div>
 
             {/* Buttons */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            <div className="grid grid-cols-2 gap-3 pt-4 pb-safe">
               <button
                 onClick={() => {
                   setShowAddModal(false)
@@ -434,7 +434,7 @@ export default function TeamsPage() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 pt-2 pb-safe z-50">
         <div className="max-w-md mx-auto flex justify-around">
           <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
             <Home className="w-6 h-6" />
