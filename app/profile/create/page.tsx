@@ -10,8 +10,16 @@ interface ProfileFormData {
   firstName: string
   lastName: string
   username: string
+  role: string
   bio: string
 }
+
+const roles = [
+  { value: 'athlete', label: 'Athlete' },
+  { value: 'coach', label: 'Coach' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'fan', label: 'Fan' }
+]
 
 export default function CreateProfile() {
   const router = useRouter()
@@ -26,6 +34,7 @@ export default function CreateProfile() {
     firstName: '',
     lastName: '',
     username: '',
+    role: '',
     bio: ''
   })
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
@@ -135,7 +144,7 @@ export default function CreateProfile() {
     
     try {
       if (!user) throw new Error('Not authenticated')
-      if (!formData.firstName || !formData.lastName || !formData.username) {
+      if (!formData.firstName || !formData.lastName || !formData.username || !formData.role) {
         throw new Error('Please fill in all required fields')
       }
       if (usernameAvailable === false) {
@@ -165,6 +174,7 @@ export default function CreateProfile() {
             first_name: formData.firstName,
             last_name: formData.lastName,
             username: username,
+            role: formData.role,
             bio: formData.bio || null,
             profile_picture_url: profileImageUrl,
             updated_at: new Date().toISOString()
@@ -182,6 +192,7 @@ export default function CreateProfile() {
             username: username,
             first_name: formData.firstName,
             last_name: formData.lastName,
+            role: formData.role,
             bio: formData.bio || null,
             profile_picture_url: profileImageUrl,
             grad_year: 2026,
@@ -321,6 +332,24 @@ export default function CreateProfile() {
                   <p className="text-sm text-red-500 mt-1">This username is already taken</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">Letters and numbers only</p>
+              </div>
+
+              {/* Role */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  required
+                >
+                  <option value="">Select your role</option>
+                  {roles.map((role) => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

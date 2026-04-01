@@ -56,6 +56,7 @@ interface ProfileData {
   college_state?: string
   college_grad_year?: number
   // New fields
+  role?: string
   high_school_current_year?: string
   high_school_sports?: string[]
   college_current_year?: string
@@ -424,6 +425,21 @@ export default function EditProfile() {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all resize-none"
               />
+            </div>
+
+            <div>
+              <Label>Role</Label>
+              <select
+                value={formData.role || ''}
+                onChange={e => updateForm('role', e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+              >
+                <option value="">Select your role</option>
+                <option value="athlete">Athlete</option>
+                <option value="coach">Coach</option>
+                <option value="parent">Parent</option>
+                <option value="fan">Fan</option>
+              </select>
             </div>
           </div>
         </SectionCard>
