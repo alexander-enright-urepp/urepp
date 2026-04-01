@@ -31,7 +31,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 
 // Theme definitions - same as in themes page
-const THEMES: Record<string, { color: string; accent: string; gradient?: string; dark?: boolean }> = {
+const THEMES: Record<string, { color: string; accent: string; gradient?: string; dark?: boolean; textColor?: string }> = {
   default: { color: '#ffffff', accent: '#0ea5e9', dark: false, textColor: '#0ea5e9' },
   midnight: { color: '#1f2937', accent: '#374151', dark: true },
   neon: { color: '#d946ef', accent: '#22d3ee', gradient: 'linear-gradient(135deg, #d946ef, #8b5cf6, #22d3ee)', dark: true },
