@@ -30,6 +30,22 @@ import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 
+// Theme definitions - same as in themes page
+const THEMES: Record<string, { color: string; accent: string; gradient?: string; dark?: boolean }> = {
+  default: { color: '#ffffff', accent: '#0ea5e9', dark: false, textColor: '#0ea5e9' },
+  midnight: { color: '#1f2937', accent: '#374151', dark: true },
+  neon: { color: '#d946ef', accent: '#22d3ee', gradient: 'linear-gradient(135deg, #d946ef, #8b5cf6, #22d3ee)', dark: true },
+  sunset: { color: '#f97316', accent: '#ec4899', gradient: 'linear-gradient(135deg, #f97316, #ec4899, #9333ea)', dark: false },
+  forest: { color: '#059669', accent: '#84cc16', dark: false },
+  ocean: { color: '#0284c7', accent: '#06b6d4', gradient: 'linear-gradient(135deg, #0284c7, #06b6d4, #14b8a6)', dark: false },
+  lavender: { color: '#8b5cf6', accent: '#c084fc', dark: false },
+  rose: { color: '#e11d48', accent: '#fb7185', dark: false },
+  emerald: { color: '#059669', accent: '#34d399', dark: false },
+  cyber: { color: '#06b6d4', accent: '#facc15', gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6, #facc15)', dark: true },
+  magma: { color: '#dc2626', accent: '#fb923c', gradient: 'linear-gradient(135deg, #dc2626, #ea580c, #fbbf24)', dark: false },
+  aurora: { color: '#6366f1', accent: '#2dd4bf', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6, #2dd4bf)', dark: false },
+}
+
 interface Profile {
   id: string
   first_name: string
@@ -54,6 +70,7 @@ interface Profile {
   college_sports?: string[]
   is_premium?: boolean
   role?: string
+  theme?: string
   stats_json?: {
     batting_avg?: string
     obp?: string
@@ -95,6 +112,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'resume' | 'media' | 'stats'>('resume')
+  const [copied, setCopied] = useState(false)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
@@ -138,6 +156,29 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
     fetchProfile()
   }, [params.username, supabase])
 
+  // Get theme colors
+  const getThemeStyles = () => {
+    const themeId = profile?.theme || 'default'
+    const theme = THEMES[themeId] || THEMES.default
+    return theme
+  }
+
+  const theme = getThemeStyles()
+
+  // Determine text color based on theme darkness
+  const getTextColor = () => theme.dark ? 'white' : 'black'
+  const getTextClass = () => theme.dark ? 'text-white' : 'text-gray-900'
+  const getMutedTextClass = () => theme.dark ? 'text-white/80' : 'text-gray-600'
+  const getSocialBg = () => theme.dark ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.5)'
+  const getSocialColor = () => theme.dark ? 'white' : theme.color
+
+  const copyProfileLink = () => {
+    const url = `${window.location.origin}/players/${params.username}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
@@ -151,22 +192,49 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 py-8 px-4">
-      <nav className="max-w-md mx-auto mb-6">
-        <div className="flex justify-between items-center">
-          <Link href="/search" className="text-babyblue-600 hover:text-babyblue-700 flex items-center gap-1 text-sm font-medium">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-          <button className="text-babyblue-600 hover:text-babyblue-700 p-2 rounded-full hover:bg-babyblue-100/50 transition-colors">
-            <Share2 className="w-5 h-5" />
-          </button>
+    <div 
+      className="min-h-screen"
+      style={{
+        background: theme.gradient || `linear-gradient(135deg, ${theme.color}10, ${theme.accent}05)`
+      }}
+    >
+      <header 
+        className="bg-white/90 backdrop-blur-sm border-b sticky top-0 z-50"
+        style={{ borderColor: 'rgba(0,0,0,0.1)' }}
+      >
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => window.history.back()}
+              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <button 
+              onClick={copyProfileLink}
+              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center relative"
+            >
+              {copied ? (
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                  Copied!
+                </span>
+              ) : null}
+              <Share2 className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-gray-600'}`} />
+            </button>
+          </div>
         </div>
-      </nav>
+      </header>
 
       <main className="max-w-md mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
-          <div className="px-6 pt-8 pb-6 text-center relative">
+        <div 
+          className="rounded-3xl shadow-xl border overflow-hidden"
+          style={{ 
+            background: theme.gradient ? theme.color : theme.color,
+            borderColor: theme.accent + '40',
+            boxShadow: `0 20px 25px -5px ${theme.color}30, 0 8px 10px -6px ${theme.color}20`
+          }}
+        >
+          <div className="px-6 pt-8 pb-6 text-center relative" style={{ background: theme.gradient || `linear-gradient(135deg, ${theme.color}, ${theme.accent})` }}>
             {/* Verified Badge - Premium Only */}
             {profile.is_premium && (
               <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
@@ -176,37 +244,54 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
             )}
 
             <div className="relative mx-auto mb-4">
-              <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+              <div 
+                className="w-28 h-28 mx-auto rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden"
+                style={{ background: theme.gradient || theme.color }}
+              >
                 {profile.profile_picture_url ? (
                   <img src={profile.profile_picture_url} alt={`${profile.first_name} ${profile.last_name}`} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-4xl font-bold text-babyblue-600">
+                  <span 
+                    className="text-4xl font-bold text-white"
+                    style={{ color: theme.gradient ? 'white' : 'white' }}
+                  >
                     {profile.first_name?.[0]}{profile.last_name?.[0]}
                   </span>
                 )}
               </div>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className={`text-2xl font-bold ${getTextClass()}`}>
               {profile.first_name} {profile.last_name}
             </h1>
             <div className="flex items-center justify-center gap-2 mt-1">
-              <p className="text-babyblue-500 font-medium">@{profile.username}</p>
+              <p 
+                className={`font-medium ${getTextClass()}`}
+              >@{profile.username}</p>
               {profile.role && (
-                <span className="bg-babyblue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium uppercase">
+                <span 
+                  className="px-2 py-0.5 rounded-full text-xs font-medium uppercase"
+                  style={{ 
+                    backgroundColor: getTextColor() === 'white' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)',
+                    color: getTextColor()
+                  }}
+                >
                   {profile.role}
                 </span>
               )}
             </div>
 
             {profile.bio && (
-              <p className="text-gray-600 text-sm mt-3 leading-relaxed">{profile.bio}</p>
+              <p className={`text-sm mt-3 leading-relaxed ${getMutedTextClass()}`}>{profile.bio}</p>
             )}
 
             {/* Quick Info */}
             <div className="flex justify-center gap-3 mt-4 flex-wrap">
               {profile.high_school_sports?.[0] && (
-                <span className="bg-babyblue-50 text-babyblue-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ 
+                  backgroundColor: getTextColor() === 'white' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)',
+                  color: getTextColor()
+                }}>
                   {profile.high_school_sports[0]}
                 </span>
               )}
@@ -215,27 +300,55 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
             {/* Social Links - All with baby blue color */}
             <div className="flex justify-center gap-3 mt-5 flex-wrap">
               {profile.email && (
-                <a href={`mailto:${profile.email}`} className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a 
+                  href={`mailto:${profile.email}`} 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                >
                   <Mail className="w-5 h-5" />
                 </a>
               )}
               {profile.instagram && (
-                <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a 
+                  href={`https://instagram.com/${profile.instagram.replace('@', '')}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                >
                   <Instagram className="w-5 h-5" />
                 </a>
               )}
               {profile.twitter && (
-                <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a 
+                  href={`https://twitter.com/${profile.twitter.replace('@', '')}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                >
                   <Twitter className="w-5 h-5" />
                 </a>
               )}
               {profile.youtube && (
-                <a href={profile.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a 
+                  href={profile.youtube} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                >
                   <Youtube className="w-5 h-5" />
                 </a>
               )}
               {profile.linkedin && (
-                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a 
+                  href={profile.linkedin} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                >
                   <Linkedin className="w-5 h-5" />
                 </a>
               )}
