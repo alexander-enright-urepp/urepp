@@ -300,7 +300,7 @@ export default function TeamsPage() {
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[80vh] overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">
