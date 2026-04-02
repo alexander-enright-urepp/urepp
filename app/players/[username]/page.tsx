@@ -1162,6 +1162,66 @@ function ResumeTab({ profile, minimal, isDark }: { profile: Profile; minimal?: b
         </div>
       )}
 
+      {/* Measurements */}
+      {profile.measurements && Object.values(profile.measurements).some(v => v) && (
+        <div className={`rounded-xl p-4 border ${cardBg}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Ruler className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-orange-500'}`} />
+            <h3 className={`font-semibold ${textColor}`}>Measurements</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {profile.measurements.height && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.height}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Height</p>
+              </div>
+            )}
+            {profile.measurements.weight && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.weight}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Weight</p>
+              </div>
+            )}
+            {profile.measurements.forty_yard_dash && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.forty_yard_dash}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>40 Yard Dash</p>
+              </div>
+            )}
+            {profile.measurements.wingspan && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.wingspan}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Wingspan</p>
+              </div>
+            )}
+            {profile.measurements.vertical_jump && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.vertical_jump}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Vertical Jump</p>
+              </div>
+            )}
+            {profile.measurements.broad_jump && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.broad_jump}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Broad Jump</p>
+              </div>
+            )}
+            {profile.measurements.bench_press && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.bench_press}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Bench Press</p>
+              </div>
+            )}
+            {profile.measurements.shuttle_run && (
+              <div className={`text-center p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-lg font-bold ${textColor}`}>{profile.measurements.shuttle_run}</p>
+                <p className={`text-xs ${mutedColor} uppercase`}>Shuttle Run</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Recruiting Info */}
       {(profile.recruiting_status || profile.committed_school || profile.offers || profile.interested_schools) && (
         <div className={`rounded-xl p-4 border ${cardBg}`}>
