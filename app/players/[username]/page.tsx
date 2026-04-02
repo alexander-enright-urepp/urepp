@@ -629,7 +629,7 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
           <div className="mt-4 pt-4 border-t border-gray-100">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Latest Stats</h3>
             <div className="flex gap-3">
-              {Object.entries(playerStats[0].stats).slice(0, 4).map(([key, value]) => (
+              {Object.entries(playerStats[0].stats).slice(0, 4).map(([key, value]: [string, any]) => (
                 <div key={key} className="text-center">
                   <p className="text-lg font-bold text-gray-900">{value}</p>
                   <p className="text-xs text-gray-500 uppercase">{key.replace('_', ' ')}</p>
