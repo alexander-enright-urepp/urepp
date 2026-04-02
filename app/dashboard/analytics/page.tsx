@@ -214,7 +214,7 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-gray-500">Profile insights</p>
               </div>
             </div>
-            <!-- Time Filter -->
+            {/* Time Filter */}
             <div className="relative">
               <select
                 value={timeFilter}
