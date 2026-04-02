@@ -13,53 +13,36 @@ import {
   User,
   Crown,
   Lock,
-  Instagram,
-  Twitter,
-  Youtube,
-  Mail,
   Tv,
-  ExternalLink,
-  UserCircle2,
-  Sparkles,
-  Rocket,
-  Star,
-  Zap,
-  Flame,
-  Heart
+  Eye,
+  BarChart3,
+  FileText,
+  Play,
+  Trophy
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { PREMIUM_THEMES, FREE_THEME, getThemeClasses, type ThemeConfig } from '@/lib/themes'
 
-// Extended themes with more options
-const THEMES = [
-  // Free themes
-  { id: 'default', name: 'Baby Blue', color: '#ffffff', textColor: '#0ea5e9', accent: '#0ea5e9', isPremium: false },
-  { id: 'midnight', name: 'Midnight', color: '#1f2937', accent: '#374151', isPremium: false, dark: true },
-  
-  // Premium themes
-  { id: 'neon', name: 'Neon Dreams', color: '#d946ef', accent: '#22d3ee', isPremium: true, gradient: 'from-fuchsia-500 via-purple-500 to-cyan-500' },
-  { id: 'sunset', name: 'Sunset Blvd', color: '#f97316', accent: '#ec4899', isPremium: true, gradient: 'from-orange-400 via-pink-500 to-purple-600' },
-  { id: 'forest', name: 'Forest', color: '#059669', accent: '#84cc16', isPremium: true },
-  { id: 'ocean', name: 'Ocean Deep', color: '#0284c7', accent: '#06b6d4', isPremium: true, gradient: 'from-blue-600 via-cyan-500 to-teal-400' },
-  { id: 'lavender', name: 'Lavender', color: '#8b5cf6', accent: '#c084fc', isPremium: true },
-  { id: 'rose', name: 'Rose Gold', color: '#e11d48', accent: '#fb7185', isPremium: true },
-  { id: 'emerald', name: 'Emerald', color: '#059669', accent: '#34d399', isPremium: true },
-  { id: 'cyber', name: 'Cyberpunk', color: '#06b6d4', accent: '#facc15', isPremium: true, dark: true, gradient: 'from-cyan-400 via-blue-500 to-yellow-400' },
-  { id: 'magma', name: 'Magma', color: '#dc2626', accent: '#fb923c', isPremium: true, gradient: 'from-red-600 via-orange-500 to-yellow-500' },
-  { id: 'aurora', name: 'Aurora', color: '#6366f1', accent: '#2dd4bf', isPremium: true, gradient: 'from-indigo-500 via-purple-500 to-teal-400' },
-]
+// Combine free and premium themes
+const ALL_THEMES = [FREE_THEME, ...PREMIUM_THEMES]
 
-// Sample data for preview
+// Sample profile data for preview
 const SAMPLE_PROFILE = {
   first_name: 'Alex',
   last_name: 'Johnson',
-  username: 'alexjohnson',
+  username: 'alexjohnson2026',
   bio: 'Student-athlete | Baseball | Class of 2026',
   profile_picture_url: null,
   grad_year: 2026,
   high_school: 'West High School',
   state: 'CA',
+  position: 'RHP/SS',
   high_school_sports: ['Baseball'],
-  is_premium: true
+  is_premium: true,
+  stats_json: {
+    batting_avg: '.325',
+    era: '2.45'
+  }
 }
 
 export default function ThemesPage() {
@@ -99,10 +82,10 @@ export default function ThemesPage() {
   }
 
   const handleThemeSelect = async (themeId: string) => {
-    const theme = THEMES.find(t => t.id === themeId)
+    const theme = ALL_THEMES.find(t => t.id === themeId)
     
     // If premium theme and user isn't premium, don't save
-    if (theme?.isPremium && !isPremium) {
+    if (theme?.premium && !isPremium) {
       return
     }
     
@@ -133,27 +116,8 @@ export default function ThemesPage() {
     setSaving(false)
   }
 
-  const getThemeClasses = (themeId: string) => {
-    const theme = THEMES.find(t => t.id === themeId) || THEMES[0]
-    
-    if (theme.gradient) {
-      return `bg-gradient-to-br ${theme.gradient}`
-    }
-    
-    return ''
-  }
-
-  const getThemeStyles = (themeId: string) => {
-    const theme = THEMES.find(t => t.id === themeId) || THEMES[0]
-    
-    if (theme.gradient) {
-      return {}
-    }
-    
-    return {
-      backgroundColor: theme.color,
-    } as React.CSSProperties
-  }
+  const currentTheme = ALL_THEMES.find(t => t.id === selectedTheme) || FREE_THEME
+  const themeClasses = getThemeClasses(currentTheme)
 
   if (loading) {
     return (
@@ -164,7 +128,7 @@ export default function ThemesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-24">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -178,13 +142,13 @@ export default function ThemesPage() {
               </Link>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Themes</h1>
-                <p className="text-sm text-gray-500">{isPremium ? 'Premium Access' : 'Free Themes'}</p>
+                <p className="text-sm text-gray-500">Customize your profile</p>
               </div>
             </div>
             {!isPremium && (
               <Link 
                 href="/dashboard/subscription"
-                className="flex items-center gap-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors"
+                className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-3 py-1.5 rounded-full text-sm font-bold transition-colors"
               >
                 <Crown className="w-4 h-4" />
                 Upgrade
@@ -194,152 +158,85 @@ export default function ThemesPage() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-6">
+      <main className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Error/Success Messages */}
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
             {success}
           </div>
         )}
 
-        {/* Premium Banner for non-premium users */}
+        {/* Live Preview */}
+        <div className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-babyblue-500" />
+              Live Preview
+            </h2>
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              {currentTheme.name}
+            </span>
+          </div>
+          
+          {/* Theme Preview Card */}
+          <ThemePreview theme={currentTheme} />
+        </div>
+
+        {/* Premium Banner */}
         {!isPremium && (
-          <div className="mb-6 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-2xl p-4 text-white">
+          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-2xl p-5 text-white shadow-lg">
             <div className="flex items-center gap-2 mb-2">
-              <Crown className="w-5 h-5" />
-              <span className="font-bold">Unlock All Themes</span>
+              <Crown className="w-6 h-6" />
+              <span className="font-bold text-lg">Unlock 8 Premium Themes</span>
             </div>
-            <p className="text-sm text-yellow-100 mb-3">
-              Get access to 10+ premium themes to make your profile stand out.
+            <p className="text-yellow-100 text-sm mb-4">
+              Get unique layouts, typography, and styles that make your profile stand out to recruiters.
             </p>
             <Link 
               href="/dashboard/subscription"
-              className="block w-full bg-white text-yellow-600 text-center py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors"
+              className="block w-full bg-white text-yellow-600 text-center py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors"
             >
               Upgrade to Premium
             </Link>
           </div>
         )}
 
-        {/* Live Preview */}
-        <div className="mb-6 bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-babyblue-500" />
-              Live Preview
-            </h2>
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              {THEMES.find(t => t.id === selectedTheme)?.name}
-            </span>
-          </div>
-          
-          {/* Profile Preview Card */}
-          <div 
-            className={`rounded-xl p-6 ${getThemeClasses(selectedTheme)}`}
-            style={getThemeStyles(selectedTheme)}
-          >
-            <div className="text-center">
-              {/* Avatar */}
-              <div className="w-20 h-20 mx-auto rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center mb-4 shadow-lg">
-                <UserCircle2 className="w-10 h-10 text-white/80" />
-              </div>
-              
-              {/* Name */}
-              <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">
-                {SAMPLE_PROFILE.first_name} {SAMPLE_PROFILE.last_name}
-              </h3>
-              
-              {/* Username */}
-              <p className="text-white/80 text-sm mb-3">@{SAMPLE_PROFILE.username}</p>
-              
-              {/* Verified Badge */}
-              <div className="inline-flex items-center gap-1 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold mb-4">
-                <Crown className="w-3 h-3" />
-                VERIFIED
-              </div>
-              
-              {/* Bio */}
-              <p className="text-white/90 text-sm mb-4">{SAMPLE_PROFILE.bio}</p>
-              
-              {/* Quick Info */}
-              <div className="flex justify-center gap-2 flex-wrap">
-                <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs">
-                  {SAMPLE_PROFILE.high_school_sports[0]}
-                </span>
-                <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs">
-                  {SAMPLE_PROFILE.grad_year}
-                </span>
-                <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs">
-                  {SAMPLE_PROFILE.state}
-                </span>
-              </div>
-              
-              {/* Social Icons Preview */}
-              <div className="flex justify-center gap-3 mt-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Instagram className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Twitter className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Youtube className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Free Themes Section */}
-        <div className="mb-6">
+        {/* Free Theme */}
+        <div>
           <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-babyblue-500" />
-            Free Themes
+            <Palette className="w-5 h-5 text-babyblue-500" />
+            Free Theme
           </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {THEMES.filter(t => !t.isPremium).map((theme) => (
-              <button
-                key={theme.id}
-                onClick={() => handleThemeSelect(theme.id)}
-                className={`bg-white rounded-2xl p-4 border-2 transition-all relative overflow-hidden ${
-                  selectedTheme === theme.id 
-                    ? 'border-babyblue-500 shadow-md' 
-                    : 'border-gray-100 hover:border-babyblue-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div 
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: theme.color + '20' }}
-                  >
-                    <Palette className="w-5 h-5" style={{ color: theme.color }} />
-                  </div>
-                  {selectedTheme === theme.id && (
-                    <div className="w-6 h-6 rounded-full bg-babyblue-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                </div>
-                <p className="font-semibold text-gray-900 text-left">{theme.name}</p>
-                <div 
-                  className="mt-2 h-3 rounded-full"
-                  style={{ backgroundColor: theme.color }}
-                />
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => handleThemeSelect(FREE_THEME.id)}
+            className={`w-full bg-white rounded-2xl p-4 border-2 transition-all flex items-center gap-4 ${
+              selectedTheme === FREE_THEME.id 
+                ? 'border-babyblue-500 shadow-md' 
+                : 'border-gray-100 hover:border-babyblue-200'
+            }`}
+          >
+            <div className="w-14 h-14 rounded-xl bg-babyblue-50 flex items-center justify-center text-2xl border border-babyblue-100">
+              {FREE_THEME.preview}
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-gray-900">{FREE_THEME.name}</p>
+              <p className="text-sm text-gray-500">Default clean look</p>
+            </div>
+            {selectedTheme === FREE_THEME.id && (
+              <div className="w-8 h-8 rounded-full bg-babyblue-500 flex items-center justify-center">
+                <Check className="w-5 h-5 text-white" />
+              </div>
+            )}
+          </button>
         </div>
 
-        {/* Premium Themes Section */}
-        <div className="mb-6">
+        {/* Premium Themes Grid */}
+        <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2">
               <Crown className="w-5 h-5 text-yellow-500" />
@@ -352,55 +249,37 @@ export default function ThemesPage() {
             )}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {THEMES.filter(t => t.isPremium).map((theme) => (
+            {PREMIUM_THEMES.map((theme) => (
               <button
                 key={theme.id}
                 onClick={() => handleThemeSelect(theme.id)}
                 disabled={!isPremium}
-                className={`bg-white rounded-2xl p-4 border-2 transition-all relative overflow-hidden ${
+                className={`relative bg-white rounded-2xl p-4 border-2 transition-all text-left ${
                   selectedTheme === theme.id && isPremium
                     ? 'border-babyblue-500 shadow-md' 
                     : 'border-gray-100 hover:border-babyblue-200'
-                } ${!isPremium ? 'opacity-70' : ''}`}
+                } ${!isPremium ? 'opacity-60' : ''}`}
               >
                 {/* Lock overlay for non-premium */}
                 {!isPremium && (
-                  <div className="absolute inset-0 bg-gray-100/50 flex items-center justify-center z-10">
+                  <div className="absolute inset-0 bg-gray-100/60 rounded-2xl flex items-center justify-center z-10">
                     <div className="bg-white rounded-full p-2 shadow-lg">
                       <Lock className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between mb-3">
-                  <div 
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ 
-                      background: theme.gradient 
-                        ? `linear-gradient(135deg, ${theme.color}20, ${theme.accent}20)` 
-                        : theme.color + '20' 
-                    }}
-                  >
-                    <Palette className="w-5 h-5" style={{ color: theme.color }} />
-                  </div>
-                  {isPremium && selectedTheme === theme.id && (
-                    <div className="w-6 h-6 rounded-full bg-babyblue-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  {theme.gradient && (
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
-                  )}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-2xl mb-3 border border-gray-100">
+                  {theme.preview}
                 </div>
-                <p className="font-semibold text-gray-900 text-left">{theme.name}</p>
-                <div 
-                  className={`mt-2 h-3 rounded-full ${theme.gradient || ''}`}
-                  style={{ 
-                    background: theme.gradient 
-                      ? undefined 
-                      : theme.color 
-                  }}
-                />
+                <p className="font-semibold text-gray-900 text-sm">{theme.name}</p>
+                <p className="text-xs text-gray-500 mt-1 capitalize">{theme.layout} layout</p>
+                
+                {selectedTheme === theme.id && isPremium && (
+                  <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-babyblue-500 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                )}
               </button>
             ))}
           </div>
@@ -410,7 +289,7 @@ export default function ThemesPage() {
         <button
           onClick={saveTheme}
           disabled={saving}
-          className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:opacity-50 text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-babyblue-500/25"
+          className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:opacity-50 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-babyblue-500/25"
         >
           {saving ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -442,6 +321,196 @@ export default function ThemesPage() {
           </Link>
         </div>
       </nav>
+    </div>
+  )
+}
+
+// Theme Preview Component
+function ThemePreview({ theme }: { theme: ThemeConfig }) {
+  const getHeaderStyle = () => {
+    switch (theme.headerStyle) {
+      case 'gradient':
+        return theme.backgroundGradient || 'bg-gradient-to-br from-blue-500 to-purple-600'
+      case 'dark':
+        return 'bg-[#0B0B0F]'
+      case 'glass':
+        return 'bg-white/10 backdrop-blur-md'
+      default:
+        return 'bg-babyblue-500'
+    }
+  }
+
+  const getAvatarPosition = () => {
+    switch (theme.avatarPosition) {
+      case 'left':
+        return 'flex-row items-center gap-4 text-left'
+      case 'floating':
+        return 'relative'
+      default:
+        return 'flex-col items-center text-center'
+    }
+  }
+
+  const getNameStyle = () => {
+    const sizeMap: Record<string, string> = {
+      'small': 'text-lg',
+      'medium': 'text-xl',
+      'large': 'text-2xl',
+      'xl': 'text-3xl',
+    }
+    const weightMap: Record<string, string> = {
+      'normal': 'font-normal',
+      'medium': 'font-medium',
+      'bold': 'font-bold',
+      'black': 'font-black',
+    }
+    return `${sizeMap[theme.nameSize]} ${weightMap[theme.nameWeight]}`
+  }
+
+  const getCardStyle = () => {
+    switch (theme.cardStyle) {
+      case 'glass':
+        return 'bg-white/10 backdrop-blur-md border border-white/20'
+      case 'outline':
+        return 'bg-white border border-gray-200'
+      case 'flat':
+        return 'bg-gray-50'
+      default:
+        return 'bg-white rounded-xl shadow-sm border border-babyblue-100'
+    }
+  }
+
+  // Render different layouts
+  if (theme.layout === 'horizontal-card') {
+    return (
+      <div className={`${getHeaderStyle()} rounded-xl p-4 ${theme.headerStyle === 'dark' ? 'text-white' : 'text-white'}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+            <span className="text-2xl font-bold">A</span>
+          </div>
+          <div className="flex-1">
+            <h3 className={`${getNameStyle()} text-white`}>Alex Johnson</h3>
+            <p className="text-white/80 text-sm">@{SAMPLE_PROFILE.username}</p>
+            <p className="text-white/70 text-xs mt-1">{SAMPLE_PROFILE.position}</p>
+          </div>
+          <div className="flex gap-1">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <Trophy className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-1 mt-4 border-t border-white/20 pt-3">
+          <button className="flex-1 py-2 text-sm font-medium bg-white/20 rounded-lg">Resume</button>
+          <button className="flex-1 py-2 text-sm font-medium text-white/70">Media</button>
+          <button className="flex-1 py-2 text-sm font-medium text-white/70">Stats</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (theme.layout === 'minimal') {
+    return (
+      <div className="bg-white rounded-xl p-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-babyblue-100 flex items-center justify-center">
+            <span className="text-lg font-bold text-babyblue-600">A</span>
+          </div>
+          <div>
+            <h3 className={`${getNameStyle()} text-gray-900`}>Alex Johnson</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>{SAMPLE_PROFILE.position}</span>
+              <span>•</span>
+              <span>.325 AVG</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-3">
+          {['IG', 'TW', 'YT'].map((social) => (
+            <div key={social} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
+              {social}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (theme.layout === 'banner') {
+    return (
+      <div>
+        <div className={`${getHeaderStyle()} h-24 rounded-t-xl relative`}>
+          {theme.avatarPosition === 'overlapping' && (
+            <div className="absolute -bottom-8 left-4 w-20 h-20 rounded-full bg-white border-4 border-white flex items-center justify-center shadow-lg">
+              <span className="text-2xl font-bold text-gray-900">A</span>
+            </div>
+          )}
+        </div>
+        <div className="bg-white rounded-b-xl p-4 pt-10">
+          <h3 className={`${getNameStyle()} text-gray-900`}>Alex Johnson</h3>
+          <p className="text-gray-500 text-sm">{SAMPLE_PROFILE.position} • {SAMPLE_PROFILE.high_school}</p>
+          {theme.statsPosition === 'chips' && (
+            <div className="flex gap-2 mt-3">
+              <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-sm font-medium">.325 AVG</span>
+              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">2.45 ERA</span>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Default centered layout
+  return (
+    <div className={`${theme.background === 'dark' ? 'bg-[#0B0B0F] text-white' : 'bg-white'} rounded-xl p-5 ${getCardStyle()}`}>
+      <div className={`flex ${getAvatarPosition()}`}>
+        <div className={`${theme.avatarSize === 'xl' ? 'w-24 h-24' : 'w-20 h-20'} rounded-full bg-babyblue-100 flex items-center justify-center border-4 border-white shadow-lg mb-4`}>
+          <span className={`${theme.avatarSize === 'xl' ? 'text-3xl' : 'text-2xl'} font-bold text-babyblue-600`}>A</span>
+        </div>
+        <div className={theme.avatarPosition === 'left' ? '' : 'text-center'}>
+          <h3 className={`${getNameStyle()} ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Alex Johnson
+          </h3>
+          <p className={`text-sm ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            @{SAMPLE_PROFILE.username}
+          </p>
+          {theme.statsPosition === 'inline' && (
+            <div className="flex gap-3 mt-2">
+              <span className="text-xs bg-babyblue-100 text-babyblue-700 px-2 py-1 rounded-full">.325 AVG</span>
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">2.45 ERA</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {theme.statsPosition !== 'inline' && theme.statsPosition !== 'chips' && (
+        <div className="flex justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div className="text-center">
+            <p className={`font-bold ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>.325</p>
+            <p className={`text-xs ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>AVG</p>
+          </div>
+          <div className="text-center">
+            <p className={`font-bold ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>2.45</p>
+            <p className={`text-xs ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ERA</p>
+          </div>
+        </div>
+      )}
+
+      <div className={`flex ${theme.socialPosition === 'right' ? 'justify-end' : 'justify-center'} gap-2 mt-4`}>
+        {[1, 2, 3].map((i) => (
+          <div 
+            key={i} 
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme.iconStyle === 'floating' 
+                ? 'bg-white/20 backdrop-blur-sm' 
+                : theme.background === 'dark'
+                ? 'bg-white/20'
+                : 'bg-babyblue-50'
+            }`}
+          >
+            <Trophy className={`w-5 h-5 ${theme.background === 'dark' ? 'text-white' : 'text-babyblue-600'}`} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
