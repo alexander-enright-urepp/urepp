@@ -696,7 +696,7 @@ function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, co
         {/* Stats Chips */}
         {playerStats?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
-            {Object.entries(playerStats[0].stats).slice(0, 3).map(([key, value]) => (
+            {Object.entries(playerStats[0].stats).slice(0, 3).map(([key, value]: [string, any]) => (
               <span key={key} className="px-3 py-1 rounded-full bg-babyblue-100 text-babyblue-700 text-sm font-medium">
                 {value} {key.replace('_', ' ').toUpperCase()}
               </span>
@@ -786,7 +786,7 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
           {/* Stats Row Under Name */}
           {primaryStat && (
             <div className="flex justify-center gap-4 mt-4">
-              {Object.entries(primaryStat.stats).slice(0, 3).map(([key, value]) => (
+              {Object.entries(primaryStat.stats).slice(0, 3).map(([key, value]: [string, any]) => (
                 <div key={key} className="text-center">
                   <p className="text-xl font-bold text-cyan-400">{value}</p>
                   <p className="text-xs text-white/40 uppercase">{key.replace('_', ' ')}</p>
