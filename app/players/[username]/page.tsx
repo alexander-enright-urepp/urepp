@@ -29,6 +29,7 @@ import {
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
+import { trackAnalytics, getViewerType } from '@/lib/analytics'
 
 // Theme definitions - same as in themes page
 const THEMES: Record<string, { color: string; accent: string; gradient?: string; dark?: boolean; textColor?: string }> = {
@@ -181,6 +182,16 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
     fetchProfile()
   }, [params.username, supabase])
 
+  // Track profile view
+  useEffect(() => {
+    if (profile) {
+      trackAnalytics({
+        profileUserId: profile.id,
+        eventType: 'profile_view',
+      })
+    }
+  }, [profile])
+
   // Get theme colors
   const getThemeStyles = () => {
     const themeId = profile?.theme || 'default'
@@ -202,6 +213,14 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+    
+    // Track share click
+    if (profile) {
+      trackAnalytics({
+        profileUserId: profile.id,
+        eventType: 'share_click',
+      })
+    }
   }
 
   if (loading) {
@@ -340,6 +359,11 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                   rel="noopener noreferrer" 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                   style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                  onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'instagram',
+                  })}
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
@@ -351,6 +375,11 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                   rel="noopener noreferrer" 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                   style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                  onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'twitter',
+                  })}
                 >
                   <Twitter className="w-5 h-5" />
                 </a>
@@ -362,6 +391,11 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                   rel="noopener noreferrer" 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                   style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                  onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'youtube',
+                  })}
                 >
                   <Youtube className="w-5 h-5" />
                 </a>
@@ -373,22 +407,42 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
                   rel="noopener noreferrer" 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                   style={{ backgroundColor: getSocialBg(), color: getSocialColor() }}
+                  onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'linkedin',
+                  })}
                 >
                   <Linkedin className="w-5 h-5" />
                 </a>
               )}
               {profile.tiktok && (
-                <a href={profile.tiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a href={profile.tiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors"
+                onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'tiktok',
+                  })}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
                 </a>
               )}
               {profile.hudl && (
-                <a href={profile.hudl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a href={profile.hudl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors"
+                onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'hudl',
+                  })}>
                   <span className="text-xs font-bold">HUDL</span>
                 </a>
               )}
               {profile.maxpreps && (
-                <a href={profile.maxpreps} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors">
+                <a href={profile.maxpreps} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-babyblue-100 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-200 transition-colors"
+                onClick={() => trackAnalytics({
+                    profileUserId: profile.id,
+                    eventType: 'social_click',
+                    clickedItem: 'maxpreps',
+                  })}>
                   <span className="text-xs font-bold">MP</span>
                 </a>
               )}
@@ -407,8 +461,14 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'resume' && <ResumeTab profile={profile} />}
-            {activeTab === 'media' && <MediaTab videos={profile.videos} />}
-            {activeTab === 'stats' && <StatsTab stats={playerStats} />}
+            {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={() => trackAnalytics({ profileUserId: profile.id, eventType: 'media_click' })} />}
+            {activeTab === 'stats' && (
+              <>
+                {<StatsTab stats={playerStats} />}
+                {trackAnalytics({ profileUserId: profile.id, eventType: 'stats_view' })}
+                {null}
+              </>
+            )}
           </div>
         </div>
       </main>
@@ -713,7 +773,7 @@ function ResumeTab({ profile }: { profile: Profile }) {
   )
 }
 
-function MediaTab({ videos }: { videos?: any[] }) {
+function MediaTab({ videos, onVideoClick }: { videos?: any[], onVideoClick?: () => void }) {
   if (!videos || videos.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -726,7 +786,10 @@ function MediaTab({ videos }: { videos?: any[] }) {
   return (
     <div className="space-y-3">
       {videos.map((video) => (
-        <div key={video.id} className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors cursor-pointer group" onClick={() => window.open(video.url, '_blank')}>
+        <div key={video.id} className="bg-white rounded-xl overflow-hidden border border-babyblue-100 hover:border-babyblue-300 transition-colors cursor-pointer group" onClick={() => {
+          if (onVideoClick) onVideoClick();
+          window.open(video.url, '_blank');
+        }}>
           <YouTubeThumbnail url={video.url} title={video.title} />
           <div className="p-4">
             <h3 className="font-semibold text-gray-900">{video.title}</h3>
