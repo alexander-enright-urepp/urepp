@@ -53,6 +53,7 @@ interface Profile {
   high_school?: string
   hometown?: string
   state?: string
+  grad_year?: number
   gpa?: string
   sat_score?: string
   act_score?: string
