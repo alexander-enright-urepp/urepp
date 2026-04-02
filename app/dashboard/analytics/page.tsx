@@ -79,9 +79,9 @@ export default function AnalyticsPage() {
     if (profileData) {
       setProfile(profileData)
       
-      // Only fetch analytics if premium
+      // Only fetch analytics if premium - use profile.id (not session.user.id)
       if (profileData.is_premium) {
-        const summary = await getAnalyticsSummary(session.user.id, timeFilter)
+        const summary = await getAnalyticsSummary(profileData.id, timeFilter)
         setAnalytics(summary)
       }
     }

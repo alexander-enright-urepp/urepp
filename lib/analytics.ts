@@ -23,7 +23,17 @@ export async function trackAnalytics({
     // Get referrer or use document.referrer
     const pageReferrer = referrer || document.referrer || 'direct'
     
-    await supabase.from('profile_analytics').insert({
+    console.log('📊 Tracking analytics:', {
+      profileUserId,
+      eventType,
+      viewerType,
+      clickedItem,
+      device,
+      referrer: pageReferrer,
+      timestamp: new Date().toISOString()
+    })
+    
+    const { error } = await supabase.from('profile_analytics').insert({
       profile_user_id: profileUserId,
       viewer_id: viewerId,
       viewer_type: viewerType,
@@ -32,6 +42,12 @@ export async function trackAnalytics({
       device,
       clicked_item: clickedItem,
     })
+    
+    if (error) {
+      console.error('❌ Analytics insert error:', error)
+    } else {
+      console.log('✅ Analytics saved successfully')
+    }
   } catch (error) {
     console.error('Analytics tracking error:', error)
   }
@@ -42,15 +58,27 @@ export async function getAnalyticsSummary(profileUserId: string, days: number = 
   const since = new Date()
   since.setDate(since.getDate() - days)
 
+  console.log('Fetching analytics for profile_user_id:', profileUserId, 'since:', since.toISOString())
+
   // Get all events in timeframe
-  const { data: events } = await supabase
+  const { data: events, error } = await supabase
     .from('profile_analytics')
     .select('*')
     .eq('profile_user_id', profileUserId)
     .gte('created_at', since.toISOString())
     .order('created_at', { ascending: false })
 
-  if (!events) return null
+  console.log('Analytics query result:', events?.length || 0, 'events, Error:', error)
+
+  if (error) {
+    console.error('Error fetching analytics:', error)
+    return null
+  }
+
+  if (!events || events.length === 0) {
+    console.log('No analytics events found')
+    return null
+  }
 
   // Calculate stats
   const profileViews = events.filter(e => e.event_type === 'profile_view').length
