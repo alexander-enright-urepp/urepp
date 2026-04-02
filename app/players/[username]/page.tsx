@@ -1332,6 +1332,9 @@ const SPORT_FIELDS: Record<string, { key: string; label: string }[]> = {
     { key: 'apg', label: 'APG' },
     { key: 'spg', label: 'SPG' },
     { key: 'bpg', label: 'BPG' },
+    { key: 'ft_pct', label: 'FT%' },
+    { key: 'three_pt_pct', label: '3PT%' },
+    { key: 'fg_pct', label: 'FG%' },
   ],
   football: [
     { key: 'games_played', label: 'Games' },
@@ -1392,8 +1395,17 @@ function StatsTab({ stats, compact, dark }: { stats: PlayerStat[]; compact?: boo
 
   const getFilteredStats = (sport: string, statData: Record<string, number | string>) => {
     const fields = SPORT_FIELDS[sport] || []
+    console.log('DEBUG statData keys:', Object.keys(statData))
+    console.log('DEBUG statData values:', statData)
+    console.log('DEBUG expected fields:', fields.map(f => f.key))
+    
     const filtered = fields
-      .filter(field => statData[field.key] !== undefined && statData[field.key] !== '')
+      .filter(field => {
+        const value = statData[field.key]
+        const hasValue = value !== undefined && value !== ''
+        console.log('DEBUG checking', field.key, ': value="' + value + '" -> hasValue:', hasValue)
+        return hasValue
+      })
       .map(field => ({
         label: field.label,
         value: statData[field.key]
@@ -1414,8 +1426,8 @@ function StatsTab({ stats, compact, dark }: { stats: PlayerStat[]; compact?: boo
                 <span className="font-medium text-sm">{stat.team_name}</span>
                 <span className="text-xs text-gray-400">{stat.season_year}</span>
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {filteredStats.slice(0, 4).map((field, idx) => (
+              <div className="grid grid-cols-3 gap-2">
+                {filteredStats.map((field, idx) => (
                   <div key={idx} className="text-center bg-gray-50 rounded p-2">
                     <p className="text-sm font-bold">{field.value}</p>
                     <p className="text-[10px] text-gray-500 uppercase">{field.label}</p>
@@ -1454,7 +1466,7 @@ function StatsTab({ stats, compact, dark }: { stats: PlayerStat[]; compact?: boo
             <div className="p-4">
               {filteredStats.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
-                  {filteredStats.slice(0, 6).map((field, idx) => (
+                  {filteredStats.map((field, idx) => (
                     <div key={idx} className={`text-center p-2.5 rounded-xl ${dark ? 'bg-white/10' : 'bg-babyblue-50'}`}>
                       <p className={`text-lg font-bold ${dark ? 'text-white' : 'text-babyblue-700'} truncate`}>{field.value}</p>
                       <p className={`text-xs uppercase tracking-wide mt-0.5 truncate ${dark ? 'text-white/60' : 'text-babyblue-600'}`}>{field.label}</p>
