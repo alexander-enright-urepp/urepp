@@ -274,7 +274,7 @@ export const FREE_THEME: ThemeConfig = {
   layout: 'centered',
   headerHeight: 'medium',
   headerStyle: 'solid',
-  typography: 'normal',
+  typography: 'bold',
   nameSize: 'large',
   nameWeight: 'bold',
   cardStyle: 'shadow',
