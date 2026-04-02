@@ -108,8 +108,18 @@ interface Profile {
   committed_school?: string
 }
 
+interface PlayerStat {
+  id: string
+  sport: string
+  team_name: string
+  season_year: string
+  position: string
+  stats: Record<string, number | string>
+}
+
 export default function PlayerProfilePage({ params }: { params: { username: string } }) {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [playerStats, setPlayerStats] = useState<PlayerStat[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'resume' | 'media' | 'stats'>('resume')
   const [copied, setCopied] = useState(false)
@@ -128,11 +138,24 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         return
       }
 
+      // Fetch videos
       const { data: videosData } = await supabase
         .from('videos')
         .select('*')
         .eq('profile_id', profileData.id)
         .order('display_order', { ascending: true })
+
+      // Fetch player stats using the auth user_id (supabase auth uid stored in profiles)
+      const userId = profileData.user_id || profileData.id
+      console.log('Fetching stats for user_id:', userId, 'profile id:', profileData.id, 'profile user_id:', profileData.user_id)
+      
+      const { data: statsData, error: statsError } = await supabase
+        .from('player_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      
+      console.log('Stats query result:', statsData?.length || 0, 'entries, Error:', statsError)
 
       setProfile({
         ...profileData,
@@ -150,6 +173,8 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
           shuttle_run: profileData.shuttle_run
         }
       })
+      
+      setPlayerStats(statsData || [])
       setLoading(false)
     }
 
@@ -383,7 +408,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
           <div className="p-6">
             {activeTab === 'resume' && <ResumeTab profile={profile} />}
             {activeTab === 'media' && <MediaTab videos={profile.videos} />}
-            {activeTab === 'stats' && <StatsTab stats={profile.stats_json} />}
+            {activeTab === 'stats' && <StatsTab stats={playerStats} />}
           </div>
         </div>
       </main>
@@ -713,8 +738,83 @@ function MediaTab({ videos }: { videos?: any[] }) {
   )
 }
 
-function StatsTab({ stats }: { stats?: Profile['stats_json'] }) {
-  if (!stats || (!stats.batting_avg && !stats.obp && !stats.slg && !stats.era && !stats.whip)) {
+const SPORT_FIELDS: Record<string, { key: string; label: string }[]> = {
+  basketball: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'ppg', label: 'PPG' },
+    { key: 'rpg', label: 'RPG' },
+    { key: 'apg', label: 'APG' },
+    { key: 'spg', label: 'SPG' },
+    { key: 'bpg', label: 'BPG' },
+    { key: 'fg_pct', label: 'FG%' },
+    { key: 'three_pt_pct', label: '3PT%' },
+    { key: 'ft_pct', label: 'FT%' },
+  ],
+  football: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'passing_yards', label: 'Pass Yds' },
+    { key: 'passing_tds', label: 'Pass TDs' },
+    { key: 'rushing_yards', label: 'Rush Yds' },
+    { key: 'rushing_tds', label: 'Rush TDs' },
+    { key: 'tackles', label: 'Tackles' },
+    { key: 'sacks', label: 'Sacks' },
+    { key: 'interceptions', label: 'INTs' },
+  ],
+  baseball: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'avg', label: 'AVG' },
+    { key: 'hits', label: 'Hits' },
+    { key: 'home_runs', label: 'HRs' },
+    { key: 'rbis', label: 'RBIs' },
+    { key: 'stolen_bases', label: 'SB' },
+    { key: 'era', label: 'ERA' },
+    { key: 'strikeouts', label: 'K\'s' },
+  ],
+  soccer: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'goals', label: 'Goals' },
+    { key: 'assists', label: 'Assists' },
+    { key: 'shots', label: 'Shots' },
+    { key: 'shots_on_target', label: 'On Target' },
+    { key: 'minutes_played', label: 'Minutes' },
+  ],
+  track: [
+    { key: 'event', label: 'Event' },
+    { key: 'best_time', label: 'Best' },
+    { key: 'season_best', label: 'Season' },
+    { key: 'personal_record', label: 'PR' },
+    { key: 'meets', label: 'Meets' },
+  ],
+  volleyball: [
+    { key: 'sets_played', label: 'Sets' },
+    { key: 'kills', label: 'Kills' },
+    { key: 'blocks', label: 'Blocks' },
+    { key: 'aces', label: 'Aces' },
+    { key: 'digs', label: 'Digs' },
+    { key: 'assists', label: 'Assists' },
+  ],
+}
+
+const SPORT_ICONS: Record<string, string> = {
+  basketball: '🏀',
+  football: '🏈',
+  baseball: '⚾',
+  soccer: '⚽',
+  track: '🏃',
+  volleyball: '🏐',
+}
+
+const SPORT_LABELS: Record<string, string> = {
+  basketball: 'Basketball',
+  football: 'Football',
+  baseball: 'Baseball',
+  soccer: 'Soccer',
+  track: 'Track & Field',
+  volleyball: 'Volleyball',
+}
+
+function StatsTab({ stats }: { stats: PlayerStat[] }) {
+  if (!stats || stats.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <BarChart3 className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
@@ -723,67 +823,57 @@ function StatsTab({ stats }: { stats?: Profile['stats_json'] }) {
     )
   }
 
+  const getFilteredStats = (sport: string, statData: Record<string, number | string>) => {
+    const fields = SPORT_FIELDS[sport] || []
+    return fields
+      .filter(field => statData[field.key] !== undefined && statData[field.key] !== '')
+      .map(field => ({
+        label: field.label,
+        value: statData[field.key]
+      }))
+  }
+
   return (
     <div className="space-y-4">
-      {/* Hitting Stats */}
-      {(stats.batting_avg || stats.obp || stats.slg) && (
-        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-          <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Hitting</h3>
-          <div className="grid grid-cols-3 gap-3">
-            {stats.batting_avg && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-xl font-bold text-babyblue-700">{stats.batting_avg}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">AVG</p>
+      {stats.map((stat) => {
+        const filteredStats = getFilteredStats(stat.sport, stat.stats || {})
+        const sportIcon = SPORT_ICONS[stat.sport] || '🏆'
+        const sportLabel = SPORT_LABELS[stat.sport] || stat.sport
+        
+        return (
+          <div key={stat.id} className="bg-white rounded-xl border border-babyblue-100 overflow-hidden">
+            {/* Card Header */}
+            <div className="px-4 py-3 border-b border-babyblue-50 bg-babyblue-50/30">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{sportIcon}</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">{stat.team_name}</h4>
+                  <p className="text-xs text-gray-500">
+                    {stat.season_year} • {sportLabel}
+                    {stat.position && ` • ${stat.position}`}
+                  </p>
+                </div>
               </div>
-            )}
-            {stats.obp && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-xl font-bold text-babyblue-700">{stats.obp}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">OBP</p>
-              </div>
-            )}
-            {stats.slg && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-xl font-bold text-babyblue-700">{stats.slg}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">SLG</p>
-              </div>
-            )}
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="p-4">
+              {filteredStats.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {filteredStats.slice(0, 6).map((field, idx) => (
+                    <div key={idx} className="text-center p-2.5 bg-babyblue-50 rounded-xl">
+                      <p className="text-lg font-bold text-babyblue-700 truncate">{field.value}</p>
+                      <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-0.5 truncate">{field.label}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-4">No stats recorded for this season</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Pitching Stats */}
-      {(stats.era || stats.whip || stats.k_per_9 || stats.innings) && (
-        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-          <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Pitching</h3>
-          <div className="grid grid-cols-4 gap-2">
-            {stats.era && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-lg font-bold text-babyblue-700">{stats.era}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">ERA</p>
-              </div>
-            )}
-            {stats.whip && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-lg font-bold text-babyblue-700">{stats.whip}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">WHIP</p>
-              </div>
-            )}
-            {stats.k_per_9 && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-lg font-bold text-babyblue-700">{stats.k_per_9}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">K/9</p>
-              </div>
-            )}
-            {stats.innings && (
-              <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-                <p className="text-lg font-bold text-babyblue-700">{stats.innings}</p>
-                <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">IP</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        )
+      })}
     </div>
   )
 }

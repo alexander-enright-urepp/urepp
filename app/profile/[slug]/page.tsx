@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { notFound } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { notFound, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Mail, 
@@ -20,73 +20,222 @@ import {
   ArrowLeft,
   FileText,
   Play,
-  BarChart3
+  BarChart3,
+  Loader2,
+  Crown
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
-// Mock data for demo - would fetch from Supabase
-function getProfile(slug: string) {
-  if (slug === 'john-doe-2026') {
-    return {
-      id: '1',
-      first_name: 'John',
-      last_name: 'Doe',
-      username: 'johndoe2026',
-      email: 'john.doe@email.com',
-      phone: '(555) 123-4567',
-      grad_year: 2026,
-      position: 'RHP/SS',
-      height: "6'1\"",
-      weight: '185',
-      throws: 'R',
-      bats: 'R',
-      high_school: 'Lincoln High School',
-      hometown: 'Springfield',
-      state: 'IL',
-      gpa: '3.8',
-      sat_score: '1350',
-      act_score: '28',
-      bio: 'Hard-working two-way player with strong arm strength and gap-to-gap power. Looking to compete at the Division I level while pursuing a degree in Business.',
-      avatar_url: null,
-      stats_json: {
-        batting_avg: '.325',
-        obp: '.415',
-        slg: '.485',
-        era: '2.45',
-        whip: '1.12',
-        k_per_9: '8.5',
-        innings: '45.2'
-      },
-      videos: [
-        { id: '1', title: 'Summer Showcase Highlights', url: '#', description: 'Pitching and hitting from Perfect Game showcase', thumbnail: null },
-        { id: '2', title: 'Senior Year Skills Video', url: '#', description: '60-yard dash, throwing, fielding, and BP', thumbnail: null }
-      ],
-      awards: 'First-team All-Conference (2024)\nTeam MVP (2023)\nPerfect Game All-American',
-      social_links: {
-        instagram: '@johndoe2026',
-        twitter: '@johndoe',
-        youtube: null,
-        linkedin: null
-      },
-      slug: 'john-doe-2026'
-    }
-  }
-  return null
+interface Profile {
+  id: string
+  user_id: string
+  first_name: string
+  last_name: string
+  username: string
+  email: string
+  phone: string | null
+  grad_year: number
+  position: string
+  height: string
+  weight: string
+  throws: string | null
+  bats: string | null
+  high_school: string
+  hometown: string
+  state: string
+  gpa: string | null
+  sat_score: string | null
+  act_score: string | null
+  bio: string | null
+  avatar_url: string | null
+  instagram: string | null
+  twitter: string | null
+  youtube: string | null
+  awards: string | null
+  is_premium?: boolean
 }
 
-interface PageProps {
-  params: {
-    slug: string
-  }
+interface StatEntry {
+  id: string
+  sport: string
+  team_name: string
+  season_year: string
+  position: string
+  stats: Record<string, number | string>
+}
+
+interface Video {
+  id: string
+  title: string
+  url: string
+  description: string
+  thumbnail: string | null
 }
 
 type TabType = 'resume' | 'media' | 'stats'
 
-export default function ProfilePage({ params }: PageProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('resume')
-  const profile = getProfile(params.slug)
+const SPORT_FIELDS: Record<string, { key: string; label: string }[]> = {
+  basketball: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'ppg', label: 'PPG' },
+    { key: 'rpg', label: 'RPG' },
+    { key: 'apg', label: 'APG' },
+    { key: 'spg', label: 'SPG' },
+    { key: 'bpg', label: 'BPG' },
+    { key: 'fg_pct', label: 'FG%' },
+    { key: 'three_pt_pct', label: '3PT%' },
+    { key: 'ft_pct', label: 'FT%' },
+  ],
+  football: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'passing_yards', label: 'Pass Yds' },
+    { key: 'passing_tds', label: 'Pass TDs' },
+    { key: 'rushing_yards', label: 'Rush Yds' },
+    { key: 'rushing_tds', label: 'Rush TDs' },
+    { key: 'tackles', label: 'Tackles' },
+    { key: 'sacks', label: 'Sacks' },
+    { key: 'interceptions', label: 'INTs' },
+  ],
+  baseball: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'avg', label: 'AVG' },
+    { key: 'hits', label: 'Hits' },
+    { key: 'home_runs', label: 'HRs' },
+    { key: 'rbis', label: 'RBIs' },
+    { key: 'stolen_bases', label: 'SB' },
+    { key: 'era', label: 'ERA' },
+    { key: 'strikeouts', label: 'K\'s' },
+  ],
+  soccer: [
+    { key: 'games_played', label: 'Games' },
+    { key: 'goals', label: 'Goals' },
+    { key: 'assists', label: 'Assists' },
+    { key: 'shots', label: 'Shots' },
+    { key: 'shots_on_target', label: 'On Target' },
+    { key: 'minutes_played', label: 'Minutes' },
+  ],
+  track: [
+    { key: 'event', label: 'Event' },
+    { key: 'best_time', label: 'Best' },
+    { key: 'season_best', label: 'Season' },
+    { key: 'personal_record', label: 'PR' },
+    { key: 'meets', label: 'Meets' },
+  ],
+  volleyball: [
+    { key: 'sets_played', label: 'Sets' },
+    { key: 'kills', label: 'Kills' },
+    { key: 'blocks', label: 'Blocks' },
+    { key: 'aces', label: 'Aces' },
+    { key: 'digs', label: 'Digs' },
+    { key: 'assists', label: 'Assists' },
+  ],
+}
+
+const SPORT_ICONS: Record<string, string> = {
+  basketball: '🏀',
+  football: '🏈',
+  baseball: '⚾',
+  soccer: '⚽',
+  track: '🏃',
+  volleyball: '🏐',
+}
+
+const SPORT_LABELS: Record<string, string> = {
+  basketball: 'Basketball',
+  football: 'Football',
+  baseball: 'Baseball',
+  soccer: 'Soccer',
+  track: 'Track & Field',
+  volleyball: 'Volleyball',
+}
+
+export default function ProfilePage() {
+  const params = useParams()
+  const slug = params?.slug as string
   
+  const [activeTab, setActiveTab] = useState<TabType>('resume')
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [stats, setStats] = useState<StatEntry[]>([])
+  const [videos, setVideos] = useState<Video[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (slug) {
+      loadProfileData()
+    }
+  }, [slug])
+
+  const loadProfileData = async () => {
+    setLoading(true)
+    
+    try {
+      // Fetch profile - explicitly include user_id
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, user_id, first_name, last_name, username, email, phone, grad_year, position, height, weight, throws, bats, high_school, hometown, state, gpa, sat_score, act_score, bio, avatar_url, instagram, twitter, youtube, awards, is_premium')
+        .eq('username', slug)
+        .single()
+
+      if (profileError || !profileData) {
+        console.error('Profile error:', profileError)
+        setLoading(false)
+        return
+      }
+
+      setProfile(profileData as Profile)
+
+      // Fetch player stats using the profile's id (profiles.id matches player_stats.user_id)
+      const profileId = profileData.id
+      
+      const { data: statsData, error: statsError } = await supabase
+        .from('player_stats')
+        .select('*')
+        .eq('user_id', profileId)
+        .order('created_at', { ascending: false })
+
+      if (statsError) {
+        console.error('Stats fetch error:', statsError)
+      }
+
+      if (statsData && statsData.length > 0) {
+        setStats(statsData as StatEntry[])
+      } else {
+        setStats([])
+      }
+
+      // TODO: Fetch videos from database
+      setVideos([])
+    } catch (err) {
+      console.error('Error loading profile data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getSportIcon = (sport: string) => SPORT_ICONS[sport] || '🏆'
+  const getSportLabel = (sport: string) => SPORT_LABELS[sport] || sport
+
+  const getFilteredStats = (sport: string, statData: Record<string, number | string>) => {
+    const fields = SPORT_FIELDS[sport] || []
+    return fields
+      .filter(field => statData[field.key] !== undefined && statData[field.key] !== '')
+      .map(field => ({
+        key: field.key,
+        label: field.label,
+        value: statData[field.key]
+      }))
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-babyblue-500" />
+      </div>
+    )
+  }
+
   if (!profile) {
-    notFound()
+    return notFound()
   }
 
   return (
@@ -116,10 +265,15 @@ export default function ProfilePage({ params }: PageProps) {
                   <img src={profile.avatar_url} alt={`${profile.first_name} ${profile.last_name}`} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl font-bold text-babyblue-600">
-                    {profile.first_name[0]}{profile.last_name[0]}
+                    {profile.first_name?.[0]}{profile.last_name?.[0]}
                   </span>
                 )}
               </div>
+              {profile.is_premium && (
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                  <Crown className="w-4 h-4 text-white fill-current" />
+                </div>
+              )}
             </div>
 
             {/* Name */}
@@ -131,15 +285,17 @@ export default function ProfilePage({ params }: PageProps) {
             <p className="text-babyblue-500 font-medium mt-1">@{profile.username}</p>
 
             {/* Bio */}
-            <p className="text-gray-600 mt-3 text-sm leading-relaxed px-2">
-              {profile.bio}
-            </p>
+            {profile.bio && (
+              <p className="text-gray-600 mt-3 text-sm leading-relaxed px-2">
+                {profile.bio}
+              </p>
+            )}
 
             {/* Social Icons */}
             <div className="flex justify-center gap-3 mt-5">
-              {profile.social_links?.instagram && (
+              {profile.instagram && (
                 <a 
-                  href={`https://instagram.com/${profile.social_links.instagram.replace('@', '')}`}
+                  href={`https://instagram.com/${profile.instagram.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
@@ -147,9 +303,9 @@ export default function ProfilePage({ params }: PageProps) {
                   <Instagram className="w-5 h-5" />
                 </a>
               )}
-              {profile.social_links?.twitter && (
+              {profile.twitter && (
                 <a 
-                  href={`https://twitter.com/${profile.social_links.twitter.replace('@', '')}`}
+                  href={`https://twitter.com/${profile.twitter.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
@@ -157,9 +313,9 @@ export default function ProfilePage({ params }: PageProps) {
                   <Twitter className="w-5 h-5" />
                 </a>
               )}
-              {profile.social_links?.youtube && (
+              {profile.youtube && (
                 <a 
-                  href={profile.social_links.youtube}
+                  href={profile.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
@@ -167,22 +323,14 @@ export default function ProfilePage({ params }: PageProps) {
                   <Youtube className="w-5 h-5" />
                 </a>
               )}
-              {profile.social_links?.linkedin && (
+              {profile.email && (
                 <a 
-                  href={profile.social_links.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`mailto:${profile.email}`}
                   className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
                 >
-                  <Linkedin className="w-5 h-5" />
+                  <Mail className="w-5 h-5" />
                 </a>
               )}
-              <a 
-                href={`mailto:${profile.email}`}
-                className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
               <button className="w-11 h-11 rounded-full bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-500 hover:text-babyblue-600 transition-colors">
                 <Share2 className="w-5 h-5" />
               </button>
@@ -216,8 +364,8 @@ export default function ProfilePage({ params }: PageProps) {
           {/* Tab Content */}
           <div className="p-6 bg-gray-50/50 min-h-[200px]">
             {activeTab === 'resume' && <ResumeTab profile={profile} />}
-            {activeTab === 'media' && <MediaTab videos={profile.videos} />}
-            {activeTab === 'stats' && <StatsTab stats={profile.stats_json} profile={profile} />}
+            {activeTab === 'media' && <MediaTab videos={videos} />}
+            {activeTab === 'stats' && <StatsTab stats={stats} getFilteredStats={getFilteredStats} getSportIcon={getSportIcon} getSportLabel={getSportLabel} />}
           </div>
         </div>
 
@@ -229,12 +377,14 @@ export default function ProfilePage({ params }: PageProps) {
             subtitle="Download PDF"
             href="#"
           />
-          <ActionCard 
-            icon={<Trophy className="w-5 h-5" />}
-            title="Awards & Achievements"
-            subtitle={profile.awards ? `${profile.awards.split('\n').filter(a => a.trim()).length} awards` : 'No awards yet'}
-            onClick={() => {}}
-          />
+          {profile.awards && (
+            <ActionCard 
+              icon={<Trophy className="w-5 h-5" />}
+              title="Awards & Achievements"
+              subtitle={`${profile.awards.split('\n').filter(a => a.trim()).length} awards`}
+              onClick={() => {}}
+            />
+          )}
         </div>
 
         {/* Footer */}
@@ -280,7 +430,7 @@ function TabButton({
 }
 
 // Resume Tab Content
-function ResumeTab({ profile }: { profile: any }) {
+function ResumeTab({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-4">
       {/* Quick Info Grid */}
@@ -314,59 +464,71 @@ function ResumeTab({ profile }: { profile: any }) {
           <h3 className="font-semibold text-gray-900">Academics</h3>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-500">GPA</span>
-            <span className="font-medium text-gray-900">{profile.gpa}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">SAT</span>
-            <span className="font-medium text-gray-900">{profile.sat_score || 'N/A'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">ACT</span>
-            <span className="font-medium text-gray-900">{profile.act_score || 'N/A'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">High School</span>
-            <span className="font-medium text-gray-900">{profile.high_school}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Hometown</span>
-            <span className="font-medium text-gray-900">{profile.hometown}, {profile.state}</span>
-          </div>
+          {profile.gpa && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">GPA</span>
+              <span className="font-medium text-gray-900">{profile.gpa}</span>
+            </div>
+          )}
+          {profile.sat_score && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">SAT</span>
+              <span className="font-medium text-gray-900">{profile.sat_score}</span>
+            </div>
+          )}
+          {profile.act_score && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">ACT</span>
+              <span className="font-medium text-gray-900">{profile.act_score}</span>
+            </div>
+          )}
+          {profile.high_school && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">High School</span>
+              <span className="font-medium text-gray-900">{profile.high_school}</span>
+            </div>
+          )}
+          {(profile.hometown || profile.state) && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Hometown</span>
+              <span className="font-medium text-gray-900">{[profile.hometown, profile.state].filter(Boolean).join(', ')}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Contact */}
-      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-        <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
-        <div className="space-y-2">
-          {profile.email && (
-            <a 
-              href={`mailto:${profile.email}`}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
-            >
-              <Mail className="w-4 h-4 text-babyblue-500" />
-              {profile.email}
-            </a>
-          )}
-          {profile.phone && (
-            <a 
-              href={`tel:${profile.phone}`}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
-            >
-              <Phone className="w-4 h-4 text-babyblue-500" />
-              {profile.phone}
-            </a>
-          )}
+      {(profile.email || profile.phone) && (
+        <div className="bg-white rounded-xl p-4 border border-babyblue-100">
+          <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
+          <div className="space-y-2">
+            {profile.email && (
+              <a 
+                href={`mailto:${profile.email}`}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+              >
+                <Mail className="w-4 h-4 text-babyblue-500" />
+                {profile.email}
+              </a>
+            )}
+            {profile.phone && (
+              <a 
+                href={`tel:${profile.phone}`}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-babyblue-600 transition-colors"
+              >
+                <Phone className="w-4 h-4 text-babyblue-500" />
+                {profile.phone}
+              </a>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
 
 // Media Tab Content
-function MediaTab({ videos }: { videos: any[] }) {
+function MediaTab({ videos }: { videos: Video[] }) {
   if (!videos || videos.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -406,52 +568,68 @@ function MediaTab({ videos }: { videos: any[] }) {
 }
 
 // Stats Tab Content
-function StatsTab({ stats, profile }: { stats: any, profile: any }) {
+function StatsTab({ 
+  stats, 
+  getFilteredStats, 
+  getSportIcon, 
+  getSportLabel 
+}: { 
+  stats: StatEntry[]
+  getFilteredStats: (sport: string, stats: Record<string, number | string>) => { label: string; value: number | string; key: string }[]
+  getSportIcon: (sport: string) => string
+  getSportLabel: (sport: string) => string
+}) {
+  console.log('StatsTab rendering with stats:', stats?.length || 0, 'entries')
+  
+  if (!stats || stats.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <BarChart3 className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
+        <p>No stats available yet</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
-      {/* Hitting Stats */}
-      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Hitting</h3>
-        <div className="grid grid-cols-3 gap-3">
-          <StatBox label="AVG" value={stats?.batting_avg || '-'} />
-          <StatBox label="OBP" value={stats?.obp || '-'} />
-          <StatBox label="SLG" value={stats?.slg || '-'} />
-        </div>
-        <div className="flex gap-2 mt-3">
-          <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-xs font-medium">
-            Bats: {profile.bats}
-          </span>
-          <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-xs font-medium">
-            Throws: {profile.throws}
-          </span>
-        </div>
-      </div>
-
-      {/* Pitching Stats */}
-      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Pitching</h3>
-        <div className="grid grid-cols-4 gap-2">
-          <StatBox label="ERA" value={stats?.era || '-'} />
-          <StatBox label="WHIP" value={stats?.whip || '-'} />
-          <StatBox label="K/9" value={stats?.k_per_9 || '-'} />
-          <StatBox label="IP" value={stats?.innings || '-'} />
-        </div>
-      </div>
-
-      {/* Physical */}
-      <div className="bg-white rounded-xl p-4 border border-babyblue-100">
-        <h3 className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wide">Physical</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-lg font-bold text-gray-900">{profile.height}</p>
-            <p className="text-xs text-gray-500 uppercase">Height</p>
+      {stats.map((stat) => {
+        console.log('Rendering stat entry:', stat.id, stat.sport, stat.team_name)
+        const filteredStats = getFilteredStats(stat.sport, stat.stats || {})
+        
+        return (
+          <div key={stat.id} className="bg-white rounded-xl border border-babyblue-100 overflow-hidden">
+            {/* Card Header */}
+            <div className="px-4 py-3 border-b border-babyblue-50 bg-babyblue-50/30">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{getSportIcon(stat.sport)}</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">{stat.team_name}</h4>
+                  <p className="text-xs text-gray-500">
+                    {stat.season_year} • {getSportLabel(stat.sport)}
+                    {stat.position && ` • ${stat.position}`}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="p-4">
+              {filteredStats.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {filteredStats.map((field, idx) => (
+                    <div key={`${stat.id}-${idx}`} className="text-center p-2.5 bg-babyblue-50 rounded-xl">
+                      <p className="text-lg font-bold text-babyblue-700 truncate">{field.value}</p>
+                      <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-0.5 truncate">{field.label}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-4">No stats recorded for this season</p>
+              )}
+            </div>
           </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-lg font-bold text-gray-900">{profile.weight} <span className="text-sm font-normal">lbs</span></p>
-            <p className="text-xs text-gray-500 uppercase">Weight</p>
-          </div>
-        </div>
-      </div>
+        )
+      })}
     </div>
   )
 }
@@ -467,16 +645,6 @@ function InfoCard({ icon, label, value }: { icon: React.ReactNode, label: string
         <p className="text-xs text-gray-500">{label}</p>
         <p className="font-semibold text-gray-900 text-sm">{value}</p>
       </div>
-    </div>
-  )
-}
-
-// Stat Box Component
-function StatBox({ label, value }: { label: string, value: string }) {
-  return (
-    <div className="text-center p-3 bg-babyblue-50 rounded-xl">
-      <p className="text-xl font-bold text-babyblue-700">{value}</p>
-      <p className="text-xs text-babyblue-600 uppercase tracking-wide mt-1">{label}</p>
     </div>
   )
 }
