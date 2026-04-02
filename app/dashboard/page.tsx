@@ -51,6 +51,7 @@ interface Profile {
   bio?: string
   stats_json?: any
   profile_views?: number
+  role?: string
 }
 
 export default function Dashboard() {
@@ -82,7 +83,20 @@ export default function Dashboard() {
         if (profileError) {
           setError('Failed to load profile')
         } else {
-          setProfile(profileData)
+          // Fetch actual profile views from analytics
+          const { data: analyticsData, error: analyticsError } = await supabase
+            .from('profile_analytics')
+            .select('id')
+            .eq('profile_user_id', profileData.id)
+            .eq('event_type', 'profile_view')
+          
+          const viewCount = analyticsData?.length || 0
+          console.log('Dashboard view count:', viewCount)
+          
+          setProfile({
+            ...profileData,
+            profile_views: viewCount
+          })
         }
         
         setLoading(false)
@@ -172,20 +186,21 @@ export default function Dashboard() {
               <p className="text-babyblue-500 font-medium text-sm mt-1">@{profile.username}</p>
 
               {/* Quick Stats */}
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex justify-center gap-6 mt-4">
                 <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900">{profile.profile_views || 0}</p>
-                  <p className="text-xs text-gray-500">Views</p>
+                  <p className="text-2xl font-bold text-gray-900">{profile.profile_views || 0}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1 justify-center">
+                    <Eye className="w-3 h-3" />
+                    Views
+                  </p>
                 </div>
                 <div className="w-px bg-gray-200" />
                 <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900">{isPremium ? 'Pro' : 'Free'}</p>
-                  <p className="text-xs text-gray-500">Plan</p>
-                </div>
-                <div className="w-px bg-gray-200" />
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900">{profile.grad_year || '-'}</p>
-                  <p className="text-xs text-gray-500">Class</p>
+                  <p className="text-2xl font-bold text-gray-900 capitalize">{profile.role || 'Athlete'}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1 justify-center">
+                    <UserCircle className="w-3 h-3" />
+                    Role
+                  </p>
                 </div>
               </div>
 
