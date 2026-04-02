@@ -392,8 +392,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="space-y-3">
               {analytics.recentActivity.slice(0, 5).map((event, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl"
-003e
+                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                   <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                     event.viewerType === 'recruiter' ? 'bg-yellow-400' : 'bg-babyblue-400'
                   }`} />
