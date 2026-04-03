@@ -336,9 +336,8 @@ export default function Home() {
         <footer className="text-center py-4 text-sm text-gray-500">
           <p>© 2024 UREPP. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
-            <Link href="#" className="hover:text-babyblue-600 transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-babyblue-600 transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-babyblue-600 transition-colors">Contact</Link>
+            <Link href="/privacy" className="hover:text-babyblue-600 transition-colors">Privacy</Link>
+            <a href="mailto:alex@urepp.tv" className="hover:text-babyblue-600 transition-colors">Contact</a>
           </div>
         </footer>
       </main>
