@@ -163,42 +163,45 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          {/* Force showing Cancel button for testing */}
-          <button 
-            onClick={() => setShowCancelConfirm(true)}
-            className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            <X className="w-5 h-5" />
-            Cancel Subscription
-          </button>
+          {/* Show Cancel button only if Premium, otherwise show Upgrade */}
+          {isPremium ? (
+            <button 
+              onClick={() => setShowCancelConfirm(true)}
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              <X className="w-5 h-5" />
+              Cancel Subscription
+            </button>
+          ) : (
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              {upgrading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />Connecting to Stripe...</>
+              ) : (
+                <>Upgrade to Premium <ArrowRight className="w-5 h-5" /></>
+              )}
+            </button>
+          )}
         </div>
 
-        {/* Premium Plan */}
+        {/* Premium Plan Benefits - Only show for Free users */}
         {!isPremium && (
           <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-5 h-5 fill-current" />
-              <span className="font-bold">Premium</span>
+              <span className="font-bold">Premium Features</span>
             </div>
             <p className="text-3xl font-bold mb-1">$10<span className="text-lg font-normal">/month</span></p>
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
             </div>
-            <button
-              onClick={handleUpgrade}
-              disabled={upgrading}
-              className="w-full bg-white text-yellow-500 font-bold py-3 rounded-xl hover:bg-yellow-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {upgrading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />Connecting to Stripe...</>
-              ) : (
-                <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
-              )}
-            </button>
           </div>
         )}
 
