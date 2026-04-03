@@ -285,15 +285,26 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         trackStatsView={trackStatsView}
         trackMediaClick={trackMediaClick}
       />
+    case 'minimal-pro':
+      return <MinimalProLayout
+        profile={profile}
+        playerStats={playerStats}
+        copied={copied}
+        copyProfileLink={copyProfileLink}
+        trackSocialClick={trackSocialClick}
+      />
     case 'compact':
-      return <CompactScoutLayout 
+      return <AthleteDarkLayout 
         profile={profile} 
         playerStats={playerStats}
         theme={theme}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         copied={copied}
         copyProfileLink={copyProfileLink}
         trackSocialClick={trackSocialClick}
         trackStatsView={trackStatsView}
+        trackMediaClick={trackMediaClick}
       />
     default:
       return <DefaultLayout 
@@ -723,6 +734,102 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
   )
 }
 
+// MINIMAL PRO LAYOUT (Clean white, horizontal layout, no shadows, with tabs)
+function MinimalProLayout({ profile, playerStats, copied, copyProfileLink, trackSocialClick, trackStatsView, trackMediaClick }: any) {
+  const [activeTab, setActiveTab] = useState<'resume' | 'media' | 'stats'>('resume')
+
+  return (
+    <div className="min-h-screen bg-white pb-20">
+      <header className="bg-white border-b sticky top-0 z-50">
+        <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+          <button onClick={() => window.history.back()} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
+          </button>
+          <button onClick={copyProfileLink} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+            <Share2 className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-md mx-auto px-4 pt-6">
+        {/* Horizontal Layout - Avatar + Name side by side */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+            {profile.profile_picture_url ? (
+              <img
+                src={profile.profile_picture_url}
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-xl font-bold text-gray-600">
+                {profile.first_name?.[0]}{profile.last_name?.[0]}
+              </span>
+            )}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-xl font-medium text-gray-900">{profile.first_name} {profile.last_name}</h1>
+            <p className="text-sm text-gray-500">@{profile.username}</p>
+            {profile.high_school_sports?.[0] && (
+              <p className="text-sm text-gray-400 mt-0.5">{profile.high_school_sports[0]}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Social Links - Text only, minimal */}
+        <div className="flex gap-4 mb-6">
+          {profile.instagram && (
+            <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+               onClick={() => trackSocialClick('instagram')}
+               className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
+              Instagram
+            </a>
+          )}
+          {profile.twitter && (
+            <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+               onClick={() => trackSocialClick('twitter')}
+               className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
+              Twitter
+            </a>
+          )}
+          {profile.youtube && (
+            <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+               onClick={() => trackSocialClick('youtube')}
+               className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
+              YouTube
+            </a>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-6 border-b border-gray-200 mb-6">
+          {['resume', 'media', 'stats'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab as any)
+                if (tab === 'stats') trackStatsView()
+              }}
+              className={`pb-3 text-sm font-medium capitalize ${
+                activeTab === tab 
+                  ? 'text-gray-900 border-b-2 border-gray-900' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'resume' && <ResumeTab profile={profile} />}
+        {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} />}
+        {activeTab === 'stats' && <StatsTab stats={playerStats} />}
+      </main>
+    </div>
+  )
+}
+
 // BANNER LAYOUT (Large gradient header, floating avatar)
 function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, copied, copyProfileLink, trackSocialClick, trackStatsView, trackMediaClick }: any) {
   const isDark = theme.background === 'dark'
@@ -958,7 +1065,7 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
 
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === 'resume' && <ResumeTab profile={profile} minimal isDark />}
+          {activeTab === 'resume' && <ResumeTab profile={profile} isDark />}
           {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} dark />}
           {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
         </div>
@@ -987,8 +1094,9 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
 
 function ResumeTab({ profile, minimal, isDark }: { profile: Profile; minimal?: boolean; isDark?: boolean }) {
   const textColor = isDark ? 'text-white' : 'text-gray-900'
-  const mutedColor = isDark ? 'text-white/60' : 'text-gray-500'
-  const cardBg = isDark ? 'bg-white/5 border-white/10' : 'bg-white border-babyblue-100'
+  const mutedColor = isDark ? 'text-gray-400' : 'text-gray-500'
+  const cardBg = isDark ? 'bg-[#1A1A1F] border-white/20' : 'bg-white border-babyblue-100'
+  const cardBgLight = isDark ? 'bg-[#242429]' : 'bg-gray-50'
   
   if (minimal) {
     return (
@@ -1131,49 +1239,49 @@ function ResumeTab({ profile, minimal, isDark }: { profile: Profile; minimal?: b
             </div>
             <div className="grid grid-cols-2 gap-2">
               {profile.measurements.height && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.height}</p>
                   <p className={`text-xs ${mutedColor}`}>Height</p>
                 </div>
               )}
               {profile.measurements.weight && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.weight}</p>
                   <p className={`text-xs ${mutedColor}`}>Weight</p>
                 </div>
               )}
               {profile.measurements.forty_yard_dash && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.forty_yard_dash}</p>
                   <p className={`text-xs ${mutedColor}`}>40 Yard Dash</p>
                 </div>
               )}
               {profile.measurements.wingspan && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.wingspan}</p>
                   <p className={`text-xs ${mutedColor}`}>Wingspan</p>
                 </div>
               )}
               {profile.measurements.vertical_jump && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.vertical_jump}</p>
                   <p className={`text-xs ${mutedColor}`}>Vertical Jump</p>
                 </div>
               )}
               {profile.measurements.broad_jump && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.broad_jump}</p>
                   <p className={`text-xs ${mutedColor}`}>Broad Jump</p>
                 </div>
               )}
               {profile.measurements.bench_press && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.bench_press}</p>
                   <p className={`text-xs ${mutedColor}`}>Bench Press</p>
                 </div>
               )}
               {profile.measurements.shuttle_run && (
-                <div className="text-center p-2 rounded bg-white/5">
+                <div className={`text-center p-2 rounded ${cardBgLight}`}>
                   <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.shuttle_run}</p>
                   <p className={`text-xs ${mutedColor}`}>Shuttle Run</p>
                 </div>

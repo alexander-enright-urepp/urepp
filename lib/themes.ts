@@ -44,31 +44,31 @@ export interface ThemeConfig {
 }
 
 export const PREMIUM_THEMES: ThemeConfig[] = [
-  // THEME 1: Minimal Pro
+  // THEME 1: Minimal Pro - Clean white with subtle shadows
   {
     id: 'minimal-pro',
     name: 'Minimal Pro',
     preview: '⚪',
     premium: true,
-    layout: 'centered',
+    layout: 'minimal-pro',
     headerHeight: 'small',
     headerStyle: 'transparent',
     typography: 'minimal',
-    nameSize: 'medium',
+    nameSize: 'large',
     nameWeight: 'medium',
-    cardStyle: 'minimal',
-    cardBackground: 'white',
-    spacing: 'normal',
-    sectionGap: 'medium',
-    borderRadius: 'medium',
-    shadow: 'small',
+    cardStyle: 'flat',
+    cardBackground: 'transparent',
+    spacing: 'tight',
+    sectionGap: 'small',
+    borderRadius: 'small',
+    shadow: 'none',
     iconStyle: 'minimal',
-    buttonStyle: 'rounded',
+    buttonStyle: 'ghost',
     background: 'white',
-    avatarPosition: 'center',
-    avatarSize: 'medium',
-    statsPosition: 'below',
-    socialPosition: 'center',
+    avatarPosition: 'left',
+    avatarSize: 'small',
+    statsPosition: 'inline',
+    socialPosition: 'below',
   },
   
   // THEME 2: Athlete Dark
