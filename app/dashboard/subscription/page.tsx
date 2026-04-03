@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase'
 interface Profile {
   id: string
   is_premium?: boolean
-  subscription_status?: string
 }
 
 export default function SubscriptionPage() {
@@ -33,14 +32,23 @@ export default function SubscriptionPage() {
       return
     }
 
-    const { data } = await supabase
+    console.log('Looking for profile with user_id:', session.user.id)
+
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, is_premium, subscription_status')
+      .select('id, is_premium')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle() // Use maybeSingle instead of single to handle multiple rows
+
+    if (error) {
+      console.error('Supabase error:', error)
+    }
 
     if (data) {
+      console.log('Profile loaded:', data)
       setProfile(data)
+    } else {
+      console.log('No profile data found for user_id:', session.user.id)
     }
     setLoading(false)
   }
@@ -118,6 +126,7 @@ export default function SubscriptionPage() {
   }
 
   const isPremium = profile?.is_premium
+  console.log('isPremium:', isPremium, 'profile:', profile)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
@@ -187,23 +196,21 @@ export default function SubscriptionPage() {
           )}
         </div>
 
-        {/* Premium Plan Benefits - Only show for Free users */}
-        {!isPremium && (
-          <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-5 h-5 fill-current" />
-              <span className="font-bold">Premium Features</span>
-            </div>
-            <p className="text-3xl font-bold mb-1">$10<span className="text-lg font-normal">/month</span></p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
-            </div>
+        {/* Premium Plan Benefits - Show for all users, with different header */}
+        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Star className="w-5 h-5 fill-current" />
+            <span className="font-bold">{isPremium ? 'Your Premium Features' : 'Premium Features'}</span>
           </div>
-        )}
+          <p className="text-3xl font-bold mb-1">{isPremium ? 'Active' : '$10'}<span className="text-lg font-normal">{isPremium ? '' : '/month'}</span></p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
+            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
+            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
+            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
+            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
+          </div>
+        </div>
 
         {/* Upgrade Error Message */}
         {upgradeError && (
