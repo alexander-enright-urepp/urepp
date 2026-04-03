@@ -100,14 +100,13 @@ export default function SubscriptionPage() {
       .from('profiles')
       .update({
         is_premium: false,
-        subscription_status: 'cancelled',
         updated_at: new Date().toISOString()
       })
       .eq('id', profile.id)
     
     if (!error) {
       setCancelSuccess(true)
-      setProfile({ ...profile, is_premium: false, subscription_status: 'cancelled' })
+      setProfile({ ...profile, is_premium: false })
       setTimeout(() => {
         router.push('/dashboard')
       }, 2000)
