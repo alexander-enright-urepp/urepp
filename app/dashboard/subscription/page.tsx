@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X } from 'lucide-react'
+import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface Profile {
@@ -19,6 +19,8 @@ export default function SubscriptionPage() {
   const [cancelling, setCancelling] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelSuccess, setCancelSuccess] = useState(false)
+  const [upgrading, setUpgrading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState<string | null>(null)
 
   useEffect(() => {
     loadProfile()
@@ -41,6 +43,44 @@ export default function SubscriptionPage() {
       setProfile(data)
     }
     setLoading(false)
+  }
+
+  const handleUpgrade = async () => {
+    setUpgrading(true)
+    setUpgradeError(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        router.push('/login')
+        return
+      }
+
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: session.user.id,
+          email: session.user.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL returned')
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err)
+      setUpgradeError(err.message || 'Something went wrong. Please try again.')
+      setUpgrading(false)
+    }
   }
 
   const handleCancel = async () => {
@@ -147,6 +187,28 @@ export default function SubscriptionPage() {
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
               <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
+            </div>
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="w-full bg-white text-yellow-500 font-bold py-3 rounded-xl hover:bg-yellow-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {upgrading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />Connecting to Stripe...</>
+              ) : (
+                <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Upgrade Error Message */}
+        {upgradeError && (
+          <div className="bg-red-100 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div>
+              <p className="font-medium text-red-900">Payment Error</p>
+              <p className="text-sm text-red-700">{upgradeError}</p>
             </div>
           </div>
         )}
