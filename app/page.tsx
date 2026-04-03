@@ -16,7 +16,11 @@ import {
   Search,
   ChevronRight,
   Play,
-  Tv
+  Tv,
+  Crown,
+  Sparkles,
+  TrendingUp,
+  Palette
 } from 'lucide-react'
 import { getCurrentUser, signOut } from '@/lib/auth'
 
@@ -172,6 +176,7 @@ export default function Home() {
               icon={<Trophy className="w-5 h-5" />}
               title="Stats"
               description="Track all your metrics"
+              isPremium={true}
             />
             <FeatureCard
               icon={<Video className="w-5 h-5" />}
@@ -222,6 +227,81 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Premium Profile Section */}
+        <div className="bg-gradient-to-br from-yellow-400 via-yellow-400 to-amber-500 rounded-2xl p-1 shadow-xl shadow-yellow-200">
+          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-5 relative overflow-hidden">
+            {/* Decorative sparkles */}
+            <Sparkles className="absolute -top-2 -right-2 w-16 h-16 text-yellow-300/50" />
+            <Sparkles className="absolute bottom-4 left-4 w-10 h-10 text-yellow-300/30" />
+            
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+                <Crown className="w-4 h-4 text-yellow-900 fill-current" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Premium Profile</h2>
+            </div>
+            
+            {/* Price */}
+            <div className="mb-4">
+              <span className="text-3xl font-bold text-gray-900">$10</span>
+              <span className="text-gray-600 font-medium">/month</span>
+            </div>
+            
+            {/* Features */}
+            <div className="space-y-3 mb-5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Palette className="w-4 h-4 text-yellow-700" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">Custom Profile Themes</h3>
+                  <p className="text-xs text-gray-600">Stand out with personalized colors and layouts</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-4 h-4 text-yellow-700" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">Advanced Stat Input</h3>
+                  <p className="text-xs text-gray-600">Track detailed performance metrics and career stats</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-4 h-4 text-yellow-700" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">In-Depth Analytics</h3>
+                  <p className="text-xs text-gray-600">See who views your profile and track your visibility</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* CTA Button */}
+            {user ? (
+              <Link
+                href="/dashboard/subscription"
+                className="block w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-yellow-200"
+              >
+                Upgrade to Premium
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link
+                href="/signup"
+                className="block w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-yellow-200"
+              >
+                Get Started Free
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         </div>
 
@@ -319,9 +399,14 @@ function StepItem({ number, icon, title, description }: { number: string; icon: 
   )
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({ icon, title, description, isPremium }: { icon: React.ReactNode; title: string; description: string; isPremium?: boolean }) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-babyblue-100 hover:border-babyblue-200 transition-colors">
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-babyblue-100 hover:border-babyblue-200 transition-colors relative">
+      {isPremium && (
+        <div className="absolute top-2 right-2 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+          <Crown className="w-3 h-3 text-yellow-900 fill-current" />
+        </div>
+      )}
       <div className="w-10 h-10 bg-babyblue-50 rounded-lg flex items-center justify-center text-babyblue-500 mb-2">
         {icon}
       </div>

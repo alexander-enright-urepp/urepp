@@ -61,6 +61,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copiedUrl, setCopiedUrl] = useState(false)
+  const [upgrading, setUpgrading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,6 +122,44 @@ export default function Dashboard() {
     navigator.clipboard.writeText(url)
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 2000)
+  }
+
+  const handleUpgrade = async () => {
+    setUpgrading(true)
+    setUpgradeError(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        router.push('/login')
+        return
+      }
+
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: session.user.id,
+          email: session.user.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL returned')
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err)
+      setUpgradeError(err.message || 'Something went wrong. Please try again.')
+      setUpgrading(false)
+    }
   }
 
   if (loading) {
@@ -277,8 +317,9 @@ export default function Dashboard() {
             <QuickActionCard 
               icon={<BarChart3 className="w-5 h-5" />}
               title="Stats"
-              subtitle="View analytics"
+              subtitle="Advanced Stats"
               href="/dashboard/stats"
+              isPremium={!isPremium}
             />
             <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}
@@ -291,12 +332,14 @@ export default function Dashboard() {
               title="Analytics"
               subtitle="View insights"
               href="/dashboard/analytics"
+              isPremium={!isPremium}
             />
             <QuickActionCard 
               icon={<LayoutTemplate className="w-5 h-5" />}
               title="Themes"
               subtitle="Customize look"
               href="/dashboard/themes"
+              isPremium={!isPremium}
             />
             <QuickActionCard 
               icon={<Users className="w-5 h-5" />}
@@ -337,7 +380,7 @@ export default function Dashboard() {
                 <p className="text-sm text-yellow-100 mb-3">Get discovered faster</p>
                 <ul className="text-sm space-y-1 text-yellow-100">
                   <li className="flex items-center gap-2">
-                    <Check className="w-3 h-3" /> Video uploads
+                    <Check className="w-3 h-3" /> Add stats
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3 h-3" /> Analytics
@@ -352,8 +395,21 @@ export default function Dashboard() {
                 <p className="text-sm text-yellow-100">/month</p>
               </div>
             </div>
-            <button className="mt-4 w-full bg-white text-yellow-600 py-2.5 rounded-xl font-semibold text-sm">
-              Upgrade Now
+            {upgradeError && (
+              <div className="mt-3 text-xs text-red-100 bg-red-500/20 rounded-lg px-3 py-2">
+                {upgradeError}
+              </div>
+            )}
+            <button 
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="mt-4 w-full bg-white text-yellow-600 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {upgrading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" />Connecting...</>
+              ) : (
+                'Upgrade Now'
+              )}
             </button>
           </div>
         )}
@@ -398,9 +454,14 @@ export default function Dashboard() {
 }
 
 // Component: Quick Action Card
-function QuickActionCard({ icon, title, subtitle, href }: { icon: React.ReactNode, title: string, subtitle: string, href: string }) {
+function QuickActionCard({ icon, title, subtitle, href, isPremium }: { icon: React.ReactNode, title: string, subtitle: string, href: string, isPremium?: boolean }) {
   return (
-    <Link href={href} className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow">
+    <Link href={href} className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow relative">
+      {isPremium && (
+        <div className="absolute top-2 right-2 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+          <Crown className="w-3 h-3 text-yellow-900 fill-current" />
+        </div>
+      )}
       <div className="w-10 h-10 rounded-xl bg-babyblue-50 flex items-center justify-center text-babyblue-500 mb-3">
         {icon}
       </div>

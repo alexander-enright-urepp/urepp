@@ -159,7 +159,7 @@ export default function SubscriptionPage() {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Check className="w-4 h-4 text-green-500" />
-              <span>Stats and achievements</span>
+              <span>Resume and achievements</span>
             </div>
           </div>
 
