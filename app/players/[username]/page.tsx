@@ -112,8 +112,20 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
   const [copied, setCopied] = useState(false)
   const supabase = createClientComponentClient()
 
-  const themeId = profile?.theme || 'default'
+  // Force theme to lowercase to prevent case sensitivity issues
+  const themeId = (profile?.theme || 'default').toLowerCase().trim()
   const theme = ALL_THEMES[themeId] || FREE_THEME
+  
+  useEffect(() => {
+    console.log('Theme debug:', { 
+      themeId, 
+      themeName: theme?.name, 
+      layout: theme?.layout, 
+      fromProfile: profile?.theme,
+      availableThemes: Object.keys(ALL_THEMES),
+      isBoldGradient: themeId === 'bold-gradient'
+    })
+  }, [themeId, theme, profile])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -274,17 +286,14 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         trackMediaClick={trackMediaClick}
       />
     case 'compact':
-      return <AthleteDarkLayout 
+      return <CompactScoutLayout 
         profile={profile} 
         playerStats={playerStats}
         theme={theme}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         copied={copied}
         copyProfileLink={copyProfileLink}
         trackSocialClick={trackSocialClick}
         trackStatsView={trackStatsView}
-        trackMediaClick={trackMediaClick}
       />
     default:
       return <DefaultLayout 
@@ -528,8 +537,10 @@ function RecruiterCardLayout({ profile, playerStats, theme, activeTab, setActive
 }
 
 // COMPACT SCOUT LAYOUT (Everything above fold)
-function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLink, trackSocialClick }: any) {
+function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLink, trackSocialClick, trackStatsView }: any) {
   const primaryStat = playerStats?.[0]
+  const [showFullResume, setShowFullResume] = useState(false)
+  const [activeTab, setActiveTab] = useState<'resume' | 'media' | 'stats'>('resume')
   
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -547,10 +558,18 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
       <main className="max-w-md mx-auto px-4 pt-4">
         {/* Compact Header */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-babyblue-100 flex items-center justify-center">
-            <span className="text-lg font-bold text-babyblue-600">
-              {profile.first_name?.[0]}{profile.last_name?.[0]}
-            </span>
+          <div className="w-12 h-12 rounded-full bg-babyblue-100 flex items-center justify-center overflow-hidden">
+            {profile.profile_picture_url ? (
+              <img 
+                src={profile.profile_picture_url} 
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-lg font-bold text-babyblue-600">
+                {profile.first_name?.[0]}{profile.last_name?.[0]}
+              </span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold text-gray-900 truncate">{profile.first_name} {profile.last_name}</h1>
@@ -640,14 +659,65 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
           </div>
         )}
 
-        {/* Full Resume Link */}
-        <Link href={`/players/${profile.username}/resume`} className="mt-4 flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+        {/* Full Resume Toggle */}
+        <button 
+          onClick={() => setShowFullResume(!showFullResume)}
+          className="mt-4 w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+        >
           <div className="flex items-center gap-3">
             <FileText className="w-5 h-5 text-babyblue-500" />
-            <span className="font-medium text-gray-900">View Full Resume</span>
+            <span className="font-medium text-gray-900">
+              {showFullResume ? 'Hide Full Resume' : 'View Full Resume'}
+            </span>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400" />
-        </Link>
+          <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${showFullResume ? 'rotate-90' : ''}`} />
+        </button>
+
+        {/* Full Resume Content */}
+        {showFullResume && (
+          <div className="mt-4">
+            <ResumeTab profile={profile} />
+          </div>
+        )}
+
+        {/* Videos Section */}
+        {profile.videos && profile.videos.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-babyblue-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Media</h3>
+              </div>
+              <span className="text-xs text-gray-500">{profile.videos.length} videos</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {profile.videos.slice(0, 4).map((video: any) => (
+                <a 
+                  key={video.id}
+                  href={video.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden group"
+                >
+                  {video.thumbnail_url ? (
+                    <img 
+                      src={video.thumbnail_url} 
+                      alt={video.title || 'Video thumbnail'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <Play className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Play className="w-10 h-10 text-white fill-current" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
@@ -656,12 +726,20 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
 // BANNER LAYOUT (Large gradient header, floating avatar)
 function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, copied, copyProfileLink, trackSocialClick, trackStatsView, trackMediaClick }: any) {
   const isDark = theme.background === 'dark'
-  const headerBg = theme.backgroundGradient || 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500'
+  
+  // Use inline style for custom gradients, fallback to Tailwind classes
+  const headerStyle = theme.backgroundGradient 
+    ? { background: theme.backgroundGradient }
+    : {}
+  const headerClass = theme.backgroundGradient ? '' : 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500'
   
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'} pb-20`}>
       {/* Banner Header */}
-      <div className={`${headerBg} h-32 relative`}>
+      <div 
+        className={`h-32 relative ${headerClass}`}
+        style={headerStyle}
+      >
         <div className="absolute top-4 left-4 right-4 flex justify-between">
           <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white">
             <ArrowLeft className="w-5 h-5" />
@@ -671,12 +749,20 @@ function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, co
           </button>
         </div>
         
-        {/* Floating Avatar */}
-        <div className="absolute -bottom-10 left-6">
-          <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center">
-            <span className="text-2xl font-bold text-babyblue-600">
-              {profile.first_name?.[0]}{profile.last_name?.[0]}
-            </span>
+        {/* Floating Avatar - Left Aligned & Mobile Responsive */}
+        <div className="absolute -bottom-10 left-4 sm:left-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+            {profile.profile_picture_url ? (
+              <img
+                src={profile.profile_picture_url}
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-2xl sm:text-3xl font-bold text-babyblue-600">
+                {profile.first_name?.[0]}{profile.last_name?.[0]}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -773,25 +859,37 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
       </header>
 
       <main className="max-w-md mx-auto px-6 pt-6">
-        {/* Centered Header with Stats */}
+        {/* Centered Header with Sport */}
         <div className="text-center">
-          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-4 border-white/20 flex items-center justify-center mb-4">
-            <span className="text-3xl font-bold">
-              {profile.first_name?.[0]}{profile.last_name?.[0]}
-            </span>
+          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-4 border-white/20 flex items-center justify-center mb-4 overflow-hidden">
+            {profile.profile_picture_url ? (
+              <img 
+                src={profile.profile_picture_url} 
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-3xl font-bold">
+                {profile.first_name?.[0]}{profile.last_name?.[0]}
+              </span>
+            )}
           </div>
           
           <h1 className="text-3xl font-black text-white">{profile.first_name} {profile.last_name}</h1>
           <p className="text-white/60 mt-1">@{profile.username}</p>
           
-          {/* Stats Row Under Name */}
-          {primaryStat && (
-            <div className="flex justify-center gap-4 mt-4">
-              {Object.entries(primaryStat.stats).slice(0, 3).map(([key, value]: [string, any]) => (
-                <div key={key} className="text-center">
-                  <p className="text-xl font-bold text-cyan-400">{value}</p>
-                  <p className="text-xs text-white/40 uppercase">{key.replace('_', ' ')}</p>
-                </div>
+          {/* Sport Played */}
+          {(profile.high_school_sports?.length > 0 || profile.college_sports?.length > 0) && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {profile.high_school_sports?.map((sport: string) => (
+                <span key={sport} className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm font-medium border border-cyan-500/30">
+                  {sport}
+                </span>
+              ))}
+              {profile.college_sports?.map((sport: string) => (
+                <span key={sport} className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm font-medium border border-purple-500/30">
+                  {sport}
+                </span>
               ))}
             </div>
           )}
@@ -859,12 +957,11 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
         </div>
 
         {/* Tab Content */}
-        {activeTab !== 'resume' && (
-          <div className="mt-6">
-            {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} dark />}
-            {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
-          </div>
-        )}
+        <div className="mt-6">
+          {activeTab === 'resume' && <ResumeTab profile={profile} minimal isDark />}
+          {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} dark />}
+          {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
+        </div>
       </main>
     </div>
   )
@@ -969,7 +1066,7 @@ function ResumeTab({ profile, minimal, isDark }: { profile: Profile; minimal?: b
           </div>
         )}
 
-        {/* Awards */}
+        {/* Awards - Show ALL awards */}
         {profile.awards && (
           <div className={`p-3 rounded-xl border ${cardBg}`}>
             <div className="flex items-center gap-2 mb-2">
@@ -977,25 +1074,162 @@ function ResumeTab({ profile, minimal, isDark }: { profile: Profile; minimal?: b
               <span className={`text-xs font-medium ${mutedColor}`}>Awards</span>
             </div>
             <div className="space-y-1">
-              {profile.awards.split('\n').filter(a => a.trim()).slice(0, 3).map((award, index) => (
+              {profile.awards.split('\n').filter(a => a.trim()).map((award, index) => (
                 <p key={index} className={`text-sm ${mutedColor}`}>• {award.trim()}</p>
               ))}
             </div>
           </div>
         )}
 
+        {/* Teams */}
+        {profile.teams && profile.teams.length > 0 && (
+          <div className={`p-3 rounded-xl border ${cardBg}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Users className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-green-500'}`} />
+              <span className={`text-xs font-medium ${mutedColor}`}>Teams</span>
+            </div>
+            <div className="space-y-2">
+              {profile.teams.map((team: any) => (
+                <div key={team.id} className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                  <p className={`text-sm font-medium ${textColor}`}>{team.team_name}</p>
+                  <p className={`text-xs ${mutedColor}`}>
+                    {team.sport} {team.position && `• ${team.position}`} {team.year_played && `• ${team.year_played}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* College Info */}
+        {(profile.college_name || profile.college_city || profile.college_grad_year) && (
+          <div className={`p-3 rounded-xl border ${cardBg}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <GraduationCap className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-purple-500'}`} />
+              <span className={`text-xs font-medium ${mutedColor}`}>College</span>
+            </div>
+            {profile.college_name && (
+              <p className={`text-sm font-medium ${textColor}`}>{profile.college_name}</p>
+            )}
+            {(profile.college_city || profile.college_state) && (
+              <p className={`text-xs ${mutedColor}`}>
+                {[profile.college_city, profile.college_state].filter(Boolean).join(', ')}
+              </p>
+            )}
+            {profile.college_grad_year && (
+              <p className={`text-xs ${mutedColor} mt-1`}>Class of {profile.college_grad_year}</p>
+            )}
+          </div>
+        )}
+
+        {/* Body Measurements */}
+        {profile.measurements && Object.values(profile.measurements).some(v => v) && (
+          <div className={`p-3 rounded-xl border ${cardBg}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Ruler className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-pink-500'}`} />
+              <span className={`text-xs font-medium ${mutedColor}`}>Measurements</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {profile.measurements.height && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.height}</p>
+                  <p className={`text-xs ${mutedColor}`}>Height</p>
+                </div>
+              )}
+              {profile.measurements.weight && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.weight}</p>
+                  <p className={`text-xs ${mutedColor}`}>Weight</p>
+                </div>
+              )}
+              {profile.measurements.forty_yard_dash && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.forty_yard_dash}</p>
+                  <p className={`text-xs ${mutedColor}`}>40 Yard Dash</p>
+                </div>
+              )}
+              {profile.measurements.wingspan && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.wingspan}</p>
+                  <p className={`text-xs ${mutedColor}`}>Wingspan</p>
+                </div>
+              )}
+              {profile.measurements.vertical_jump && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.vertical_jump}</p>
+                  <p className={`text-xs ${mutedColor}`}>Vertical Jump</p>
+                </div>
+              )}
+              {profile.measurements.broad_jump && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.broad_jump}</p>
+                  <p className={`text-xs ${mutedColor}`}>Broad Jump</p>
+                </div>
+              )}
+              {profile.measurements.bench_press && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.bench_press}</p>
+                  <p className={`text-xs ${mutedColor}`}>Bench Press</p>
+                </div>
+              )}
+              {profile.measurements.shuttle_run && (
+                <div className="text-center p-2 rounded bg-white/5">
+                  <p className={`text-sm font-bold ${textColor}`}>{profile.measurements.shuttle_run}</p>
+                  <p className={`text-xs ${mutedColor}`}>Shuttle Run</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Links */}
+        {profile.profile_links && profile.profile_links.length > 0 && (
+          <div className={`p-3 rounded-xl border ${cardBg}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <LinkIcon className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-blue-500'}`} />
+              <span className={`text-xs font-medium ${mutedColor}`}>Links</span>
+            </div>
+            <div className="space-y-2">
+              {profile.profile_links.map((link: any) => (
+                <a 
+                  key={link.id} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} transition-colors`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-babyblue-100 text-babyblue-600'}`}>
+                    {link.title?.[0]?.toUpperCase() || '🔗'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate ${textColor}`}>{link.title}</p>
+                    <p className={`text-xs truncate ${mutedColor}`}>{link.url.replace(/^https?:\/\//, '').slice(0, 30)}...</p>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Recruiting Info */}
-        {(profile.recruiting_status || profile.committed_school || profile.offers) && (
+        {(profile.recruiting_status || profile.committed_school || profile.offers || profile.interested_schools) && (
           <div className={`p-3 rounded-xl border ${cardBg}`}>
             <div className="flex items-center gap-2 mb-2">
               <ClipboardList className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-purple-500'}`} />
               <span className={`text-xs font-medium ${mutedColor}`}>Recruiting</span>
             </div>
             {profile.recruiting_status && (
-              <p className={`text-sm ${textColor}`}>Status: {profile.recruiting_status}</p>
+              <p className={`text-sm ${textColor}`}><span className={mutedColor}>Status:</span> {profile.recruiting_status}</p>
             )}
             {profile.committed_school && (
-              <p className={`text-sm font-semibold text-purple-500`}>Committed: {profile.committed_school}</p>
+              <p className={`text-sm ${textColor}`}><span className={mutedColor}>Committed:</span> {profile.committed_school}</p>
+            )}
+            {profile.offers && (
+              <p className={`text-sm ${textColor}`}><span className={mutedColor}>Offers:</span> {profile.offers}</p>
+            )}
+            {profile.interested_schools && (
+              <p className={`text-sm ${textColor}`}><span className={mutedColor}>Interest:</span> {profile.interested_schools}</p>
             )}
           </div>
         )}

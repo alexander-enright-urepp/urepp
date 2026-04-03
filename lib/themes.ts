@@ -181,35 +181,7 @@ export const PREMIUM_THEMES: ThemeConfig[] = [
     socialPosition: 'below',
   },
   
-  // THEME 6: Glass Premium
-  {
-    id: 'glass-premium',
-    name: 'Glass Premium',
-    preview: '✨',
-    premium: true,
-    layout: 'centered',
-    headerHeight: 'medium',
-    headerStyle: 'glass',
-    typography: 'minimal',
-    nameSize: 'large',
-    nameWeight: 'medium',
-    cardStyle: 'glass',
-    cardBackground: 'glass',
-    spacing: 'normal',
-    sectionGap: 'medium',
-    borderRadius: 'large',
-    shadow: 'large',
-    iconStyle: 'floating',
-    buttonStyle: 'rounded',
-    background: 'glass',
-    backgroundGradient: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-    avatarPosition: 'center',
-    avatarSize: 'large',
-    statsPosition: 'below',
-    socialPosition: 'floating',
-  },
-  
-  // THEME 7: Sports Card
+  // THEME 6: Sports Card
   {
     id: 'sports-card',
     name: 'Sports Card',
@@ -234,34 +206,6 @@ export const PREMIUM_THEMES: ThemeConfig[] = [
     avatarSize: 'xl',
     statsPosition: 'chips',
     socialPosition: 'below',
-  },
-  
-  // THEME 8: Creator Style
-  {
-    id: 'creator-style',
-    name: 'Creator Style',
-    preview: '⭐',
-    premium: true,
-    layout: 'centered',
-    headerHeight: 'large',
-    headerStyle: 'gradient',
-    typography: 'influencer',
-    nameSize: 'xl',
-    nameWeight: 'bold',
-    cardStyle: 'minimal',
-    cardBackground: 'transparent',
-    spacing: 'loose',
-    sectionGap: 'large',
-    borderRadius: 'full',
-    shadow: 'none',
-    iconStyle: 'filled',
-    buttonStyle: 'pill',
-    background: 'gradient',
-    backgroundGradient: 'linear-gradient(180deg, #f093fb 0%, #f5576c 100%)',
-    avatarPosition: 'center',
-    avatarSize: 'xl',
-    statsPosition: 'below',
-    socialPosition: 'center',
   },
 ]
 

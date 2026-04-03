@@ -14,7 +14,6 @@ import {
   Crown,
   Lock,
   Tv,
-  Eye,
   BarChart3,
   FileText,
   Play,
@@ -25,25 +24,6 @@ import { PREMIUM_THEMES, FREE_THEME, getThemeClasses, type ThemeConfig } from '@
 
 // Combine free and premium themes
 const ALL_THEMES = [FREE_THEME, ...PREMIUM_THEMES]
-
-// Sample profile data for preview
-const SAMPLE_PROFILE = {
-  first_name: 'Alex',
-  last_name: 'Johnson',
-  username: 'alexjohnson2026',
-  bio: 'Student-athlete | Baseball | Class of 2026',
-  profile_picture_url: null,
-  grad_year: 2026,
-  high_school: 'West High School',
-  state: 'CA',
-  position: 'RHP/SS',
-  high_school_sports: ['Baseball'],
-  is_premium: true,
-  stats_json: {
-    batting_avg: '.325',
-    era: '2.45'
-  }
-}
 
 export default function ThemesPage() {
   const router = useRouter()
@@ -117,7 +97,7 @@ export default function ThemesPage() {
   }
 
   const currentTheme = ALL_THEMES.find(t => t.id === selectedTheme) || FREE_THEME
-  const themeClasses = getThemeClasses(currentTheme)
+
 
   if (loading) {
     return (
@@ -170,22 +150,6 @@ export default function ThemesPage() {
             {success}
           </div>
         )}
-
-        {/* Live Preview */}
-        <div className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-babyblue-500" />
-              Live Preview
-            </h2>
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-              {currentTheme.name}
-            </span>
-          </div>
-          
-          {/* Theme Preview Card */}
-          <ThemePreview theme={currentTheme} />
-        </div>
 
         {/* Premium Banner */}
         {!isPremium && (
@@ -321,196 +285,6 @@ export default function ThemesPage() {
           </Link>
         </div>
       </nav>
-    </div>
-  )
-}
-
-// Theme Preview Component
-function ThemePreview({ theme }: { theme: ThemeConfig }) {
-  const getHeaderStyle = () => {
-    switch (theme.headerStyle) {
-      case 'gradient':
-        return theme.backgroundGradient || 'bg-gradient-to-br from-blue-500 to-purple-600'
-      case 'dark':
-        return 'bg-[#0B0B0F]'
-      case 'glass':
-        return 'bg-white/10 backdrop-blur-md'
-      default:
-        return 'bg-babyblue-500'
-    }
-  }
-
-  const getAvatarPosition = () => {
-    switch (theme.avatarPosition) {
-      case 'left':
-        return 'flex-row items-center gap-4 text-left'
-      case 'floating':
-        return 'relative'
-      default:
-        return 'flex-col items-center text-center'
-    }
-  }
-
-  const getNameStyle = () => {
-    const sizeMap: Record<string, string> = {
-      'small': 'text-lg',
-      'medium': 'text-xl',
-      'large': 'text-2xl',
-      'xl': 'text-3xl',
-    }
-    const weightMap: Record<string, string> = {
-      'normal': 'font-normal',
-      'medium': 'font-medium',
-      'bold': 'font-bold',
-      'black': 'font-black',
-    }
-    return `${sizeMap[theme.nameSize]} ${weightMap[theme.nameWeight]}`
-  }
-
-  const getCardStyle = () => {
-    switch (theme.cardStyle) {
-      case 'glass':
-        return 'bg-white/10 backdrop-blur-md border border-white/20'
-      case 'outline':
-        return 'bg-white border border-gray-200'
-      case 'flat':
-        return 'bg-gray-50'
-      default:
-        return 'bg-white rounded-xl shadow-sm border border-babyblue-100'
-    }
-  }
-
-  // Render different layouts
-  if (theme.layout === 'horizontal-card') {
-    return (
-      <div className={`${getHeaderStyle()} rounded-xl p-4 ${theme.headerStyle === 'dark' ? 'text-white' : 'text-white'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-            <span className="text-2xl font-bold">A</span>
-          </div>
-          <div className="flex-1">
-            <h3 className={`${getNameStyle()} text-white`}>Alex Johnson</h3>
-            <p className="text-white/80 text-sm">@{SAMPLE_PROFILE.username}</p>
-            <p className="text-white/70 text-xs mt-1">{SAMPLE_PROFILE.position}</p>
-          </div>
-          <div className="flex gap-1">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-              <Trophy className="w-4 h-4" />
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-1 mt-4 border-t border-white/20 pt-3">
-          <button className="flex-1 py-2 text-sm font-medium bg-white/20 rounded-lg">Resume</button>
-          <button className="flex-1 py-2 text-sm font-medium text-white/70">Media</button>
-          <button className="flex-1 py-2 text-sm font-medium text-white/70">Stats</button>
-        </div>
-      </div>
-    )
-  }
-
-  if (theme.layout === 'minimal') {
-    return (
-      <div className="bg-white rounded-xl p-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-babyblue-100 flex items-center justify-center">
-            <span className="text-lg font-bold text-babyblue-600">A</span>
-          </div>
-          <div>
-            <h3 className={`${getNameStyle()} text-gray-900`}>Alex Johnson</h3>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>{SAMPLE_PROFILE.position}</span>
-              <span>•</span>
-              <span>.325 AVG</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-3">
-          {['IG', 'TW', 'YT'].map((social) => (
-            <div key={social} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
-              {social}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (theme.layout === 'banner') {
-    return (
-      <div>
-        <div className={`${getHeaderStyle()} h-24 rounded-t-xl relative`}>
-          {theme.avatarPosition === 'overlapping' && (
-            <div className="absolute -bottom-8 left-4 w-20 h-20 rounded-full bg-white border-4 border-white flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-bold text-gray-900">A</span>
-            </div>
-          )}
-        </div>
-        <div className="bg-white rounded-b-xl p-4 pt-10">
-          <h3 className={`${getNameStyle()} text-gray-900`}>Alex Johnson</h3>
-          <p className="text-gray-500 text-sm">{SAMPLE_PROFILE.position} • {SAMPLE_PROFILE.high_school}</p>
-          {theme.statsPosition === 'chips' && (
-            <div className="flex gap-2 mt-3">
-              <span className="bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-sm font-medium">.325 AVG</span>
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">2.45 ERA</span>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // Default centered layout
-  return (
-    <div className={`${theme.background === 'dark' ? 'bg-[#0B0B0F] text-white' : 'bg-white'} rounded-xl p-5 ${getCardStyle()}`}>
-      <div className={`flex ${getAvatarPosition()}`}>
-        <div className={`${theme.avatarSize === 'xl' ? 'w-24 h-24' : 'w-20 h-20'} rounded-full bg-babyblue-100 flex items-center justify-center border-4 border-white shadow-lg mb-4`}>
-          <span className={`${theme.avatarSize === 'xl' ? 'text-3xl' : 'text-2xl'} font-bold text-babyblue-600`}>A</span>
-        </div>
-        <div className={theme.avatarPosition === 'left' ? '' : 'text-center'}>
-          <h3 className={`${getNameStyle()} ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Alex Johnson
-          </h3>
-          <p className={`text-sm ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            @{SAMPLE_PROFILE.username}
-          </p>
-          {theme.statsPosition === 'inline' && (
-            <div className="flex gap-3 mt-2">
-              <span className="text-xs bg-babyblue-100 text-babyblue-700 px-2 py-1 rounded-full">.325 AVG</span>
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">2.45 ERA</span>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {theme.statsPosition !== 'inline' && theme.statsPosition !== 'chips' && (
-        <div className="flex justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
-          <div className="text-center">
-            <p className={`font-bold ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>.325</p>
-            <p className={`text-xs ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>AVG</p>
-          </div>
-          <div className="text-center">
-            <p className={`font-bold ${theme.background === 'dark' ? 'text-white' : 'text-gray-900'}`}>2.45</p>
-            <p className={`text-xs ${theme.background === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>ERA</p>
-          </div>
-        </div>
-      )}
-
-      <div className={`flex ${theme.socialPosition === 'right' ? 'justify-end' : 'justify-center'} gap-2 mt-4`}>
-        {[1, 2, 3].map((i) => (
-          <div 
-            key={i} 
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              theme.iconStyle === 'floating' 
-                ? 'bg-white/20 backdrop-blur-sm' 
-                : theme.background === 'dark'
-                ? 'bg-white/20'
-                : 'bg-babyblue-50'
-            }`}
-          >
-            <Trophy className={`w-5 h-5 ${theme.background === 'dark' ? 'text-white' : 'text-babyblue-600'}`} />
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
