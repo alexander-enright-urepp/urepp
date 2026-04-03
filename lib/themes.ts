@@ -8,7 +8,7 @@ export interface ThemeConfig {
   premium: boolean
   
   // Layout
-  layout: 'centered' | 'compact' | 'horizontal-card' | 'banner' | 'minimal'
+  layout: 'centered' | 'compact' | 'horizontal-card' | 'banner' | 'minimal' | 'minimal-pro' | 'athlete-dark' | 'compact-scout'
   headerHeight: 'small' | 'medium' | 'large' | 'banner'
   headerStyle: 'solid' | 'gradient' | 'glass' | 'dark' | 'transparent'
   
@@ -77,7 +77,7 @@ export const PREMIUM_THEMES: ThemeConfig[] = [
     name: 'Athlete Dark',
     preview: '🌑',
     premium: true,
-    layout: 'compact',
+    layout: 'athlete-dark',
     headerHeight: 'small',
     headerStyle: 'dark',
     typography: 'bold',
@@ -160,7 +160,7 @@ export const PREMIUM_THEMES: ThemeConfig[] = [
     name: 'Compact Scout',
     preview: '⚡',
     premium: true,
-    layout: 'minimal',
+    layout: 'compact-scout',
     headerHeight: 'small',
     headerStyle: 'transparent',
     typography: 'athletic',

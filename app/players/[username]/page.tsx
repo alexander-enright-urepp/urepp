@@ -248,7 +248,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
     notFound()
   }
 
-  // Render different layouts based on theme
+  // Render different layouts based on theme layout
   switch (theme.layout) {
     case 'horizontal-card':
       return <RecruiterCardLayout 
@@ -263,7 +263,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         trackStatsView={trackStatsView}
         trackMediaClick={trackMediaClick}
       />
-    case 'minimal':
+    case 'compact-scout':
       return <CompactScoutLayout 
         profile={profile} 
         playerStats={playerStats}
@@ -293,7 +293,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         copyProfileLink={copyProfileLink}
         trackSocialClick={trackSocialClick}
       />
-    case 'compact':
+    case 'athlete-dark':
       return <AthleteDarkLayout 
         profile={profile} 
         playerStats={playerStats}
