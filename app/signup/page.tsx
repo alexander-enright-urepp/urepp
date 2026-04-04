@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 import { Loader2, Mail, Lock, ArrowLeft, Home, Search, User, CheckCircle, Tv } from 'lucide-react'
 
 export default function SignUp() {
@@ -32,14 +33,25 @@ export default function SignUp() {
       return
     }
 
-    const { error } = await signUp(email, password)
+    const { data, error } = await signUp(email, password)
     
     if (error) {
       setError(error.message)
       setIsLoading(false)
-    } else {
-      setSuccess(true)
-      setIsLoading(false)
+    } else if (data.user) {
+      // Auto sign in after signup
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (!signInError) {
+        // Redirect to create profile instead of showing success screen
+        router.push('/profile/create')
+      } else {
+        setSuccess(true)
+        setIsLoading(false)
+      }
     }
   }
 

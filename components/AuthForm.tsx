@@ -24,13 +24,15 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
     try {
       if (mode === 'signup') {
-        // Redirect immediately before signup
-        window.location.href = '/profile/create'
-        
-        // Sign up user
+        // Sign up user with auto-confirm (skip email verification)
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              username: email.split('@')[0].toLowerCase(),
+            }
+          }
         })
 
         if (error) throw error
@@ -50,10 +52,16 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
             updated_at: new Date().toISOString()
           })
           
-          // Force redirect immediately
-          setTimeout(() => {
-            window.location.replace('/profile/create')
-          }, 100)
+          // Auto-sign in after signup
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+          
+          if (signInError) throw signInError
+          
+          // Redirect to create profile
+          window.location.replace('/profile/create')
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
