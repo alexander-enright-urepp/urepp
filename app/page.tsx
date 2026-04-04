@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { 
   ArrowRight, 
@@ -20,22 +20,34 @@ import {
   Crown,
   Sparkles,
   TrendingUp,
-  Palette
+  Palette,
+  Loader2
 } from 'lucide-react'
 import { getCurrentUser, signOut } from '@/lib/auth'
+import PullToRefreshContainer from '@/components/PullToRefreshContainer'
 
 export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchUser = useCallback(async () => {
+    const user = await getCurrentUser()
+    setUser(user)
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = await getCurrentUser()
-      setUser(user)
-      setLoading(false)
-    }
     fetchUser()
-  }, [])
+  }, [fetchUser])
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchUser()
+    // Simulate a small delay for smooth animation
+    await new Promise(resolve => setTimeout(resolve, 800))
+    setRefreshing(false)
+  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -51,7 +63,10 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+    <PullToRefreshContainer 
+      onRefresh={handleRefresh}
+      className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20"
+    >
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -363,7 +378,7 @@ export default function Home() {
           </Link>
         </div>
       </nav>
-    </div>
+    </PullToRefreshContainer>
   )
 }
 

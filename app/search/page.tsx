@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { 
   Search, 
@@ -16,6 +16,7 @@ import {
   Tv
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import PullToRefreshContainer from '@/components/PullToRefreshContainer'
 
 interface Profile {
   id: string
@@ -47,11 +48,7 @@ export default function SearchPage() {
   const gradYears = [2025, 2026, 2027, 2028, 2029]
   const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
-  useEffect(() => {
-    loadProfiles()
-  }, [])
-
-  const loadProfiles = async () => {
+  const loadProfiles = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
       .from('profiles')
@@ -62,7 +59,11 @@ export default function SearchPage() {
     
     setProfiles(data || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    loadProfiles()
+  }, [loadProfiles])
 
   const handleSearch = async () => {
     setLoading(true)
@@ -86,8 +87,15 @@ export default function SearchPage() {
     setLoading(false)
   }
 
+  const handleRefresh = async () => {
+    await loadProfiles()
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+    <PullToRefreshContainer
+      onRefresh={handleRefresh}
+      className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20"
+    >
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -234,7 +242,7 @@ export default function SearchPage() {
           </Link>
         </div>
       </nav>
-    </div>
+    </PullToRefreshContainer>
   )
 }
 
