@@ -24,7 +24,6 @@ import {
   Loader2
 } from 'lucide-react'
 import { getCurrentUser, signOut } from '@/lib/auth'
-import PullToRefreshContainer from '@/components/PullToRefreshContainer'
 
 export default function Home() {
   const [user, setUser] = useState<any>(null)
@@ -63,10 +62,7 @@ export default function Home() {
   }
 
   return (
-    <PullToRefreshContainer 
-      onRefresh={handleRefresh}
-      className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -378,7 +374,7 @@ export default function Home() {
           </Link>
         </div>
       </nav>
-    </PullToRefreshContainer>
+    </div>
   )
 }
 

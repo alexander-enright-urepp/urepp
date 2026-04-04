@@ -1,20 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useCallback } from 'react'
 import { Tv, Home, Search, User, Mail } from 'lucide-react'
-import PullToRefreshContainer from '@/components/PullToRefreshContainer'
 
 export default function TVPage() {
-  const [refreshing, setRefreshing] = useState(false)
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true)
-    // Simulate refresh - in real app, fetch TV data
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setRefreshing(false)
-  }, [])
-
   const handleContactSupport = () => {
     const subject = encodeURIComponent('Live Stream UREPP TV')
     const body = encodeURIComponent('I would like to live stream my games. I want to learn more. Please sign me up.')
@@ -22,10 +11,7 @@ export default function TVPage() {
   }
 
   return (
-    <PullToRefreshContainer
-      onRefresh={handleRefresh}
-      className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -104,7 +90,7 @@ export default function TVPage() {
           <BottomNavLink href="/dashboard" icon={<User className="w-6 h-6" />} label="Profile" />
         </div>
       </nav>
-    </PullToRefreshContainer>
+    </div>
   )
 }
 

@@ -16,7 +16,6 @@ import {
   Tv
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import PullToRefreshContainer from '@/components/PullToRefreshContainer'
 
 interface Profile {
   id: string
@@ -87,15 +86,8 @@ export default function SearchPage() {
     setLoading(false)
   }
 
-  const handleRefresh = async () => {
-    await loadProfiles()
-  }
-
   return (
-    <PullToRefreshContainer
-      onRefresh={handleRefresh}
-      className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -242,7 +234,7 @@ export default function SearchPage() {
           </Link>
         </div>
       </nav>
-    </PullToRefreshContainer>
+    </div>
   )
 }
 
