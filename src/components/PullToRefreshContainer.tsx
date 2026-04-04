@@ -3,6 +3,7 @@
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Loader2, ArrowDown } from 'lucide-react';
 import { ReactNode, useRef, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 interface PullToRefreshContainerProps {
   children: ReactNode;
@@ -19,6 +20,13 @@ export default function PullToRefreshContainer({
   threshold = 80,
   pullIndicator
 }: PullToRefreshContainerProps) {
+  const isNativeiOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+
+  // If not on native iOS, just render children without pull-to-refresh
+  if (!isNativeiOS) {
+    return <div className={className}>{children}</div>;
+  }
+
   const { 
     containerRef, 
     isPulling, 
