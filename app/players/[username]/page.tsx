@@ -221,7 +221,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
   }, [profile])
 
   const copyProfileLink = () => {
-    const url = `${window.location.origin}/players/${params.username}`
+    const url = `https://www.urepp.app/players/${params.username}`
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

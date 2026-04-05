@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   const copyProfileUrl = () => {
     if (!profile?.username) return
-    const url = `${window.location.origin}/players/${profile.username}`
+    const url = `https://www.urepp.app/players/${profile.username}`
     navigator.clipboard.writeText(url)
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 2000)
