@@ -48,36 +48,39 @@ interface Profile {
   first_name: string
   last_name: string
   username: string
-  email?: string
-  phone?: string
+  bio?: string
+  profile_picture_url?: string
+  role?: string
+  is_premium?: boolean
+  theme?: string
+  grad_year?: number
   high_school?: string
   hometown?: string
   state?: string
-  grad_year?: number
   gpa?: string
   sat_score?: string
   act_score?: string
-  bio?: string
   awards?: string
-  profile_picture_url?: string
+  phone?: string
   college_name?: string
   college_city?: string
   college_state?: string
   college_grad_year?: number
   high_school_sports?: string[]
   college_sports?: string[]
-  is_premium?: boolean
-  role?: string
-  theme?: string
-  instagram?: string
-  twitter?: string
-  youtube?: string
-  linkedin?: string
-  tiktok?: string
-  hudl?: string
-  maxpreps?: string
+  social_links?: {
+    email?: string
+    instagram?: string
+    twitter?: string
+    youtube?: string
+    linkedin?: string
+    tiktok?: string
+    hudl?: string
+    maxpreps?: string
+  }
   profile_links?: any[]
   teams?: any[]
+  videos?: any[]
   measurements?: {
     height?: string
     weight?: string
@@ -161,8 +164,31 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
       console.log('Stats fetched:', { count: statsData?.length || 0, error: statsError?.message, firstStat: statsData?.[0] })
 
       setProfile({
-        ...profileData,
+        id: profileData.id,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        username: profileData.username,
+        bio: profileData.bio,
+        profile_picture_url: profileData.profile_picture_url,
+        role: profileData.role,
+        is_premium: profileData.is_premium,
+        theme: profileData.theme,
+        grad_year: profileData.grad_year,
+        high_school: profileData.high_school,
+        hometown: profileData.hometown,
+        state: profileData.state,
+        gpa: profileData.gpa,
+        sat_score: profileData.sat_score,
+        act_score: profileData.act_score,
+        college_name: profileData.college_name,
+        college_city: profileData.college_city,
+        college_state: profileData.college_state,
+        college_grad_year: profileData.college_grad_year,
+        high_school_sports: profileData.high_school_sports,
+        college_sports: profileData.college_sports,
+        social_links: profileData.social_links,
         teams: profileData.profile_teams || [],
+        awards: profileData.awards,
         videos: videosData || [],
         measurements: {
           height: profileData.height,
@@ -387,34 +413,34 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
 
             {/* Social Links */}
             <div className="flex justify-center gap-3 mt-5 flex-wrap">
-              {profile.email && profile.email.trim().length > 0 && (
-                <a href={`mailto:${profile.email}`} className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
+              {profile.social_links?.email && profile.social_links?.email.trim().length > 0 && (
+                <a href={`mailto:${profile.social_links?.email}`} className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <Mail className="w-5 h-5" />
                 </a>
               )}
-              {profile.instagram && (
-                <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" 
+              {profile.social_links?.instagram && (
+                <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" 
                    onClick={() => trackSocialClick('instagram')}
                    className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <Instagram className="w-5 h-5" />
                 </a>
               )}
-              {profile.twitter && (
-                <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+              {profile.social_links?.twitter && (
+                <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackSocialClick('twitter')}
                    className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <Twitter className="w-5 h-5" />
                 </a>
               )}
-              {profile.youtube && (
-                <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+              {profile.social_links?.youtube && (
+                <a href={profile.social_links?.youtube} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackSocialClick('youtube')}
                    className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <Youtube className="w-5 h-5" />
                 </a>
               )}
-              {profile.hudl && (
-                <a href={profile.hudl} target="_blank" rel="noopener noreferrer"
+              {profile.social_links?.hudl && (
+                <a href={profile.social_links?.hudl} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackSocialClick('hudl')}
                    className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <span className="text-xs font-bold">HUDL</span>
@@ -485,15 +511,15 @@ function RecruiterCardLayout({ profile, playerStats, theme, activeTab, setActive
               )}
             </div>
             <div className="flex gap-1">
-              {profile.instagram && (
-                <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+              {profile.social_links?.instagram && (
+                <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackSocialClick('instagram')}
                    className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                   <Instagram className="w-4 h-4" />
                 </a>
               )}
-              {profile.twitter && (
-                <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+              {profile.social_links?.twitter && (
+                <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackSocialClick('twitter')}
                    className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                   <Twitter className="w-4 h-4" />
@@ -603,29 +629,29 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
 
         {/* Social Icons Row */}
         <div className="flex gap-2 mt-3">
-          {profile.instagram && (
-            <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.instagram && (
+            <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('instagram')}
                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-babyblue-100 hover:text-babyblue-600">
               IG
             </a>
           )}
-          {profile.twitter && (
-            <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.twitter && (
+            <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('twitter')}
                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-babyblue-100 hover:text-babyblue-600">
               TW
             </a>
           )}
-          {profile.youtube && (
-            <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.youtube && (
+            <a href={profile.social_links?.youtube} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('youtube')}
                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-babyblue-100 hover:text-babyblue-600">
               YT
             </a>
           )}
-          {profile.hudl && (
-            <a href={profile.hudl} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.hudl && (
+            <a href={profile.social_links?.hudl} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('hudl')}
                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-babyblue-100 hover:text-babyblue-600">
               HD
@@ -778,22 +804,22 @@ function MinimalProLayout({ profile, playerStats, copied, copyProfileLink, track
 
         {/* Social Links - Text only, minimal */}
         <div className="flex gap-4 mb-6">
-          {profile.instagram && (
-            <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.instagram && (
+            <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('instagram')}
                className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
               Instagram
             </a>
           )}
-          {profile.twitter && (
-            <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.twitter && (
+            <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('twitter')}
                className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
               Twitter
             </a>
           )}
-          {profile.youtube && (
-            <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.youtube && (
+            <a href={profile.social_links?.youtube} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('youtube')}
                className="text-sm text-gray-600 hover:text-gray-900 underline decoration-gray-300">
               YouTube
@@ -900,15 +926,15 @@ function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, co
 
         {/* Social Links */}
         <div className="flex gap-2 mt-4">
-          {profile.instagram && (
-            <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.instagram && (
+            <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('instagram')}
                className="px-4 py-2 rounded-full bg-babyblue-500 text-white text-sm font-medium hover:bg-babyblue-600">
               Instagram
             </a>
           )}
-          {profile.twitter && (
-            <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+          {profile.social_links?.twitter && (
+            <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                onClick={() => trackSocialClick('twitter')}
                className="px-4 py-2 rounded-full bg-gray-800 text-white text-sm font-medium hover:bg-gray-900">
               Twitter
@@ -1003,22 +1029,22 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
           
           {/* Social Icons */}
           <div className="flex justify-center gap-3 mt-5">
-            {profile.instagram && (
-              <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+            {profile.social_links?.instagram && (
+              <a href={`https://instagram.com/${profile.social_links?.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                  onClick={() => trackSocialClick('instagram')}
                  className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20">
                 <Instagram className="w-6 h-6 text-cyan-400" />
               </a>
             )}
-            {profile.twitter && (
-              <a href={`https://twitter.com/${profile.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+            {profile.social_links?.twitter && (
+              <a href={`https://twitter.com/${profile.social_links?.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                  onClick={() => trackSocialClick('twitter')}
                  className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20">
                 <Twitter className="w-6 h-6 text-cyan-400" />
               </a>
             )}
-            {profile.youtube && (
-              <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+            {profile.social_links?.youtube && (
+              <a href={profile.social_links?.youtube} target="_blank" rel="noopener noreferrer"
                  onClick={() => trackSocialClick('youtube')}
                  className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20">
                 <Youtube className="w-6 h-6 text-cyan-400" />

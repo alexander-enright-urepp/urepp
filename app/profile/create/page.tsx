@@ -195,7 +195,7 @@ export default function CreateProfile() {
             role: formData.role,
             bio: formData.bio || null,
             profile_picture_url: profileImageUrl,
-            grad_year: 2026,
+            grad_year: null,
             slug: username,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()

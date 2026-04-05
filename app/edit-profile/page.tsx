@@ -23,8 +23,8 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-// Extended years from 1975-2035
-const GRADUATION_YEARS = Array.from({length: 61}, (_, i) => (1975 + i).toString())
+// Extended years from 1975-2035, with 'Select' as first option
+const GRADUATION_YEARS = ['Select', ...Array.from({length: 61}, (_, i) => (1975 + i).toString())]
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']
 const CURRENT_YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduated']
 const SPORTS_LIST = [
@@ -212,16 +212,7 @@ export default function EditProfile() {
         profile_picture_url: imagePreview,
         high_school_sports: highSchoolSports,
         college_sports: collegeSports,
-        // Save social links as individual columns (for public profile)
-        email: socials.email?.trim() || null,
-        instagram: socials.instagram?.trim() || null,
-        twitter: socials.twitter?.trim() || null,
-        youtube: socials.youtube?.trim() || null,
-        linkedin: socials.linkedin?.trim() || null,
-        tiktok: socials.tiktok?.trim() || null,
-        hudl: socials.hudl?.trim() || null,
-        maxpreps: socials.maxpreps?.trim() || null,
-        // Keep social_links for backwards compatibility
+        // Save social_links as JSON only
         social_links: socials,
       }
       
@@ -466,8 +457,11 @@ export default function EditProfile() {
                 <Label>Graduation Year</Label>
                 <Select 
                   value={formData.grad_year?.toString() || ''} 
-                  onChange={e => updateForm('grad_year', e.target.value ? parseInt(e.target.value) : null)}
-                  options={[{value: '', label: 'Select year...'}, ...GRADUATION_YEARS.map(y => ({ value: y, label: `Class of ${y}` }))]}
+                  onChange={e => updateForm('grad_year', e.target.value === 'Select' || !e.target.value ? null : parseInt(e.target.value))}
+                  options={GRADUATION_YEARS.map(y => ({ 
+                    value: y, 
+                    label: y === 'Select' ? 'Select...' : `Class of ${y}` 
+                  }))}
                 />
               </div>
               <div>
