@@ -6,9 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   // Point to live web app for wrapper functionality
   server: {
-    url: 'https://urepp.vercel.app',
+    url: 'https://urepp.app',
     cleartext: false,
-    allowNavigation: ['urepp.vercel.app', '*.vercel.app']
+    allowNavigation: ['urepp.app', '*.urepp.app']
   },
   ios: {
     scheme: 'UREPP',
