@@ -1,6 +1,6 @@
 'use client'
 
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { usePullToRefresh } from './usePullToRefresh';
 import { Loader2, ArrowDown } from 'lucide-react';
 import { ReactNode, useRef, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
