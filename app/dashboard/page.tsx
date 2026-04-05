@@ -33,7 +33,8 @@ import {
   Ruler,
   ClipboardList,
   Tv,
-  Star
+  Star,
+  UserPlus
 } from 'lucide-react'
 
 interface Profile {
@@ -421,6 +422,7 @@ export default function Dashboard() {
           </div>
           <div className="divide-y divide-babyblue-50">
             <SettingsLink href="/dashboard/subscription" icon={<CreditCard className="w-5 h-5" />} label="Subscription" />
+            <SettingsLink href="/invite" icon={<UserPlus className="w-5 h-5" />} label="Invite" />
             <SettingsLink href="/dashboard/account" icon={<Settings className="w-5 h-5" />} label="Account Settings" />
             <SettingsButton onClick={handleSignOut} icon={<LogOut className="w-5 h-5" />} label="Sign Out" danger />
           </div>

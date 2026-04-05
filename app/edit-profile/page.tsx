@@ -42,7 +42,7 @@ interface ProfileData {
   last_name: string
   username: string
   slug: string
-  grad_year: number
+  grad_year: number | null
   high_school: string
   hometown: string
   state: string
@@ -119,7 +119,7 @@ export default function EditProfile() {
       username: profileData.username || '',
       role: profileData.role || '',
       slug: profileData.slug || '',
-      grad_year: profileData.grad_year || 2026,
+      grad_year: profileData.grad_year || null,
       high_school: profileData.high_school || '',
       hometown: profileData.hometown || '',
       state: profileData.state || '',
@@ -213,14 +213,14 @@ export default function EditProfile() {
         high_school_sports: highSchoolSports,
         college_sports: collegeSports,
         // Save social links as individual columns (for public profile)
-        email: socials.email,
-        instagram: socials.instagram,
-        twitter: socials.twitter,
-        youtube: socials.youtube,
-        linkedin: socials.linkedin,
-        tiktok: socials.tiktok,
-        hudl: socials.hudl,
-        maxpreps: socials.maxpreps,
+        email: socials.email?.trim() || null,
+        instagram: socials.instagram?.trim() || null,
+        twitter: socials.twitter?.trim() || null,
+        youtube: socials.youtube?.trim() || null,
+        linkedin: socials.linkedin?.trim() || null,
+        tiktok: socials.tiktok?.trim() || null,
+        hudl: socials.hudl?.trim() || null,
+        maxpreps: socials.maxpreps?.trim() || null,
         // Keep social_links for backwards compatibility
         social_links: socials,
       }
@@ -337,7 +337,7 @@ export default function EditProfile() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-700">Public Profile</p>
-                <p className="text-babyblue-600 text-sm">urepp.com/players/{formData.username}</p>
+                <p className="text-babyblue-600 text-sm">urepp.app/players/{formData.username}</p>
               </div>
               <Link
                 href={`/players/${formData.username}`}
@@ -466,8 +466,8 @@ export default function EditProfile() {
                 <Label>Graduation Year</Label>
                 <Select 
                   value={formData.grad_year?.toString() || ''} 
-                  onChange={e => updateForm('grad_year', parseInt(e.target.value))}
-                  options={GRADUATION_YEARS.map(y => ({ value: y, label: `Class of ${y}` }))}
+                  onChange={e => updateForm('grad_year', e.target.value ? parseInt(e.target.value) : null)}
+                  options={[{value: '', label: 'Select year...'}, ...GRADUATION_YEARS.map(y => ({ value: y, label: `Class of ${y}` }))]}
                 />
               </div>
               <div>

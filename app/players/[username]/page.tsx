@@ -337,7 +337,7 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <button onClick={copyProfileLink} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center relative">
-              {copied && <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">Copied!</span>}
+              {copied && <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">Copied!</span>}
               <Share2 className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-gray-600'}`} />
             </button>
           </div>
@@ -387,7 +387,7 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
 
             {/* Social Links */}
             <div className="flex justify-center gap-3 mt-5 flex-wrap">
-              {profile.email && (
+              {profile.email && profile.email.trim().length > 0 && (
                 <a href={`mailto:${profile.email}`} className="w-10 h-10 rounded-full bg-babyblue-50 flex items-center justify-center text-babyblue-600 hover:bg-babyblue-100">
                   <Mail className="w-5 h-5" />
                 </a>
