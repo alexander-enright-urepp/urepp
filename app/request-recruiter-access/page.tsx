@@ -71,6 +71,20 @@ export default function RequestRecruiterAccess() {
           return
         }
 
+        // Send email notification
+        await fetch('/api/send-recruiter-application', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            organization: formData.organization,
+            title: formData.title,
+            phone: formData.phone
+          })
+        })
+
         setSubmitted(true)
       }
     } catch (err: any) {
