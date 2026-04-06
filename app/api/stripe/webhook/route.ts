@@ -1,135 +1,66 @@
-// @ts-nocheck
-import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
-// Check for required env vars
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-03-25.dahlia',
+})
 
-// Only initialize if all env vars exist
-let stripe: Stripe | undefined;
-let supabase: any;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
-if (stripeSecretKey && supabaseUrl && supabaseKey) {
-  stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2026-03-25.dahlia',
-  });
+export async function POST(req: NextRequest) {
+  const payload = await req.text()
+  const signature = req.headers.get('stripe-signature')!
 
-  supabase = createClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
-}
+  let event: Stripe.Event
 
-export async function POST(request: Request) {
   try {
-    if (!stripe || !supabase || !webhookSecret) {
-      console.error('Stripe webhook not configured');
-      return new Response('Webhook not configured', { status: 503 });
-    }
-
-    const payload = await request.text();
-    const signature = request.headers.get('stripe-signature')!;
-
-    let event: Stripe.Event;
-
-    try {
-      event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err);
-      return new Response('Webhook signature verification failed', { status: 400 });
-    }
-
-    console.log('Webhook event:', event.type);
-
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.user_id;
-        
-        if (userId && session.subscription) {
-          // @ts-ignore
-          await supabase
-            .from('subscriptions')
-            .update({
-              stripe_subscription_id: session.subscription,
-              status: 'active',
-              plan: 'premium',
-              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            })
-            .eq('user_id', userId);
-
-          // @ts-ignore
-          await supabase
-            .from('profiles')
-            .update({
-              is_premium: true,
-              premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            })
-            .eq('user_id', userId);
-
-          console.log(`Activated premium for user: ${userId}`);
-        }
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const userId = invoice.metadata?.user_id;
-        
-        if (userId) {
-          // @ts-ignore
-          await supabase
-            .from('subscriptions')
-            .update({ status: 'past_due' })
-            .eq('user_id', userId);
-        }
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.user_id;
-        
-        if (userId) {
-          // @ts-ignore
-          await supabase
-            .from('subscriptions')
-            .update({
-              status: 'canceled',
-              plan: 'free',
-            })
-            .eq('user_id', userId);
-
-          // @ts-ignore
-          await supabase
-            .from('profiles')
-            .update({
-              is_premium: false,
-              premium_until: null,
-            })
-            .eq('user_id', userId);
-
-          console.log(`Downgraded user: ${userId} to free`);
-        }
-        break;
-      }
-
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-    }
-
-    return new Response('Webhook received', { status: 200 });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return new Response('Webhook error', { status: 500 });
+    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+  } catch (err: any) {
+    console.error('Webhook signature verification failed:', err.message)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
+
+  // Handle subscription events
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session
+    const recruiterId = session.metadata?.recruiterId
+
+    if (recruiterId) {
+      const supabase = createRouteHandlerClient({ cookies })
+      
+      // Update recruiter_paid to true
+      const { error } = await supabase
+        .from('profiles')
+        .update({ recruiter_paid: true })
+        .eq('id', recruiterId)
+
+      if (error) {
+        console.error('Error updating recruiter payment status:', error)
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
+      }
+
+      console.log('Recruiter payment confirmed:', recruiterId)
+    }
+  }
+
+  // Handle subscription cancellation
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object as Stripe.Subscription
+    const recruiterId = subscription.metadata?.recruiterId
+
+    if (recruiterId) {
+      const supabase = createRouteHandlerClient({ cookies })
+      
+      await supabase
+        .from('profiles')
+        .update({ recruiter_paid: false })
+        .eq('id', recruiterId)
+
+      console.log('Recruiter subscription cancelled:', recruiterId)
+    }
+  }
+
+  return NextResponse.json({ received: true })
 }
