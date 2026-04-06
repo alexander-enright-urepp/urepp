@@ -79,12 +79,9 @@ export default function RecruiterLogin() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-1">
+        <Link href="/recruiter-login" className="flex items-center gap-1">
           <span className="font-bold text-lg" style={{ color: PRIMARY_BLUE }}>UREPP</span>
           <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Recruiters</span>
-        </Link>
-        <Link href="/" className="text-sm" style={{ color: PRIMARY_BLUE }}>
-          Back
         </Link>
       </header>
 
