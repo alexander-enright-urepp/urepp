@@ -98,8 +98,8 @@ export default function RequestRecruiterAccess() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Application Submitted!</h1>
           <p className="text-slate-600 mb-6">
@@ -107,7 +107,7 @@ export default function RequestRecruiterAccess() {
           </p>
           <Link
             href="/recruiter-login"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="inline-flex items-center gap-2 text-[#51b5ff] hover:text-[#3a9ce6] font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Login
@@ -122,12 +122,12 @@ export default function RequestRecruiterAccess() {
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/recruiter-login" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 mb-6 transition-colors">
+          <Link href="/recruiter-login" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 mb-10 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to Login
           </Link>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
-            <Building2 className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[#51b5ff] to-[#2d8fd9] mb-4">
+            <Building2 className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Request Recruiter Access</h1>
           <p className="text-slate-500 mt-2">
@@ -155,7 +155,7 @@ export default function RequestRecruiterAccess() {
                   required
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="John"
                 />
               </div>
@@ -166,7 +166,7 @@ export default function RequestRecruiterAccess() {
                   required
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="Smith"
                 />
               </div>
@@ -182,7 +182,7 @@ export default function RequestRecruiterAccess() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="coach@university.edu"
                 />
               </div>
@@ -198,7 +198,7 @@ export default function RequestRecruiterAccess() {
                 minLength={8}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -213,7 +213,7 @@ export default function RequestRecruiterAccess() {
                   required
                   value={formData.organization}
                   onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="University of Example"
                 />
               </div>
@@ -228,7 +228,7 @@ export default function RequestRecruiterAccess() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="Head Coach"
                 />
               </div>
@@ -238,7 +238,7 @@ export default function RequestRecruiterAccess() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20 outline-none transition-all"
                   placeholder="(555) 123-4567"
                 />
               </div>
@@ -248,7 +248,7 @@ export default function RequestRecruiterAccess() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 text-white py-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+              className="w-full bg-gradient-to-r from-[#51b5ff] to-[#2d8fd9] hover:from-[#3a9ce6] hover:to-[#1f7bc4] disabled:opacity-50 text-white py-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#51b5ff]/30"
             >
               {loading ? (
                 <>
