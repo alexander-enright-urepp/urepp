@@ -348,6 +348,7 @@ export default function Home() {
           <p>© 2024 UREPP. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
             <Link href="/privacy" className="hover:text-babyblue-600 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-babyblue-600 transition-colors">Terms</Link>
             <a href="mailto:alex@urepp.tv" className="hover:text-babyblue-600 transition-colors">Contact</a>
           </div>
         </footer>
