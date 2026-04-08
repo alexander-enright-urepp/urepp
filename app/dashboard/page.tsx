@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
+import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { 
   LogOut, 
   Edit, 
@@ -65,6 +67,44 @@ export default function Dashboard() {
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
 
+  // Pull to refresh for iOS
+  const refreshData = useCallback(async () => {
+    if (!profile || !user) return
+    setLoading(true)
+    // Re-run the data fetch logic
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        router.push('/login')
+        return
+      }
+      setUser(session.user)
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single()
+      if (profileData) {
+        const { data: analyticsData } = await supabase
+          .from('profile_analytics')
+          .select('id')
+          .eq('profile_user_id', profileData.id)
+          .eq('event_type', 'profile_view')
+        const viewCount = analyticsData?.length || 0
+        setProfile({
+          ...profileData,
+          profile_views: viewCount
+        })
+      }
+      setLoading(false)
+    } catch (err: any) {
+      setError(err.message)
+      setLoading(false)
+    }
+  }, [profile, user, router])
+
+  useNativePullToRefresh(refreshData)
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -82,6 +122,13 @@ export default function Dashboard() {
           .select('*')
           .eq('user_id', session.user.id)
           .single()
+        
+        // Check if account is deleted
+        if (profileData?.is_deleted) {
+          await supabase.auth.signOut()
+          router.push('/login')
+          return
+        }
         
         if (profileError) {
           setError('Failed to load profile')

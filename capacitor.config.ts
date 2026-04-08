@@ -4,11 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.urepp.app',
   appName: 'UREPP',
   webDir: 'dist',
-  // Point to live web app for wrapper functionality
+  // Use local dev server for proper routing and native bridge
   server: {
-    url: 'https://urepp.app',
-    cleartext: false,
-    allowNavigation: ['urepp.app', '*.urepp.app']
+    url: 'http://localhost:3000',
+    cleartext: true
   },
   ios: {
     scheme: 'UREPP',

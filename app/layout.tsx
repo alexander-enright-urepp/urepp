@@ -21,6 +21,42 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // iOS Detection for debugging
+                window.checkiOS = function() {
+                  var ua = navigator.userAgent || '';
+                  var isIPad = /iPad/.test(ua);
+                  var isIPhone = /iPhone/.test(ua);
+                  var isIPod = /iPod/.test(ua);
+                  var isIOS = isIPad || isIPhone || isIPod;
+                  var isChrome = /CriOS/.test(ua);
+                  var isFirefox = /FxiOS/.test(ua);
+                  var hasCapacitor = typeof window.Capacitor !== 'undefined';
+                  
+                  console.log('[iOS Check] UA:', ua.substring(0, 50));
+                  console.log('[iOS Check] isIOS:', isIOS);
+                  console.log('[iOS Check] hasCapacitor:', hasCapacitor);
+                  console.log('[iOS Check] Capacitor Platform:', hasCapacitor ? window.Capacitor.getPlatform() : 'N/A');
+                  
+                  return {
+                    isIOS: isIOS,
+                    isNative: isIOS && !isChrome && !isFirefox,
+                    hasCapacitor: hasCapacitor,
+                    platform: hasCapacitor ? window.Capacitor.getPlatform() : null
+                  };
+                };
+                
+                // Run check on load
+                setTimeout(window.checkiOS, 1000);
+              })();
+            `
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           {children}

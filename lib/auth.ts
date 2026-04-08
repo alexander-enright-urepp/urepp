@@ -13,6 +13,31 @@ export async function signIn(email: string, password: string) {
     email,
     password,
   })
+  
+  if (error) {
+    return { data, error }
+  }
+  
+  // Check if account is deleted
+  if (data.user) {
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_deleted')
+      .eq('user_id', data.user.id)
+      .single()
+    
+    if (profileData?.is_deleted) {
+      // Sign out immediately
+      await supabase.auth.signOut()
+      return { 
+        data: null, 
+        error: { 
+          message: 'This account has been deleted. Please contact support if you need to restore your account.' 
+        } 
+      }
+    }
+  }
+  
   return { data, error }
 }
 

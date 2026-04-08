@@ -14,7 +14,9 @@ import {
   Home,
   Search,
   User,
-  Tv
+  Tv,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -32,6 +34,49 @@ export default function AccountPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError('')
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        setDeleteError('Not logged in')
+        setDeleting(false)
+        return
+      }
+
+      // Call the soft delete function
+      const { error } = await supabase.rpc('soft_delete_user', {
+        user_uuid: user.id
+      })
+
+      if (error) {
+        console.error('Delete error:', error)
+        setDeleteError('Failed to delete account. Please try again.')
+        setDeleting(false)
+        return
+      }
+
+      // Sign out after successful deletion
+      await supabase.auth.signOut()
+      
+      // Redirect to home
+      router.push('/')
+      
+    } catch (err: any) {
+      console.error('Delete error:', err)
+      setDeleteError(err.message || 'Failed to delete account')
+      setDeleting(false)
+    }
+  }
 
   const handlePasswordReset = async () => {
     if (!newPassword || !confirmPassword) {
@@ -225,6 +270,65 @@ export default function AccountPage() {
             </button>
           </div>
         </div>
+
+        {/* Delete Account Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-red-200 overflow-hidden">
+          <div className="px-4 py-4 border-b border-red-100">
+            <h3 className="font-semibold text-red-600">Danger Zone</h3>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-gray-500 mb-4">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full py-3 px-4 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-red-300"
+            >
+              <Trash2 className="w-5 h-5" />
+              Delete Account
+            </button>
+          </div>
+        </div>
+
+        {/* Delete Account Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Delete Account?</h3>
+              <p className="text-sm text-gray-500 text-center mb-4">
+                This will permanently delete your account, profile, and all data. You will not be able to log in again.
+              </p>
+              
+              {deleteError && (
+                <p className="text-sm text-red-600 text-center mb-4">{deleteError}</p>
+              )}
+              
+              <div className="space-y-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" />Deleting...</>
+                  ) : (
+                    'Yes, Delete My Account'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleting}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}

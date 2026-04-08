@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { 
   ArrowLeft, 
   Plus, 
@@ -118,6 +119,15 @@ export default function StatsDashboardPage() {
     position: '',
     stats: {} as Record<string, number | string>
   })
+
+  // Pull to refresh for iOS
+  const refreshData = useCallback(async () => {
+    setLoading(true)
+    await loadProfileAndStats()
+    setLoading(false)
+  }, [])
+  
+  useNativePullToRefresh(refreshData)
 
   useEffect(() => {
     loadProfileAndStats()

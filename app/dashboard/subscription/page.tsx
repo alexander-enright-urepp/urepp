@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight } from 'lucide-react'
+import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
+import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
 
 interface Profile {
   id: string
@@ -20,9 +22,21 @@ export default function SubscriptionPage() {
   const [cancelSuccess, setCancelSuccess] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
+  const [isIOS, setIsIOS] = useState(false)
+
+  // Pull to refresh for iOS
+  const refreshData = useCallback(async () => {
+    if (!profile) return
+    setLoading(true)
+    await loadProfile()
+    setLoading(false)
+  }, [profile])
+  
+  useNativePullToRefresh(refreshData)
 
   useEffect(() => {
     loadProfile()
+    setIsIOS(isIOSNative())
   }, [])
 
   const loadProfile = async () => {
@@ -64,25 +78,57 @@ export default function SubscriptionPage() {
         return
       }
 
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: session.user.id,
-          email: session.user.email,
-        }),
-      })
+      // Check if iOS native app
+      if (isIOSNative()) {
+        // Use Apple IAP
+        const result = await purchaseIAPProduct(IAP_PRODUCTS.MONTHLY)
+        
+        if (result.success && result.receipt) {
+          // Validate receipt with backend
+          const validation = await fetch('/api/validate-apple-receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              receipt: result.receipt,
+              productId: IAP_PRODUCTS.MONTHLY,
+            }),
+          })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session')
-      }
-
-      if (data.url) {
-        window.location.href = data.url
+          const validationData = await validation.json()
+          
+          if (validationData.success) {
+            // Update local profile
+            setProfile(prev => prev ? { ...prev, is_premium: true } : null)
+            // Refresh to show updated status
+            window.location.reload()
+          } else {
+            throw new Error(validationData.error || 'Validation failed')
+          }
+        } else {
+          throw new Error(result.error || 'Purchase failed')
+        }
       } else {
-        throw new Error('No checkout URL returned')
+        // Web: Use Stripe
+        const response = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: session.user.id,
+            email: session.user.email,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create checkout session')
+        }
+
+        if (data.url) {
+          window.location.href = data.url
+        } else {
+          throw new Error('No checkout URL returned')
+        }
       }
     } catch (err: any) {
       console.error('Checkout error:', err)
@@ -181,34 +227,45 @@ export default function SubscriptionPage() {
               Cancel Subscription
             </button>
           ) : (
-            <button
-              onClick={handleUpgrade}
-              disabled={upgrading}
-              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-            >
-              {upgrading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />Connecting to Stripe...</>
-              ) : (
-                <>Upgrade to Premium <ArrowRight className="w-5 h-5" /></>
-              )}
-            </button>
+            <div className="text-sm text-gray-500 mt-2">
+              Upgrade below to unlock premium features
+            </div>
           )}
         </div>
 
-        {/* Premium Plan Benefits - Show for all users, with different header */}
+        {/* Premium Plan Benefits - Now with Pay button inside */}
         <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-2">
             <Star className="w-5 h-5 fill-current" />
-            <span className="font-bold">{isPremium ? 'Your Premium Features' : 'Premium Features'}</span>
+            <span className="font-bold">{isPremium ? 'Your Premium Features' : 'Upgrade to Premium'}</span>
           </div>
           <p className="text-3xl font-bold mb-1">{isPremium ? 'Active' : '$10'}<span className="text-lg font-normal">{isPremium ? '' : '/month'}</span></p>
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
             <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
             <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
             <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
             <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
           </div>
+          
+          {/* Pay button moved to gold box */}
+          {!isPremium && (
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+            >
+              {upgrading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />{isIOS ? 'Opening Apple Pay...' : 'Connecting to Stripe...'}</>
+              ) : (
+                <>{isIOS ? (
+                  <><Smartphone className="w-5 h-5" /> Pay with Apple Pay</>
+                ) : (
+                  <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
+                )}</>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Upgrade Error Message */}

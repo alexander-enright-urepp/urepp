@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { 
   ArrowLeft, 
   Loader2, 
@@ -58,6 +59,15 @@ export default function AnalyticsPage() {
   const [profile, setProfile] = useState<any>(null)
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [timeFilter, setTimeFilter] = useState(30)
+
+  // Pull to refresh for iOS
+  const refreshData = useCallback(async () => {
+    if (!profile) return
+    setLoading(true)
+    await loadData()
+  }, [profile, timeFilter])
+  
+  useNativePullToRefresh(refreshData)
 
   useEffect(() => {
     loadData()

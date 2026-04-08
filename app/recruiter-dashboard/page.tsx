@@ -22,6 +22,9 @@ import {
 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic'
+
 const PRIMARY_BLUE = '#51b5ff'
 
 interface Athlete {

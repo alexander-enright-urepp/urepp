@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-})
 
 export async function POST(req: NextRequest) {
   try {
+    // Initialize Stripe inside the handler to avoid build-time errors
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      )
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16' as any,
+    })
+
     const { recruiterId, email } = await req.json()
 
     if (!recruiterId || !email) {
@@ -28,8 +34,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/recruiter-dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/recruiter-dashboard?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://urepp.app'}/recruiter-dashboard?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://urepp.app'}/recruiter-dashboard?canceled=true`,
       metadata: {
         recruiterId,
       },

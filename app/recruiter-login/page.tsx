@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { Mail, Lock, Loader2, AlertCircle, ArrowLeft, Building2 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic'
+
 const PRIMARY_BLUE = '#51b5ff'
 
 export default function RecruiterLogin() {
