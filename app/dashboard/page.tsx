@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS, checkSubscriptionExpired } from '@/lib/iap'
 import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { 
   LogOut, 
@@ -147,6 +147,13 @@ export default function Dashboard() {
           
           const viewCount = analyticsData?.length || 0
           console.log('Dashboard view count:', viewCount)
+          
+          // Check if subscription expired and update profile if needed
+          const expired = await checkSubscriptionExpired()
+          if (expired) {
+            console.log('Dashboard: Subscription expired, updating profile')
+            profileData.is_premium = false
+          }
           
           setProfile({
             ...profileData,
