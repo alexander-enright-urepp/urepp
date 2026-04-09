@@ -25,14 +25,19 @@ export const isIOSNative = (): boolean => {
   // Browser indicators (if present, means NOT native app)
   const isChrome = /CriOS/.test(ua); // Chrome iOS
   const isFirefox = /FxiOS/.test(ua); // Firefox iOS
-  const isSafariBrowser = /Safari/.test(ua) && /Version/.test(ua);
+  const isSafariBrowser = /Safari/.test(ua) && /Version/.test(ua) && !/CriOS/.test(ua);
   
-  console.log('[isIOSNative] iOS:', isIOS, 'Chrome:', isChrome, 'Firefox:', isFirefox);
+  console.log('[isIOSNative] iOS:', isIOS, 'Chrome:', isChrome, 'Firefox:', isFirefox, 'SafariBrowser:', isSafariBrowser);
   
   // If it's iOS and NOT a known browser, it's likely the native app WebView
-  if (isIOS && !isChrome && !isFirefox) {
-    console.log('[isIOSNative] Detected iOS Native WebView!');
-    return true;
+  // Note: CdvPurchase only exists in the actual native app, not Safari
+  if (isIOS && !isChrome && !isFirefox && !isSafariBrowser) {
+    // Double-check: CdvPurchase must be available for IAP to work
+    if (typeof (window as any).CdvPurchase !== 'undefined') {
+      console.log('[isIOSNative] Detected iOS Native WebView with CdvPurchase!');
+      return true;
+    }
+    console.log('[isIOSNative] iOS WebView but CdvPurchase not available');
   }
   
   // Fallback: Try Capacitor (may not work in localhost)
