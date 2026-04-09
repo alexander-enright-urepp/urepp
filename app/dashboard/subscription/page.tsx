@@ -20,7 +20,8 @@ export default function SubscriptionPage() {
   const [cancelling, setCancelling] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelSuccess, setCancelSuccess] = useState(false)
-  const [upgrading, setUpgrading] = useState(false)
+  const [upgradingMonthly, setUpgradingMonthly] = useState(false)
+  const [upgradingYearly, setUpgradingYearly] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
   const [isIOS, setIsIOS] = useState(false)
 
@@ -68,7 +69,11 @@ export default function SubscriptionPage() {
   }
 
   const handleUpgrade = async (plan: 'monthly' | 'yearly' = 'monthly') => {
-    setUpgrading(true)
+    if (plan === 'monthly') {
+      setUpgradingMonthly(true)
+    } else {
+      setUpgradingYearly(true)
+    }
     setUpgradeError(null)
 
     try {
@@ -138,7 +143,12 @@ export default function SubscriptionPage() {
     } catch (err: any) {
       console.error('Checkout error:', err)
       setUpgradeError(err.message || 'Something went wrong. Please try again.')
-      setUpgrading(false)
+    } finally {
+      if (plan === 'monthly') {
+        setUpgradingMonthly(false)
+      } else {
+        setUpgradingYearly(false)
+      }
     }
   }
 
@@ -257,10 +267,10 @@ export default function SubscriptionPage() {
           {!isPremium && (
             <button
               onClick={() => handleUpgrade('monthly')}
-              disabled={upgrading}
+              disabled={upgradingMonthly}
               className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
             >
-              {upgrading ? (
+              {upgradingMonthly ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
               ) : (
                 <>Subscribe</>
@@ -285,10 +295,10 @@ export default function SubscriptionPage() {
             
             <button
               onClick={() => handleUpgrade('yearly')}
-              disabled={upgrading}
+              disabled={upgradingYearly}
               className="w-full bg-white text-babyblue-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
             >
-              {upgrading ? (
+              {upgradingYearly ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
               ) : (
                 <>Start Annual Plan</>
