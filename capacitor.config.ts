@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.urepp.app',
   appName: 'UREPP',
   webDir: 'dist',
-  // Use ngrok tunnel for phone access
+  // Use production site for app
   server: {
-    url: 'https://spectacularly-circulatory-samara.ngrok-free.dev',
-    cleartext: false
+    url: 'https://www.urepp.app',
+    cleartext: false,
+    allowNavigation: ['urepp.app', '*.urepp.app']
   },
   ios: {
     scheme: 'UREPP',

@@ -67,7 +67,7 @@ export default function SubscriptionPage() {
     setLoading(false)
   }
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (plan: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true)
     setUpgradeError(null)
 
@@ -80,17 +80,22 @@ export default function SubscriptionPage() {
 
       // Check if iOS native app
       if (isIOSNative()) {
-        // Use Apple IAP
-        const result = await purchaseIAPProduct(IAP_PRODUCTS.MONTHLY)
+        // Use Apple IAP - select product based on plan
+        const productId = plan === 'yearly' ? IAP_PRODUCTS.YEARLY : IAP_PRODUCTS.MONTHLY
+        const result = await purchaseIAPProduct(productId)
         
         if (result.success && result.receipt) {
+          // Get current session for user ID
+          const { data: { session } } = await supabase.auth.getSession()
+          
           // Validate receipt with backend
           const validation = await fetch('/api/validate-apple-receipt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               receipt: result.receipt,
-              productId: IAP_PRODUCTS.MONTHLY,
+              productId: productId,
+              userId: session?.user?.id,
             }),
           })
 
@@ -251,7 +256,7 @@ export default function SubscriptionPage() {
           {/* Pay button moved to gold box */}
           {!isPremium && (
             <button
-              onClick={handleUpgrade}
+              onClick={() => handleUpgrade('monthly')}
               disabled={upgrading}
               className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
             >
@@ -267,6 +272,38 @@ export default function SubscriptionPage() {
             </button>
           )}
         </div>
+
+        {/* Annual Plan - Baby Blue Box */}
+        {!isPremium && (
+          <div className="bg-gradient-to-br from-babyblue-400 to-babyblue-500 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-5 h-5 fill-current" />
+              <span className="font-bold">Save with Annual</span>
+            </div>
+            <p className="text-lg font-medium mb-1">Get full access by paying $100/year and save $20.</p>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>All premium features</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Save $20 vs monthly</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Billed annually</span></div>
+            </div>
+            
+            <button
+              onClick={() => handleUpgrade('yearly')}
+              disabled={upgrading}
+              className="w-full bg-white text-babyblue-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+            >
+              {upgrading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />{isIOS ? 'Opening Apple Pay...' : 'Connecting to Stripe...'}</>
+              ) : (
+                <>{isIOS ? (
+                  <><Smartphone className="w-5 h-5" /> Pay with Apple Pay</>
+                ) : (
+                  <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
+                )}</>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Upgrade Error Message */}
         {upgradeError && (

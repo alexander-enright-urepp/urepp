@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 // Apple receipt validation endpoint
 // Production: https://buy.itunes.apple.com/verifyReceipt
@@ -10,12 +11,22 @@ const APPLE_PRODUCTION_URL = 'https://buy.itunes.apple.com/verifyReceipt';
 // Shared secret from App Store Connect
 const APP_SHARED_SECRET = process.env.APPLE_SHARED_SECRET || '';
 
+// Create Supabase admin client
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
+
 export async function POST(request: Request) {
   try {
-    const { receipt, productId } = await request.json();
+    const { receipt, productId, userId } = await request.json();
 
     if (!receipt) {
       return NextResponse.json({ error: 'Receipt is required' }, { status: 400 });
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
     if (!APP_SHARED_SECRET) {
@@ -50,10 +61,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Subscription expired' }, { status: 400 });
     }
 
-    // TODO: Update your database
-    // - Mark user as premium
-    // - Store transaction_id to prevent replay attacks
-    // - Store expiration_date for subscription management
+    // Determine plan type from product ID
+    const planType = productId.includes('yearly') ? 'yearly' : 'monthly';
+    
+    // ✅ Update database - mark user as premium with subscription details
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        is_premium: true,
+        premium_type: planType,
+        subscription_expires_at: expirationDate ? new Date(expirationDate).toISOString() : null,
+        last_transaction_id: receiptInfo.transaction_id,
+        last_product_id: receiptInfo.product_id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('Failed to update profile:', updateError);
+      return NextResponse.json({ success: false, error: 'Failed to activate premium' }, { status: 500 });
+    }
+
+    // Store transaction info (optional - for record keeping)
+    console.log('IAP Purchase Successful:', {
+      userId,
+      productId: receiptInfo.product_id,
+      transactionId: receiptInfo.transaction_id,
+      planType,
+      expiresAt: expirationDate,
+    });
     
     return NextResponse.json({ 
       success: true,
