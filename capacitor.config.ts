@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.urepp.app',
   appName: 'UREPP',
   webDir: 'dist',
-  // Use local dev server for proper routing and native bridge
+  // Use production site for proper routing
   server: {
-    url: 'http://localhost:3000',
-    cleartext: true
+    url: 'https://www.urepp.app',
+    cleartext: false,
+    allowNavigation: ['urepp.app', '*.urepp.app']
   },
   ios: {
     scheme: 'UREPP',

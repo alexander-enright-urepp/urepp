@@ -26,6 +26,20 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                // Inject Capacitor bridge if in native app
+                if (typeof window !== 'undefined' && !window.Capacitor) {
+                  // Try to find native bridge
+                  var attempts = 0;
+                  var checkInterval = setInterval(function() {
+                    if (window.Capacitor) {
+                      clearInterval(checkInterval);
+                      console.log('[Bridge] Capacitor detected');
+                    }
+                    attempts++;
+                    if (attempts > 50) clearInterval(checkInterval); // 5 seconds
+                  }, 100);
+                }
+                
                 // iOS Detection for debugging
                 window.checkiOS = function() {
                   var ua = navigator.userAgent || '';
