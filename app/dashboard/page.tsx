@@ -485,17 +485,12 @@ export default function Dashboard() {
                 {upgradeError}
               </div>
             )}
-            <button 
-              onClick={handleUpgrade}
-              disabled={upgrading}
-              className="mt-4 w-full bg-white text-yellow-600 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-70 flex items-center justify-center gap-2"
+            <Link
+              href="/dashboard/subscription"
+              className="mt-4 w-full bg-white text-yellow-600 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
             >
-              {upgrading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" />Connecting...</>
-              ) : (
-                'Upgrade Now'
-              )}
-            </button>
+              Upgrade Now
+            </Link>
           </div>
         )}
 
