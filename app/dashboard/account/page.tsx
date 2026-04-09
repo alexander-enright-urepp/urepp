@@ -254,6 +254,26 @@ export default function AccountPage() {
           )}
         </div>
 
+        {/* Restore Purchases Section - iOS only */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" id="restore-section">
+          <div className="px-4 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900">Subscription</h3>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-gray-500 mb-4">
+              If you previously purchased a subscription, restore it here.
+            </p>
+            <button
+              id="restore-purchases-btn"
+              className="w-full py-3 px-4 bg-babyblue-500 hover:bg-babyblue-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <Key className="w-5 h-5" />
+              Restore Purchases
+            </button>
+            <p id="restore-message" className="text-sm mt-2 text-center hidden"></p>
+          </div>
+        </div>
+
         {/* Sign Out Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-4 py-4 border-b border-gray-100">

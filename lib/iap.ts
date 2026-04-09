@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { supabase } from './supabase';
 
 // Product IDs from App Store Connect
 export const IAP_PRODUCTS = {
@@ -184,5 +185,93 @@ export const validateReceiptWithBackend = async (receipt: string, productId: str
   } catch (error: any) {
     console.error('Validation error:', error);
     return { success: false, error: error.message || 'Validation failed' };
+  }
+};
+
+// Restore purchases (for iOS only)
+export const restorePurchases = async (): Promise<{ success: boolean; receipt?: string; error?: string }> => {
+  if (!isIOSNative()) {
+    return { success: false, error: 'Not on iOS native platform' };
+  }
+
+  try {
+    if (typeof (window as any).CdvPurchase === 'undefined') {
+      return { success: false, error: 'CdvPurchase not available' };
+    }
+
+    const { Store, Platform } = (window as any).CdvPurchase;
+    
+    const store = new Store({
+      platform: Platform.APPLE_APPSTORE
+    });
+
+    return new Promise((resolve) => {
+      let receipt: string | null = null;
+      let restored = false;
+
+      store.when('receipt').updated((rcpt: any) => {
+        if (rcpt?.transactions?.length > 0) {
+          rcpt.transactions.forEach((t: any) => {
+            if (t.state === 'approved') {
+              receipt = t.appStoreReceipt || '';
+              restored = true;
+            }
+          });
+        }
+      });
+
+      // Initialize store
+      store.initialize();
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (restored && receipt) {
+          resolve({ success: true, receipt });
+        } else {
+          resolve({ success: false, error: 'No previous purchases found' });
+        }
+      }, 10000);
+    });
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Check if subscription is expired (call on app startup)
+export const checkSubscriptionExpired = async (): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return true;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_premium, subscription_expires_at')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_premium) return true;
+    if (!profile?.subscription_expires_at) return false; // No expiry = permanent
+
+    const expiryDate = new Date(profile.subscription_expires_at);
+    const now = new Date();
+
+    if (now > expiryDate) {
+      // Expired - update database
+      await supabase
+        .from('profiles')
+        .update({ 
+          is_premium: false,
+          premium_type: null,
+          subscription_expires_at: null
+        })
+        .eq('id', user.id);
+      
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    return false;
   }
 };

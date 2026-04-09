@@ -70,6 +70,7 @@ export default function RootLayout({
             `
           }}
         />
+        <script src="/IAPBridge.js" defer />
       </head>
       <body className={inter.className}>
         <AuthProvider>
