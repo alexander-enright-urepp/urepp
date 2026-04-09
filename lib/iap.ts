@@ -145,13 +145,13 @@ export const purchaseIAPProduct = async (productId: string): Promise<{ success: 
           resolve({ success: false, error: err.message || 'Initialization failed' });
         });
 
-      // Timeout if product never loads (30 seconds)
+      // Timeout if product never loads (15 seconds - faster feedback)
       setTimeout(() => {
         if (!productLoaded) {
           console.error('[IAP] Product load timeout');
-          resolve({ success: false, error: 'Could not load product from App Store. Make sure products are configured in App Store Connect and you\'re signed in with Sandbox Tester Apple ID.' });
+          resolve({ success: false, error: 'Unable to load subscription. Please try again later or contact support if the issue persists.' });
         }
-      }, 30000);
+      }, 15000);
     });
 
   } catch (error: any) {

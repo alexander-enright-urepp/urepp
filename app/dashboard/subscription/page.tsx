@@ -261,13 +261,9 @@ export default function SubscriptionPage() {
               className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
             >
               {upgrading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />{isIOS ? 'Opening Apple Pay...' : 'Connecting to Stripe...'}</>
+                <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
               ) : (
-                <>{isIOS ? (
-                  <><Smartphone className="w-5 h-5" /> Pay with Apple Pay</>
-                ) : (
-                  <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
-                )}</>
+                <>Subscribe</>
               )}
             </button>
           )}
@@ -293,13 +289,9 @@ export default function SubscriptionPage() {
               className="w-full bg-white text-babyblue-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
             >
               {upgrading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />{isIOS ? 'Opening Apple Pay...' : 'Connecting to Stripe...'}</>
+                <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
               ) : (
-                <>{isIOS ? (
-                  <><Smartphone className="w-5 h-5" /> Pay with Apple Pay</>
-                ) : (
-                  <>Upgrade Now <ArrowRight className="w-5 h-5" /></>
-                )}</>
+                <>Start Annual Plan</>
               )}
             </button>
           </div>
