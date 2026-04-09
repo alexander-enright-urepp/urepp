@@ -466,6 +466,22 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
           </div>
         </div>
       </main>
+      
+      {/* UREPP Badge */}
+      <div className="py-6 flex justify-center">
+        <a 
+          href="https://urepp.app" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-babyblue-500 hover:bg-babyblue-600 text-white px-4 py-2 rounded-full shadow-lg transition-colors"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" fill="none"/>
+          </svg>
+          <span className="text-sm font-medium">Made by UREPP</span>
+        </a>
+      </div>
     </div>
   )
 }
