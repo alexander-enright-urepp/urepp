@@ -3,12 +3,8 @@
 	"appName": "UREPP",
 	"webDir": "dist",
 	"server": {
-		"url": "https://www.urepp.app",
-		"cleartext": false,
-		"allowNavigation": [
-			"urepp.app",
-			"*.urepp.app"
-		]
+		"url": "https://spectacularly-circulatory-samara.ngrok-free.dev",
+		"cleartext": false
 	},
 	"ios": {
 		"scheme": "UREPP",

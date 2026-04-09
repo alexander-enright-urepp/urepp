@@ -66,6 +66,11 @@ export default function Dashboard() {
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
+  const [isIOS, setIsIOS] = useState(false)
+
+  useEffect(() => {
+    setIsIOS(isIOSNative())
+  }, [])
 
   // Pull to refresh for iOS
   const refreshData = useCallback(async () => {
@@ -183,25 +188,57 @@ export default function Dashboard() {
         return
       }
 
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: session.user.id,
-          email: session.user.email,
-        }),
-      })
+      // Check if iOS native app
+      if (isIOSNative()) {
+        // Use Apple IAP
+        const result = await purchaseIAPProduct(IAP_PRODUCTS.MONTHLY)
+        
+        if (result.success && result.receipt) {
+          // Validate receipt with backend
+          const validation = await fetch('/api/validate-apple-receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              receipt: result.receipt,
+              productId: IAP_PRODUCTS.MONTHLY,
+            }),
+          })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session')
-      }
-
-      if (data.url) {
-        window.location.href = data.url
+          const validationData = await validation.json()
+          
+          if (validationData.success) {
+            // Update local profile
+            setProfile(prev => prev ? { ...prev, is_premium: true } : null)
+            // Refresh to show updated status
+            window.location.reload()
+          } else {
+            throw new Error(validationData.error || 'Validation failed')
+          }
+        } else {
+          throw new Error(result.error || 'Purchase failed')
+        }
       } else {
-        throw new Error('No checkout URL returned')
+        // Web: Use Stripe
+        const response = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: session.user.id,
+            email: session.user.email,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create checkout session')
+        }
+
+        if (data.url) {
+          window.location.href = data.url
+        } else {
+          throw new Error('No checkout URL returned')
+        }
       }
     } catch (err: any) {
       console.error('Checkout error:', err)
