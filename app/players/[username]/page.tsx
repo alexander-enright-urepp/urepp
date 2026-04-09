@@ -479,7 +479,7 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" fill="none"/>
           </svg>
-          <span className="text-sm font-medium">Made by UREPP</span>
+          <span className="text-sm font-medium">Made with UREPP</span>
         </a>
       </div>
     </div>
