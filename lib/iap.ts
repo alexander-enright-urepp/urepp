@@ -266,7 +266,7 @@ export const checkSubscriptionExpired = async (): Promise<boolean> => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_premium, subscription_expires_at')
-      .eq('id', user.id)
+      .eq('user_id', user.id)  // Fixed: was 'id', should be 'user_id'
       .single();
 
     if (!profile?.is_premium) return true;
