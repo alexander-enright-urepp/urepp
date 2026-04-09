@@ -112,30 +112,36 @@ export const purchaseIAPProduct = async (productId: string): Promise<{ success: 
             
             console.log('[IAP] Product available, starting purchase...');
             
-            // Purchase the product
-            store.order(productId)
-              .then(() => {
-                console.log('[IAP] Order initiated');
-                // Wait for receipt
-                const checkReceipt = setInterval(() => {
-                  if (receipt) {
+            // Purchase the product - wrap in try-catch for synchronous native errors
+            try {
+              store.order(productId)
+                .then(() => {
+                  console.log('[IAP] Order initiated');
+                  // Wait for receipt
+                  const checkReceipt = setInterval(() => {
+                    if (receipt) {
+                      clearInterval(checkReceipt);
+                      resolve({ success: true, receipt });
+                    }
+                  }, 500);
+                  
+                  // Timeout receipt check after 10 seconds
+                  setTimeout(() => {
                     clearInterval(checkReceipt);
-                    resolve({ success: true, receipt });
-                  }
-                }, 500);
-                
-                // Timeout receipt check after 10 seconds
-                setTimeout(() => {
-                  clearInterval(checkReceipt);
-                  if (!receipt) {
-                    resolve({ success: false, error: 'Purchase completed but no receipt' });
-                  }
-                }, 10000);
-              })
-              .catch((err: any) => {
-                console.error('[IAP] Order error:', err);
-                resolve({ success: false, error: err.message || 'Purchase failed' });
-              });
+                    if (!receipt) {
+                      resolve({ success: false, error: 'Purchase completed but no receipt' });
+                    }
+                  }, 10000);
+                })
+                .catch((err: any) => {
+                  console.error('[IAP] Order error:', err);
+                  resolve({ success: false, error: err.message || 'Purchase failed' });
+                });
+            } catch (syncErr: any) {
+              // Catch synchronous native errors (like 6777003)
+              console.error('[IAP] Synchronous order error:', syncErr);
+              resolve({ success: false, error: syncErr.message || 'Unable to purchase. Please try again later.' });
+            }
           }
         }
       });
