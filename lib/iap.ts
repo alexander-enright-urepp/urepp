@@ -135,13 +135,22 @@ export const purchaseIAPProduct = async (productId: string): Promise<{ success: 
         }
       });
 
-      // Initialize store
+      // Initialize store with timeout
       console.log('[IAP] Initializing store...');
+      const initTimeout = setTimeout(() => {
+        if (!productLoaded) {
+          console.error('[IAP] Store initialization timeout');
+          resolve({ success: false, error: 'Unable to load subscription. Please try again later.' });
+        }
+      }, 15000);
+      
       store.initialize()
         .then(() => {
+          clearTimeout(initTimeout);
           console.log('[IAP] Store initialized, waiting for products...');
         })
         .catch((err: any) => {
+          clearTimeout(initTimeout);
           console.error('[IAP] Init error:', err);
           resolve({ success: false, error: err.message || 'Initialization failed' });
         });
@@ -150,7 +159,7 @@ export const purchaseIAPProduct = async (productId: string): Promise<{ success: 
       setTimeout(() => {
         if (!productLoaded) {
           console.error('[IAP] Product load timeout');
-          resolve({ success: false, error: 'Unable to load subscription. Please try again later or contact support if the issue persists.' });
+          resolve({ success: false, error: 'Unable to load subscription. Please try again later.' });
         }
       }, 15000);
     });
