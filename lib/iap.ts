@@ -57,128 +57,69 @@ export const isIOSNative = (): boolean => {
   return false;
 };
 
-// Purchase a product using CdvPurchase
+// Purchase a product using CdvPurchase - FIXED VERSION
 export const purchaseIAPProduct = async (productId: string): Promise<{ success: boolean; receipt?: string; error?: string }> => {
   if (!isIOSNative()) {
     return { success: false, error: 'Not on iOS native platform' };
   }
 
-  try {
-    // Check if CdvPurchase is available
-    if (typeof (window as any).CdvPurchase === 'undefined') {
-      return { success: false, error: 'CdvPurchase not available' };
-    }
-
-    const { Store, Platform, ProductType } = (window as any).CdvPurchase;
-    
-    // Create store instance
-    const store = new Store({
-      platform: Platform.APPLE_APPSTORE
-    });
-
-    // Register the product with platform
-    store.register([{
-      id: productId,
-      type: ProductType.PAID_SUBSCRIPTION,
-      platform: Platform.APPLE_APPSTORE
-    }]);
-
-    // Wait for store to be ready and product to load
-    return new Promise((resolve) => {
-      let receipt: string | null = null;
-      let productLoaded = false;
-      let purchaseStarted = false;
-
-      // Handle receipt updates
-      store.when('receipt').updated((rcpt: any) => {
-        if (rcpt?.transactions) {
-          rcpt.transactions.forEach((t: any) => {
-            if (t.state === 'approved' && t.products[0]?.id === productId) {
-              receipt = t.appStoreReceipt || '';
-            }
-          });
-        }
-      });
-
-      // Handle product updates
-      store.when('product').updated((product: any) => {
-        console.log('[IAP] Product updated:', product?.id, 'State:', product?.state, 'Title:', product?.title);
-        
-        // Accept any state except invalid/error - product info might be loading
-        if (product?.id === productId && product?.state !== 'invalid') {
-          if (!purchaseStarted) {
-            productLoaded = true;
-            purchaseStarted = true;
-            
-            console.log('[IAP] Product available, starting purchase...');
-            
-            // Purchase the product - wrap in try-catch for synchronous native errors
-            try {
-              store.order(productId)
-                .then(() => {
-                  console.log('[IAP] Order initiated');
-                  // Wait for receipt
-                  const checkReceipt = setInterval(() => {
-                    if (receipt) {
-                      clearInterval(checkReceipt);
-                      resolve({ success: true, receipt });
-                    }
-                  }, 500);
-                  
-                  // Timeout receipt check after 10 seconds
-                  setTimeout(() => {
-                    clearInterval(checkReceipt);
-                    if (!receipt) {
-                      resolve({ success: false, error: 'Purchase completed but no receipt' });
-                    }
-                  }, 10000);
-                })
-                .catch((err: any) => {
-                  console.error('[IAP] Order error:', err);
-                  resolve({ success: false, error: err.message || 'Purchase failed' });
-                });
-            } catch (syncErr: any) {
-              // Catch synchronous native errors (like 6777003)
-              console.error('[IAP] Synchronous order error:', syncErr);
-              resolve({ success: false, error: syncErr.message || 'Unable to purchase. Please try again later.' });
-            }
-          }
-        }
-      });
-
-      // Initialize store with timeout
-      console.log('[IAP] Initializing store...');
-      const initTimeout = setTimeout(() => {
-        if (!productLoaded) {
-          console.error('[IAP] Store initialization timeout');
-          resolve({ success: false, error: 'Unable to load subscription. Please try again later.' });
-        }
-      }, 15000);
-      
-      store.initialize()
-        .then(() => {
-          clearTimeout(initTimeout);
-          console.log('[IAP] Store initialized, waiting for products...');
-        })
-        .catch((err: any) => {
-          clearTimeout(initTimeout);
-          console.error('[IAP] Init error:', err);
-          resolve({ success: false, error: err.message || 'Initialization failed' });
-        });
-
-      // Timeout if product never loads (15 seconds - faster feedback)
-      setTimeout(() => {
-        if (!productLoaded) {
-          console.error('[IAP] Product load timeout');
-          resolve({ success: false, error: 'Unable to load subscription. Please try again later.' });
-        }
-      }, 15000);
-    });
-
-  } catch (error: any) {
-    console.error('Purchase error:', error);
-    return { success: false, error: error.message || 'Purchase failed' };
+  if (typeof (window as any).CdvPurchase === 'undefined') {
+    return { success: false, error: 'CdvPurchase not available' };
   }
+
+  const { store, Platform, ProductType } = (window as any).CdvPurchase;
+
+  // Register product (safe to call multiple times)
+  store.register([{
+    id: productId,
+    type: ProductType.PAID_SUBSCRIPTION,
+    platform: Platform.APPLE_APPSTORE
+  }]);
+
+  return new Promise(async (resolve) => {
+    const timeout = setTimeout(() => {
+      resolve({ success: false, error: 'Purchase timed out. Please try again.' });
+    }, 30000);
+
+    store.when().approved((transaction: any) => {
+      if (transaction.products[0]?.id === productId) {
+        transaction.finish();
+        clearTimeout(timeout);
+        resolve({ success: true, receipt: transaction.appStoreReceipt });
+      }
+    });
+
+    store.when().cancelled(() => {
+      clearTimeout(timeout);
+      resolve({ success: false, error: 'Purchase cancelled' });
+    });
+
+    store.when().error((err: any) => {
+      clearTimeout(timeout);
+      resolve({ success: false, error: err.message || 'Purchase failed' });
+    });
+
+    try {
+      await store.initialize([Platform.APPLE_APPSTORE]);
+      const product = store.get(productId, Platform.APPLE_APPSTORE);
+      
+      if (!product) {
+        clearTimeout(timeout);
+        return resolve({ success: false, error: 'Product not found. Check App Store Connect product IDs.' });
+      }
+
+      const offer = product.getOffer();
+      if (!offer) {
+        clearTimeout(timeout);
+        return resolve({ success: false, error: 'No offer available for this product.' });
+      }
+
+      await offer.order();
+    } catch (err: any) {
+      clearTimeout(timeout);
+      resolve({ success: false, error: err.message || 'Purchase failed' });
+    }
+  });
 };
 
 // Validate receipt with backend
@@ -219,12 +160,8 @@ export const restorePurchases = async (): Promise<{ success: boolean; receipt?: 
       return { success: false, error: 'CdvPurchase not available' };
     }
 
-    const { Store, Platform } = (window as any).CdvPurchase;
+    const { store, Platform } = (window as any).CdvPurchase;
     
-    const store = new Store({
-      platform: Platform.APPLE_APPSTORE
-    });
-
     return new Promise((resolve) => {
       let receipt: string | null = null;
       let restored = false;
@@ -240,8 +177,7 @@ export const restorePurchases = async (): Promise<{ success: boolean; receipt?: 
         }
       });
 
-      // Initialize store
-      store.initialize();
+      store.initialize([Platform.APPLE_APPSTORE]);
 
       // Timeout after 10 seconds
       setTimeout(() => {
