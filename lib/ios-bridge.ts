@@ -1,7 +1,8 @@
-import { Capacitor, Plugins, registerPlugin } from '@capacitor/core';
-
-// Register iOS native plugins
-const { App, StatusBar, SplashScreen, Preferences } = Plugins;
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { App } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Preferences } from '@capacitor/preferences';
 
 // iOS Bridge Plugin for native functionality
 export interface UREPPBridgePlugin {
@@ -68,7 +69,7 @@ export class UREPPApp {
       await SplashScreen.hide();
       
       // Configure status bar
-      await StatusBar.setStyle({ style: 'DARK' });
+      await StatusBar.setStyle({ style: Style.Dark });
       await StatusBar.setBackgroundColor({ color: '#0ea5e9' });
     }
   }

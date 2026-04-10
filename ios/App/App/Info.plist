@@ -33,6 +33,8 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -42,38 +44,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	
-	<!-- Camera Permission -->
-	<key>NSCameraUsageDescription</key>
-	<string>UREPP needs camera access to take profile photos and upload videos.</string>
-	
-	<!-- Photo Library Permission -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>UREPP needs access to your photos to upload profile pictures and highlight videos.</string>
-	
-	<!-- Photo Library Add Permission -->
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>UREPP needs permission to save photos.</string>
-	
-	<!-- App Transport Security - Allow HTTP/HTTPS -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	
-	<!-- Deep Link URL Scheme -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.urepp.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>urepp</string>
-			</array>
-		</dict>
-	</array>
+	<true/>
 </dict>
 </plist>

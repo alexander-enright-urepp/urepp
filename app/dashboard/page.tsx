@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS, checkSubscriptionExpired } from '@/lib/iap'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS, checkSubscriptionExpired, initializeIAP } from '@/lib/iap'
 import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { 
   LogOut, 
@@ -70,6 +70,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     setIsIOS(isIOSNative())
+    
+    // Initialize IAP for iOS at app startup
+    if (isIOSNative()) {
+      initializeIAP()
+    }
   }, [])
 
   // Pull to refresh for iOS

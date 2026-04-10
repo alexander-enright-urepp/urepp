@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS, initializeRevenueCat } from '@/lib/iap'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
 
 interface Profile {
   id: string
@@ -38,11 +38,6 @@ export default function SubscriptionPage() {
   useEffect(() => {
     loadProfile()
     setIsIOS(isIOSNative())
-    
-    // Initialize RevenueCat for iOS
-    if (isIOSNative()) {
-      initializeRevenueCat()
-    }
   }, [])
 
   const loadProfile = async () => {
@@ -302,19 +297,6 @@ export default function SubscriptionPage() {
             </div>
           </div>
         )}
-
-        {/* Payment Method */}
-        <div className="bg-white rounded-2xl shadow-sm border border-babyblue-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-babyblue-50">
-            <h3 className="font-semibold text-gray-900">Payment Method</h3>
-          </div>
-          <div className="p-4">
-            <div className="flex items-center gap-3 text-gray-500">
-              <CreditCard className="w-5 h-5" />
-              <span className="text-sm">No payment method on file</span>
-            </div>
-          </div>
-        </div>
 
         {/* Cancel Confirmation Modal */}
         {showCancelConfirm && (
