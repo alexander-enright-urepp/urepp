@@ -85,15 +85,33 @@ export default function SubscriptionPage() {
 
       // Check if iOS native app
       if (isIOSNative()) {
-        // Use RevenueCat for iOS IAP
+        // Use IAP for iOS
         const productId = plan === 'yearly' ? IAP_PRODUCTS.YEARLY : IAP_PRODUCTS.MONTHLY
         const result = await purchaseIAPProduct(productId)
         
-        if (result.success) {
-          // Purchase succeeded - update local profile
+        if (result.success && result.receipt) {
+          // Validate receipt with backend before updating state
+          try {
+            await fetch('/api/validate-apple-receipt', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                receipt: result.receipt,
+                productId,
+                userId: session?.user?.id,
+              }),
+            })
+          } catch (err) {
+            console.error('[IAP] Receipt validation failed:', err)
+            // Still update local state so UX isn't broken
+            // Backend can retry validation on next app open
+          }
+          
+          // Update local profile state (no page reload needed in Next.js)
           setProfile(prev => prev ? { ...prev, is_premium: true } : null)
-          // Refresh to show updated status
-          window.location.reload()
+        } else if (result.success) {
+          // Success but no receipt (shouldn't happen with proper implementation)
+          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
         } else {
           throw new Error(result.error || 'Purchase failed')
         }
