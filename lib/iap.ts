@@ -3,7 +3,7 @@ import { Purchases, LOG_LEVEL, PURCHASES_ERROR_CODE, CustomerInfo } from '@reven
 import { supabase } from './supabase';
 
 // RevenueCat API Keys
-const REVENUECAT_API_KEY = 'test_KGpfBKuQLuDXrJzsIYESzFaGhQa';  // Replace this line'';
+const REVENUECAT_API_KEY = 'test_KGpfBKuQLuDXrJzsIYESzFaGhQa';  // Replace this line;
 
 // Product IDs from App Store Connect (same as before)
 export const IAP_PRODUCTS = {
@@ -50,8 +50,8 @@ export const purchaseSubscription = async (
   }
 
   try {
-    // Get offerings
-    const { offerings } = await Purchases.getOfferings();
+    // Get offerings - RevenueCat v6 API
+    const offerings = await Purchases.getOfferings();
     
     if (!offerings?.current) {
       return { success: false, error: 'No offerings available' };
@@ -59,14 +59,15 @@ export const purchaseSubscription = async (
 
     // Find the package for this product
     const packages = offerings.current.availablePackages;
-    const pkg = packages.find(p => p.productIdentifier === productId);
+    const pkg = packages.find(p => p.product.identifier === productId);
 
     if (!pkg) {
       return { success: false, error: 'Product not found in offerings' };
     }
 
     // Purchase the package
-    const { customerInfo } = await Purchases.purchasePackage({ pkg });
+    const purchaseResult = await Purchases.purchasePackage({ aPackage: pkg });
+    const customerInfo = purchaseResult.customerInfo;
 
     // Check if user is now premium
     const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
