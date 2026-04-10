@@ -208,8 +208,6 @@ export default function Dashboard() {
         } else {
           throw new Error(result.error || 'Purchase failed')
         }
-          throw new Error(result.error || 'Purchase failed')
-        }
       } else {
         // Web: Use Stripe
         const response = await fetch('/api/stripe/checkout', {
