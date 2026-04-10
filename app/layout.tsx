@@ -66,16 +66,6 @@ export default function RootLayout({
                 
                 // Run check on load
                 setTimeout(window.checkiOS, 1000);
-                
-                // Initialize CdvPurchase store for iOS native app
-                setTimeout(function() {
-                  if (typeof window.CdvPurchase !== 'undefined') {
-                    var store = window.CdvPurchase.store;
-                    var Platform = window.CdvPurchase.Platform;
-                    store.initialize([Platform.APPLE_APPSTORE]);
-                    console.log('[IAP] Store initialized at startup');
-                  }
-                }, 2000);
               })();
             `
           }}

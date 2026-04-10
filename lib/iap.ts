@@ -1,217 +1,182 @@
 import { Capacitor } from '@capacitor/core';
+import { Purchases, LOG_LEVEL, PURCHASES_ERROR_CODE, CustomerInfo } from '@revenuecat/purchases-capacitor';
 import { supabase } from './supabase';
 
-// Product IDs from App Store Connect
+// RevenueCat API Keys
+const REVENUECAT_API_KEY = 'test_KGpfBKuQLuDXrJzsIYESzFaGhQa';  // Replace this line'';
+
+// Product IDs from App Store Connect (same as before)
 export const IAP_PRODUCTS = {
   MONTHLY: 'com.urepp.premium.monthly',
   YEARLY: 'com.urepp.premium.yearly',
-  RECRUITER: 'com.urepp.recruiter',
 } as const;
 
 export type ProductId = typeof IAP_PRODUCTS[keyof typeof IAP_PRODUCTS];
 
 // Check if running on iOS native app
 export const isIOSNative = (): boolean => {
-  console.log('[isIOSNative] Checking platform...');
-  console.log('[isIOSNative] User Agent:', navigator.userAgent);
-  
-  // Aggressive check: iOS WebView (not browser)
-  const ua = navigator.userAgent || '';
-  const isIPad = /iPad/.test(ua);
-  const isIPhone = /iPhone/.test(ua);
-  const isIPod = /iPod/.test(ua);
-  const isIOS = isIPad || isIPhone || isIPod;
-  
-  // Browser indicators (if present, means NOT native app)
-  const isChrome = /CriOS/.test(ua); // Chrome iOS
-  const isFirefox = /FxiOS/.test(ua); // Firefox iOS
-  const isSafariBrowser = /Safari/.test(ua) && /Version/.test(ua) && !/CriOS/.test(ua);
-  
-  console.log('[isIOSNative] iOS:', isIOS, 'Chrome:', isChrome, 'Firefox:', isFirefox, 'SafariBrowser:', isSafariBrowser);
-  
-  // If it's iOS and NOT a known browser, it's likely the native app WebView
-  // Note: CdvPurchase only exists in the actual native app, not Safari
-  if (isIOS && !isChrome && !isFirefox && !isSafariBrowser) {
-    // Double-check: CdvPurchase must be available for IAP to work
-    if (typeof (window as any).CdvPurchase !== 'undefined') {
-      console.log('[isIOSNative] Detected iOS Native WebView with CdvPurchase!');
-      return true;
-    }
-    console.log('[isIOSNative] iOS WebView but CdvPurchase not available');
-  }
-  
-  // Fallback: Try Capacitor (may not work in localhost)
   try {
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-      return true;
-    }
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
   } catch (e) {
-    console.log('[isIOSNative] Capacitor check failed');
+    return false;
   }
-  
-  // Last resort: check for Capacitor in UA
-  if (/Capacitor/.test(ua)) {
-    return true;
-  }
-  
-  return false;
 };
 
-// Purchase a product using CdvPurchase - FIXED VERSION
-export const purchaseIAPProduct = async (productId: string): Promise<{ success: boolean; receipt?: string; error?: string }> => {
+// Initialize RevenueCat (call once on app startup)
+export const initializeRevenueCat = async (userId?: string): Promise<void> => {
+  if (!isIOSNative()) return;
+  
+  try {
+    await Purchases.configure({
+      apiKey: REVENUECAT_API_KEY,
+      appUserID: userId,
+    });
+    
+    // Optional: Set log level for debugging
+    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+    
+    console.log('[RevenueCat] Initialized successfully');
+  } catch (error) {
+    console.error('[RevenueCat] Initialization error:', error);
+  }
+};
+
+// Purchase a subscription using RevenueCat
+export const purchaseSubscription = async (
+  productId: ProductId
+): Promise<{ success: boolean; error?: string }> => {
   if (!isIOSNative()) {
     return { success: false, error: 'Not on iOS native platform' };
   }
 
-  if (typeof (window as any).CdvPurchase === 'undefined') {
-    return { success: false, error: 'CdvPurchase not available' };
-  }
-
-  const { store, Platform, ProductType } = (window as any).CdvPurchase;
-
-  // Register product (safe to call multiple times)
-  store.register([{
-    id: productId,
-    type: ProductType.PAID_SUBSCRIPTION,
-    platform: Platform.APPLE_APPSTORE
-  }]);
-
-  return new Promise(async (resolve) => {
-    const timeout = setTimeout(() => {
-      resolve({ success: false, error: 'Purchase timed out. Please try again.' });
-    }, 30000);
-
-    store.when().approved((transaction: any) => {
-      if (transaction.products[0]?.id === productId) {
-        transaction.finish();
-        clearTimeout(timeout);
-        resolve({ success: true, receipt: transaction.appStoreReceipt });
-      }
-    });
-
-    store.when().cancelled(() => {
-      clearTimeout(timeout);
-      resolve({ success: false, error: 'Purchase cancelled' });
-    });
-
-    store.when().error((err: any) => {
-      clearTimeout(timeout);
-      resolve({ success: false, error: err.message || 'Purchase failed' });
-    });
-
-    try {
-      await store.initialize([Platform.APPLE_APPSTORE]);
-      const product = store.get(productId, Platform.APPLE_APPSTORE);
-      
-      if (!product) {
-        clearTimeout(timeout);
-        return resolve({ success: false, error: 'Product not found. Check App Store Connect product IDs.' });
-      }
-
-      const offer = product.getOffer();
-      if (!offer) {
-        clearTimeout(timeout);
-        return resolve({ success: false, error: 'No offer available for this product.' });
-      }
-
-      await offer.order();
-    } catch (err: any) {
-      clearTimeout(timeout);
-      resolve({ success: false, error: err.message || 'Purchase failed' });
-    }
-  });
-};
-
-// Validate receipt with backend
-export const validateReceiptWithBackend = async (receipt: string, productId: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    const response = await fetch('/api/validate-apple-receipt', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        receipt,
-        productId,
-      }),
-    });
-
-    const data = await response.json();
+    // Get offerings
+    const { offerings } = await Purchases.getOfferings();
     
-    if (data.success) {
+    if (!offerings?.current) {
+      return { success: false, error: 'No offerings available' };
+    }
+
+    // Find the package for this product
+    const packages = offerings.current.availablePackages;
+    const pkg = packages.find(p => p.productIdentifier === productId);
+
+    if (!pkg) {
+      return { success: false, error: 'Product not found in offerings' };
+    }
+
+    // Purchase the package
+    const { customerInfo } = await Purchases.purchasePackage({ pkg });
+
+    // Check if user is now premium
+    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    
+    if (isPremium) {
+      // Update Supabase
+      await updatePremiumStatus(customerInfo);
       return { success: true };
     } else {
-      return { success: false, error: data.error || 'Validation failed' };
+      return { success: false, error: 'Purchase completed but premium not activated' };
     }
+
   } catch (error: any) {
-    console.error('Validation error:', error);
-    return { success: false, error: error.message || 'Validation failed' };
+    // Handle specific RevenueCat errors
+    if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      return { success: false, error: 'Purchase cancelled' };
+    }
+    
+    console.error('[RevenueCat] Purchase error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Purchase failed' 
+    };
   }
 };
 
-// Restore purchases (for iOS only) - FIXED per Claude
-export const restorePurchases = async (): Promise<{ success: boolean; receipt?: string; error?: string }> => {
+// Restore purchases using RevenueCat
+export const restorePurchases = async (): Promise<{ 
+  success: boolean; 
+  isPremium?: boolean;
+  error?: string 
+}> => {
   if (!isIOSNative()) {
     return { success: false, error: 'Not on iOS native platform' };
   }
 
-  if (typeof (window as any).CdvPurchase === 'undefined') {
-    return { success: false, error: 'CdvPurchase not available' };
-  }
-
-  const { store, Platform } = (window as any).CdvPurchase;
-
-  return new Promise(async (resolve) => {
-    const timeout = setTimeout(() => {
-      resolve({ success: false, error: 'No previous purchases found' });
-    }, 15000);
-
-    store.when().approved((transaction: any) => {
-      transaction.finish();
-      clearTimeout(timeout);
-      resolve({ success: true });
-    });
-
-    await store.initialize([Platform.APPLE_APPSTORE]);
-    await store.restorePurchases();
-  });
-};
-
-// Check if subscription is expired (call on app startup)
-export const checkSubscriptionExpired = async (): Promise<boolean> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return true;
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_premium, subscription_expires_at')
-      .eq('user_id', user.id)  // Fixed: was 'id', should be 'user_id'
-      .single();
-
-    if (!profile?.is_premium) return true;
-    if (!profile?.subscription_expires_at) return false; // No expiry = permanent
-
-    const expiryDate = new Date(profile.subscription_expires_at);
-    const now = new Date();
-
-    if (now > expiryDate) {
-      // Expired - update database
-      await supabase
-        .from('profiles')
-        .update({ 
-          is_premium: false,
-          premium_type: null,
-          subscription_expires_at: null
-        })
-        .eq('user_id', user.id);  // Fixed: was 'id', should be 'user_id'
-      
-      return true;
+    const { customerInfo } = await Purchases.restorePurchases();
+    
+    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    
+    if (isPremium) {
+      await updatePremiumStatus(customerInfo);
+      return { success: true, isPremium: true };
+    } else {
+      return { success: false, error: 'No previous purchases found' };
     }
 
-    return false;
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    return false;
+  } catch (error: any) {
+    console.error('[RevenueCat] Restore error:', error);
+    return { success: false, error: error.message || 'Restore failed' };
   }
+};
+
+// Check subscription status
+export const checkSubscriptionStatus = async (): Promise<{
+  isPremium: boolean;
+  expirationDate?: Date;
+}> => {
+  if (!isIOSNative()) {
+    return { isPremium: false };
+  }
+
+  try {
+    const { customerInfo } = await Purchases.getCustomerInfo();
+    const premiumEntitlement = customerInfo.entitlements.active['premium'];
+    
+    if (premiumEntitlement) {
+      return {
+        isPremium: true,
+        expirationDate: premiumEntitlement.expirationDate 
+          ? new Date(premiumEntitlement.expirationDate)
+          : undefined
+      };
+    }
+    
+    return { isPremium: false };
+  } catch (error) {
+    console.error('[RevenueCat] Status check error:', error);
+    return { isPremium: false };
+  }
+};
+
+// Update Supabase with premium status
+const updatePremiumStatus = async (customerInfo: CustomerInfo): Promise<void> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const premiumEntitlement = customerInfo.entitlements.active['premium'];
+    const isPremium = premiumEntitlement !== undefined;
+    
+    await supabase
+      .from('profiles')
+      .update({
+        is_premium: isPremium,
+        premium_type: premiumEntitlement?.productIdentifier.includes('yearly') ? 'yearly' : 'monthly',
+        subscription_expires_at: premiumEntitlement?.expirationDate || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+      
+  } catch (error) {
+    console.error('Error updating premium status:', error);
+  }
+};
+
+// Legacy function names for backward compatibility
+export const purchaseIAPProduct = purchaseSubscription;
+export const checkSubscriptionExpired = async (): Promise<boolean> => {
+  const { isPremium } = await checkSubscriptionStatus();
+  return !isPremium;
 };

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS, initializeRevenueCat } from '@/lib/iap'
 
 interface Profile {
   id: string
@@ -38,6 +38,11 @@ export default function SubscriptionPage() {
   useEffect(() => {
     loadProfile()
     setIsIOS(isIOSNative())
+    
+    // Initialize RevenueCat for iOS
+    if (isIOSNative()) {
+      initializeRevenueCat()
+    }
   }, [])
 
   const loadProfile = async () => {
@@ -85,35 +90,15 @@ export default function SubscriptionPage() {
 
       // Check if iOS native app
       if (isIOSNative()) {
-        // Use Apple IAP - select product based on plan
+        // Use RevenueCat for iOS IAP
         const productId = plan === 'yearly' ? IAP_PRODUCTS.YEARLY : IAP_PRODUCTS.MONTHLY
         const result = await purchaseIAPProduct(productId)
         
-        if (result.success && result.receipt) {
-          // Get current session for user ID
-          const { data: { session } } = await supabase.auth.getSession()
-          
-          // Validate receipt with backend
-          const validation = await fetch('/api/validate-apple-receipt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              receipt: result.receipt,
-              productId: productId,
-              userId: session?.user?.id,
-            }),
-          })
-
-          const validationData = await validation.json()
-          
-          if (validationData.success) {
-            // Update local profile
-            setProfile(prev => prev ? { ...prev, is_premium: true } : null)
-            // Refresh to show updated status
-            window.location.reload()
-          } else {
-            throw new Error(validationData.error || 'Validation failed')
-          }
+        if (result.success) {
+          // Purchase succeeded - update local profile
+          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
+          // Refresh to show updated status
+          window.location.reload()
         } else {
           throw new Error(result.error || 'Purchase failed')
         }

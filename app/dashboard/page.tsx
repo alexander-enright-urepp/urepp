@@ -197,31 +197,17 @@ export default function Dashboard() {
 
       // Check if iOS native app
       if (isIOSNative()) {
-        // Use Apple IAP
+        // Use RevenueCat for iOS IAP
         const result = await purchaseIAPProduct(IAP_PRODUCTS.MONTHLY)
         
-        if (result.success && result.receipt) {
-          // Validate receipt with backend
-          const validation = await fetch('/api/validate-apple-receipt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              receipt: result.receipt,
-              productId: IAP_PRODUCTS.MONTHLY,
-            }),
-          })
-
-          const validationData = await validation.json()
-          
-          if (validationData.success) {
-            // Update local profile
-            setProfile(prev => prev ? { ...prev, is_premium: true } : null)
-            // Refresh to show updated status
-            window.location.reload()
-          } else {
-            throw new Error(validationData.error || 'Validation failed')
-          }
+        if (result.success) {
+          // Purchase succeeded - update local profile
+          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
+          // Refresh to show updated status
+          window.location.reload()
         } else {
+          throw new Error(result.error || 'Purchase failed')
+        }
           throw new Error(result.error || 'Purchase failed')
         }
       } else {
