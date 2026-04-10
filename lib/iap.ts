@@ -149,48 +149,32 @@ export const validateReceiptWithBackend = async (receipt: string, productId: str
   }
 };
 
-// Restore purchases (for iOS only)
+// Restore purchases (for iOS only) - FIXED per Claude
 export const restorePurchases = async (): Promise<{ success: boolean; receipt?: string; error?: string }> => {
   if (!isIOSNative()) {
     return { success: false, error: 'Not on iOS native platform' };
   }
 
-  try {
-    if (typeof (window as any).CdvPurchase === 'undefined') {
-      return { success: false, error: 'CdvPurchase not available' };
-    }
-
-    const { store, Platform } = (window as any).CdvPurchase;
-    
-    return new Promise((resolve) => {
-      let receipt: string | null = null;
-      let restored = false;
-
-      store.when('receipt').updated((rcpt: any) => {
-        if (rcpt?.transactions?.length > 0) {
-          rcpt.transactions.forEach((t: any) => {
-            if (t.state === 'approved') {
-              receipt = t.appStoreReceipt || '';
-              restored = true;
-            }
-          });
-        }
-      });
-
-      store.initialize([Platform.APPLE_APPSTORE]);
-
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        if (restored && receipt) {
-          resolve({ success: true, receipt });
-        } else {
-          resolve({ success: false, error: 'No previous purchases found' });
-        }
-      }, 10000);
-    });
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  if (typeof (window as any).CdvPurchase === 'undefined') {
+    return { success: false, error: 'CdvPurchase not available' };
   }
+
+  const { store, Platform } = (window as any).CdvPurchase;
+
+  return new Promise(async (resolve) => {
+    const timeout = setTimeout(() => {
+      resolve({ success: false, error: 'No previous purchases found' });
+    }, 15000);
+
+    store.when().approved((transaction: any) => {
+      transaction.finish();
+      clearTimeout(timeout);
+      resolve({ success: true });
+    });
+
+    await store.initialize([Platform.APPLE_APPSTORE]);
+    await store.restorePurchases();
+  });
 };
 
 // Check if subscription is expired (call on app startup)
@@ -220,7 +204,7 @@ export const checkSubscriptionExpired = async (): Promise<boolean> => {
           premium_type: null,
           subscription_expires_at: null
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);  // Fixed: was 'id', should be 'user_id'
       
       return true;
     }

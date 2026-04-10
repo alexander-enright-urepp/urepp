@@ -86,6 +86,16 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <script dangerouslySetInnerHTML={{__html: `
+          (function() {
+            // Properly initialize CdvPurchase store for iOS native app
+            if (typeof window !== 'undefined' && typeof window.CdvPurchase !== 'undefined') {
+              const { store, Platform } = window.CdvPurchase;
+              store.initialize([Platform.APPLE_APPSTORE]);
+              console.log('[IAP] Store initialized at startup');
+            }
+          })();
+        `}} />
       </body>
     </html>
   )
