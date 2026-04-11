@@ -25,7 +25,7 @@ interface UseIAPReturn {
 }
 
 // Product IDs must match App Store Connect
-const PREMIUM_PRODUCT_ID = 'com.urepp.premium.monthly'; // Apple IAP Product ID
+const PREMIUM_PRODUCT_ID = 'com.urepp.app.premium.monthly'; // Apple IAP Product ID
 
 export function useIAP(userId: string | null): UseIAPReturn {
   const [products, setProducts] = useState<Product[]>([]);

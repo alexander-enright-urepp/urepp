@@ -40,7 +40,7 @@ export default function iOSPremiumButton() {
   // Only show on iOS native app
   if (!isNative) return null;
 
-  const premiumProduct = products.find(p => p.id === 'com.urepp.premium.monthly');
+  const premiumProduct = products.find(p => p.id === 'com.urepp.app.premium.monthly');
   const isPremium = profile?.is_premium;
 
   const handlePurchase = async () => {
