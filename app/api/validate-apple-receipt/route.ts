@@ -116,8 +116,8 @@ async function validateWithApple(receipt: string): Promise<{ success: boolean; d
   };
 
   try {
-    // Try sandbox first
-    let response = await fetch(APPLE_VERIFY_URL, {
+    // Try PRODUCTION first (most receipts come from production App Store)
+    let response = await fetch(APPLE_PRODUCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
@@ -125,9 +125,10 @@ async function validateWithApple(receipt: string): Promise<{ success: boolean; d
 
     let data = await response.json();
 
-    // Status 21007 = receipt is from production, retry with production URL
+    // Status 21007 = receipt is from sandbox, retry with sandbox URL
     if (data.status === 21007) {
-      response = await fetch(APPLE_PRODUCTION_URL, {
+      console.log('[Apple] Receipt is from sandbox, retrying with sandbox URL...');
+      response = await fetch(APPLE_VERIFY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
