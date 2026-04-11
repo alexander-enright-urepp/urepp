@@ -1,0 +1,107 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "80CE9319",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6761732073",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "32SDW55MV9",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 797618348.30785704,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22020280",
+      "localizations" : [
+
+      ],
+      "name" : "UREPP Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "100.0",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6762042619",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Advanced stats, custom themes, verified badge&analytics",
+              "displayName" : "UREPP - Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.urepp.app.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "UREPP Premium (Annual)",
+          "subscriptionGroupID" : "22020280",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "10.0",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6762042811",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Advanced stats, custom themes, verified badge&analytics",
+              "displayName" : "Premium - Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.urepp.app.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "UREPP Premium (Monthly)",
+          "subscriptionGroupID" : "22020280",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

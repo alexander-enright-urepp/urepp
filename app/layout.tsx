@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
 
+import AppInit from '@/components/AppInit'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -76,6 +78,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <AppInit />
         <script dangerouslySetInnerHTML={{__html: `
           (function() {
             // Properly initialize CdvPurchase store for iOS native app
