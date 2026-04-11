@@ -2,9 +2,10 @@ import { Capacitor } from '@capacitor/core';
 import { supabase } from './supabase';
 
 // Product IDs from App Store Connect
+// Must match bundle ID: com.urepp.app
 export const IAP_PRODUCTS = {
-  MONTHLY: 'com.urepp.premium.monthly',
-  YEARLY: 'com.urepp.premium.yearly',
+  MONTHLY: 'com.urepp.app.premium.monthly',
+  YEARLY: 'com.urepp.app.premium.yearly',
 } as const;
 
 export type ProductId = typeof IAP_PRODUCTS[keyof typeof IAP_PRODUCTS];
