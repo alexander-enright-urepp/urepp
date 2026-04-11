@@ -153,6 +153,16 @@ export default function SubscriptionPage() {
   const handleCancel = async () => {
     if (!profile) return
     
+    // Check if iOS native app
+    if (isIOSNative()) {
+      // For iOS: Direct user to App Store subscription management
+      // Apple requires this - we cannot cancel subscriptions programmatically
+      window.open('https://apps.apple.com/account/subscriptions', '_system')
+      setShowCancelConfirm(false)
+      return
+    }
+    
+    // For web: Update Supabase (Stripe will handle the actual cancellation via webhook)
     setCancelling(true)
     
     const { error } = await supabase
@@ -323,10 +333,24 @@ export default function SubscriptionPage() {
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Cancel Subscription?</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                You'll lose premium features including video uploads, analytics, and your verified badge. Your profile will return to basic.
-              </p>
+              {isIOSNative() ? (
+                <>
+                  <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Manage Subscription</h3>
+                  <p className="text-sm text-gray-500 text-center mb-6">
+                    You'll be taken to the App Store to manage your subscription. 
+                    Apple handles all subscription cancellations directly.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Cancel Subscription?</h3>
+                  <p className="text-sm text-gray-500 text-center mb-6">
+                    You'll lose premium features including video uploads, analytics, and your verified badge. 
+                    Your profile will return to basic.
+                  </p>
+                </>
+              )}
+              
               <div className="space-y-3">
                 <button
                   onClick={handleCancel}
@@ -334,9 +358,9 @@ export default function SubscriptionPage() {
                   className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   {cancelling ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" />Cancelling...</>
+                    <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
                   ) : (
-                    'Yes, Cancel Subscription'
+                    isIOSNative() ? 'Open App Store Settings' : 'Yes, Cancel Subscription'
                   )}
                 </button>
                 <button
