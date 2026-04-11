@@ -45,5 +45,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>UREPP needs access to your camera to take profile photos and videos for your recruiting profile.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>UREPP needs access to your photo library to upload profile photos and highlight videos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>UREPP needs permission to save photos and videos to your library.</string>
 </dict>
 </plist>

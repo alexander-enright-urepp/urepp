@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^5.0.8",
+    "@capacitor/camera": "^5.0.10",
     "@capacitor/core": "^5.7.8",
     "@capacitor/ios": "^5.7.8",
     "@capacitor/preferences": "^5.0.8",
