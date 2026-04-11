@@ -84,10 +84,13 @@ export default function SubscriptionPage() {
       }
 
       // Check if iOS native app
+      console.log('[Subscription] Checking platform, isIOSNative:', isIOSNative())
       if (isIOSNative()) {
         // Use IAP for iOS
         const productId = plan === 'yearly' ? IAP_PRODUCTS.YEARLY : IAP_PRODUCTS.MONTHLY
+        console.log('[Subscription] Starting IAP purchase for product:', productId)
         const result = await purchaseIAPProduct(productId)
+        console.log('[Subscription] IAP result:', result)
         
         if (result.success && result.receipt) {
           // Validate receipt with backend before updating state

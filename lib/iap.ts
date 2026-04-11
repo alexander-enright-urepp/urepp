@@ -11,7 +11,7 @@ export const IAP_PRODUCTS = {
 export type ProductId = typeof IAP_PRODUCTS[keyof typeof IAP_PRODUCTS];
 
 // DEBUG MODE: Set to true to simulate purchases (for testing UI flow)
-const DEBUG_FAKE_PURCHASE = false;
+const DEBUG_FAKE_PURCHASE = true;
 
 // Check if running on iOS native app
 export const isIOSNative = (): boolean => {
@@ -97,6 +97,9 @@ const getStore = (): any => {
 export const purchaseIAPProduct = async (
   productId: string
 ): Promise<{ success: boolean; receipt?: string; error?: string }> => {
+  console.log('[IAP] Purchase requested for:', productId);
+  console.log('[IAP] DEBUG_FAKE_PURCHASE:', DEBUG_FAKE_PURCHASE);
+  
   // DEBUG MODE: Simulate purchase for UI testing
   if (DEBUG_FAKE_PURCHASE) {
     console.log('[IAP] DEBUG: Simulating fake purchase for', productId);
@@ -106,7 +109,10 @@ export const purchaseIAPProduct = async (
     return { success: true, receipt: fakeReceipt };
   }
 
+  console.log('[IAP] Not in debug mode, checking platform...');
+  
   if (!isIOSNative()) {
+    console.log('[IAP] ERROR: Not on iOS native platform');
     return { success: false, error: 'Not on iOS native platform' };
   }
 
