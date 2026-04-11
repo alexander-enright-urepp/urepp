@@ -222,12 +222,6 @@ export const restorePurchases = async (): Promise<{ success: boolean; error?: st
 // Wait up to 10 seconds for a product to reach 'valid' state
 const waitForProduct = (store: any, productId: string): Promise<any> => {
   return new Promise((resolve) => {
-    // Check if already valid
-    const existing = store.get(productId);
-    if (existing?.state === 'valid' && existing?.price) {
-      return resolve(existing);
-    }
-
     let resolved = false;
 
     const timeout = setTimeout(() => {
@@ -237,6 +231,15 @@ const waitForProduct = (store: any, productId: string): Promise<any> => {
         resolve(null);
       }
     }, 10000);
+
+    // Check existing products array first (CdvPurchase v13 stores products in store.products)
+    const existing = storeInstance?.products?.find(
+      (p: any) => p.id === productId && p.state === 'valid' && p.price
+    );
+    if (existing) {
+      clearTimeout(timeout);
+      return resolve(existing);
+    }
 
     store.when('product').updated((product: any) => {
       if (product?.id === productId && product?.state === 'valid' && product?.price) {
