@@ -96,8 +96,10 @@ export default function SubscriptionPage() {
         
         if (result.success && result.receipt) {
           // Validate receipt with backend before updating state
+          let validationSuccess = false;
           try {
-            await fetch('/api/validate-apple-receipt', {
+            console.log('[Subscription] Sending receipt to API for validation...');
+            const response = await fetch('/api/validate-apple-receipt', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -105,15 +107,30 @@ export default function SubscriptionPage() {
                 productId,
                 userId: session?.user?.id,
               }),
-            })
+            });
+            
+            const data = await response.json();
+            console.log('[Subscription] API validation response:', data);
+            
+            if (data.success) {
+              validationSuccess = true;
+              console.log('[Subscription] Receipt validation successful');
+            } else {
+              console.error('[Subscription] Receipt validation failed:', data.error);
+            }
           } catch (err) {
-            console.error('[IAP] Receipt validation failed:', err)
-            // Still update local state so UX isn't broken
-            // Backend can retry validation on next app open
+            console.error('[IAP] Receipt validation failed:', err);
           }
           
-          // Update local profile state (no page reload needed in Next.js)
-          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
+          if (validationSuccess) {
+            // Update local profile state (no page reload needed in Next.js)
+            setProfile(prev => prev ? { ...prev, is_premium: true } : null);
+            // Reload profile to get updated data from database
+            await loadProfile();
+          } else {
+            throw new Error('Receipt validation failed. Please try again.');
+          }
+        }
         } else {
           // No success or no receipt - DON'T activate premium
           throw new Error(result.error || 'Purchase failed - no receipt received')
