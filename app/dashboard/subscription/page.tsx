@@ -130,7 +130,6 @@ export default function SubscriptionPage() {
           } else {
             throw new Error('Receipt validation failed. Please try again.');
           }
-        }
         } else {
           // No success or no receipt - DON'T activate premium
           throw new Error(result.error || 'Purchase failed - no receipt received')

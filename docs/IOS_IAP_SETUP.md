@@ -22,7 +22,7 @@ Native iOS IAP for $10/month Premium subscriptions. Uses Apple's StoreKit direct
 1. Go to App Store Connect → Your App → Features → In-App Purchases
 2. Click "+" to create new product
 3. Select "Auto-Renewable Subscription"
-4. **Product ID:** `com.urepp.premium.monthly`
+4. **Product ID:** `com.urepp.app.premium.monthly`
 5. **Price:** $9.99/month
 6. **Subscription Group:** Create "Premium" group
 7. **Duration:** 1 Month
@@ -83,7 +83,7 @@ Add to Vercel production:
 
 ## Notes
 
-- Product ID must match exactly: `com.urepp.premium.monthly`
+- Product ID must match exactly: `com.urepp.app.premium.monthly`
 - IAP only works on physical devices, not simulator
 - Sandbox environment uses special test accounts
 - Must complete App Store review before production IAP works

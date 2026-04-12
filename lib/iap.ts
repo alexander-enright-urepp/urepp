@@ -187,7 +187,7 @@ export const purchaseIAPProduct = async (
     });
 
     // Handle errors
-    store.when().error((err: any) => {
+    store.error((err: any) => {
       if (!resolved) {
         clearTimeout(hardTimeout);
         resolved = true;
