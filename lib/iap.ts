@@ -56,13 +56,14 @@ export const initializeIAP = (): Promise<void> => {
     },
   ]);
 
-  // Set up global receipt handler for subscription verification
+  // Set up global receipt handler - just log, don't finish transactions
+  // (purchaseIAPProduct will handle finishing)
   storeInstance.when('receipt').updated((receipt: any) => {
     console.log('[IAP] Receipt updated globally');
     receipt?.transactions?.forEach((t: any) => {
       if (t.state === 'approved') {
         console.log('[IAP] Approved transaction:', t.products?.[0]?.id);
-        t.finish(); // Finish approved transactions so Apple doesn't keep re-delivering
+        // DON'T call t.finish() here - let purchaseIAPProduct handle it
       }
     });
   });
