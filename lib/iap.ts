@@ -158,16 +158,30 @@ export const purchaseIAPProduct = async (
     store.when('receipt').updated((receipt: any) => {
       if (resolved) return;
 
+      console.log('[IAP] Receipt updated:', receipt);
+      console.log('[IAP] Transactions:', receipt?.transactions?.length);
+
       receipt?.transactions?.forEach((t: any) => {
-        if (
-          t.state === 'approved' &&
-          t.products?.[0]?.id === productId
-        ) {
-          const appStoreReceipt = t.appStoreReceipt || '';
-          clearTimeout(hardTimeout);
-          resolved = true;
-          t.finish();
-          resolve({ success: true, receipt: appStoreReceipt });
+        console.log('[IAP] Checking transaction:', {
+          state: t.state,
+          productId: t.products?.[0]?.id,
+          expectedProductId: productId
+        });
+        
+        // Check if transaction matches our product OR is approved
+        if (t.state === 'approved') {
+          const transactionProductId = t.products?.[0]?.id;
+          
+          // Match exact product OR check if it's for our app (bundle ID match)
+          if (transactionProductId === productId || 
+              transactionProductId?.startsWith('com.urepp.app')) {
+            const appStoreReceipt = t.appStoreReceipt || receipt.appStoreReceipt || '';
+            console.log('[IAP] MATCHING transaction found! Resolving...');
+            clearTimeout(hardTimeout);
+            resolved = true;
+            t.finish();
+            resolve({ success: true, receipt: appStoreReceipt });
+          }
         }
       });
     });
