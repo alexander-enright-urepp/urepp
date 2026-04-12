@@ -11,6 +11,8 @@ import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
 interface Profile {
   id: string
   is_premium?: boolean
+  premium_type?: 'monthly' | 'yearly' | null
+  subscription_expires_at?: string | null
 }
 
 export default function SubscriptionPage() {
@@ -51,7 +53,7 @@ export default function SubscriptionPage() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, is_premium')
+      .select('id, is_premium, premium_type, subscription_expires_at')
       .eq('user_id', session.user.id)
       .maybeSingle() // Use maybeSingle instead of single to handle multiple rows
 
@@ -259,63 +261,106 @@ export default function SubscriptionPage() {
           )}
         </div>
 
-        {/* Premium Plan Benefits - Now with Pay button inside */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Star className="w-5 h-5 fill-current" />
-            <span className="font-bold">{isPremium ? 'Your Premium Features' : 'Upgrade to Premium'}</span>
-          </div>
-          <p className="text-3xl font-bold mb-1">{isPremium ? 'Active' : '$10'}<span className="text-lg font-normal">{isPremium ? '' : '/month'}</span></p>
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
-            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
-            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
-            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
-            <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
-          </div>
-          
-          {/* Pay button moved to gold box */}
-          {!isPremium && (
-            <button
-              onClick={() => handleUpgrade('monthly')}
-              disabled={upgradingMonthly}
-              className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              {upgradingMonthly ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
-              ) : (
-                <>Subscribe</>
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* Annual Plan - Baby Blue Box */}
-        {!isPremium && (
+        {/* Premium Plan Benefits - Shows Active State */}
+        {isPremium && profile?.premium_type === 'yearly' ? (
+          // Annual Active - Baby Blue Box
           <div className="bg-gradient-to-br from-babyblue-400 to-babyblue-500 rounded-2xl p-6 text-white shadow-lg">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-5 h-5 fill-current" />
-              <span className="font-bold">Save with Annual</span>
+              <span className="font-bold">Annual Premium Active</span>
             </div>
-            <p className="text-lg font-medium mb-1">Get full access by paying $100/year and save $20.</p>
+            <p className="text-3xl font-bold mb-1">Active</p>
+            {profile?.subscription_expires_at && (
+              <p className="text-sm opacity-90 mb-3">
+                Renews: {new Date(profile.subscription_expires_at).toLocaleDateString()}
+              </p>
+            )}
             <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>All premium features</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Save $20 vs monthly</span></div>
-              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Billed annually</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
             </div>
-            
-            <button
-              onClick={() => handleUpgrade('yearly')}
-              disabled={upgradingYearly}
-              className="w-full bg-white text-babyblue-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              {upgradingYearly ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
-              ) : (
-                <>Start Annual Plan</>
-              )}
-            </button>
           </div>
+        ) : isPremium && profile?.premium_type === 'monthly' ? (
+          // Monthly Active - Gold Box  
+          <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-5 h-5 fill-current" />
+              <span className="font-bold">Monthly Premium Active</span>
+            </div>
+            <p className="text-3xl font-bold mb-1">Active</p>
+            {profile?.subscription_expires_at && (
+              <p className="text-sm opacity-90 mb-3">
+                Renews: {new Date(profile.subscription_expires_at).toLocaleDateString()}
+              </p>
+            )}
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
+              <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
+            </div>
+          </div>
+        ) : (
+          // Not Premium - Show upgrade options
+          <>
+            {/* Monthly Plan - Gold Box */}
+            <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5 fill-current" />
+                <span className="font-bold">Upgrade to Premium</span>
+              </div>
+              <p className="text-3xl font-bold mb-1">$10<span className="text-lg font-normal">/month</span></p>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Unlimited video uploads</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Profile analytics</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Featured in search results</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Verified badge</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Priority support</span></div>
+              </div>
+              
+              <button
+                onClick={() => handleUpgrade('monthly')}
+                disabled={upgradingMonthly}
+                className="w-full bg-white text-yellow-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+              >
+                {upgradingMonthly ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
+                ) : (
+                  <>Subscribe</>
+                )}
+              </button>
+            </div>
+
+            {/* Annual Plan - Baby Blue Box */}
+            <div className="bg-gradient-to-br from-babyblue-400 to-babyblue-500 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5 fill-current" />
+                <span className="font-bold">Save with Annual</span>
+              </div>
+              <p className="text-lg font-medium mb-1">Get full access by paying $100/year and save $20.</p>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>All premium features</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Save $20 vs monthly</span></div>
+                <div className="flex items-center gap-2 text-sm"><Check className="w-4 h-4" /><span>Billed annually</span></div>
+              </div>
+              
+              <button
+                onClick={() => handleUpgrade('yearly')}
+                disabled={upgradingYearly}
+                className="w-full bg-white text-babyblue-600 hover:bg-gray-100 disabled:opacity-70 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+              >
+                {upgradingYearly ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />Processing...</>
+                ) : (
+                  <>Start Annual Plan</>
+                )}
+              </button>
+            </div>
+          </>
         )}
 
         {/* Upgrade Error Message */}
