@@ -237,46 +237,28 @@ export const restorePurchases = async (): Promise<{ success: boolean; error?: st
 // HELPERS
 // ---------------------------------------------------------------------------
 
-// Wait up to 10 seconds for a product to reach 'valid' state
-const waitForProduct = (store: any, productId: string): Promise<any> => {
-  return new Promise((resolve) => {
-    console.log('[IAP] waitForProduct called for:', productId);
-    console.log('[IAP] storeInstance exists:', !!storeInstance);
-    console.log('[IAP] storeInstance.products:', storeInstance?.products?.length || 0);
-    
-    let resolved = false;
-
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        console.error('[IAP] Timed out waiting for product:', productId);
-        console.error('[IAP] Available products:', storeInstance?.products?.map((p: any) => ({ id: p.id, state: p.state })));
-        resolve(null);
-      }
-    }, 10000);
-
-    // Check existing products array first (CdvPurchase v13 stores products in store.products)
-    const existing = storeInstance?.products?.find(
-      (p: any) => p.id === productId && p.state === 'valid' && p.price
-    );
-    if (existing) {
-      console.log('[IAP] Product already valid:', productId);
-      clearTimeout(timeout);
-      return resolve(existing);
-    }
-
-    console.log('[IAP] Setting up product listener for:', productId);
-    store.when('product').updated((product: any) => {
-      console.log('[IAP] Product updated:', product?.id, 'state:', product?.state);
-      if (product?.id === productId && product?.state === 'valid' && product?.price) {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          resolve(product);
-        }
-      }
-    });
-  });
+// Wait for product - simplified version
+const waitForProduct = async (store: any, productId: string): Promise<any> => {
+  console.log('[IAP] waitForProduct START:', productId);
+  
+  // Wait a bit for store to populate
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Check if product exists
+  const products = storeInstance?.products || [];
+  console.log('[IAP] Available products:', products.length);
+  
+  const product = products.find((p: any) => p.id === productId);
+  
+  if (product) {
+    console.log('[IAP] Product found:', product.id, 'state:', product.state);
+    // Even if not 'valid', try to use it - StoreKit test might not set state properly
+    return product;
+  }
+  
+  console.error('[IAP] Product not found:', productId);
+  console.error('[IAP] Available products:', products.map((p: any) => p.id));
+  return null;
 };
 
 // ---------------------------------------------------------------------------

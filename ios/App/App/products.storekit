@@ -24,7 +24,7 @@
     "_developerTeamID" : "32SDW55MV9",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 797618348.30785704,
+    "_lastSynchronizedDate" : 797650924.37206399,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -55,7 +55,7 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Advanced stats, custom themes, verified badge&analytics",
+              "description" : "Advanced stat, custom theme, verified badge & analytics",
               "displayName" : "UREPP - Annual",
               "locale" : "en_US"
             }
@@ -83,7 +83,7 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Advanced stats, custom themes, verified badge&analytics",
+              "description" : "Advanced stat, custom theme, verified badge & analytics",
               "displayName" : "Premium - Monthly",
               "locale" : "en_US"
             }
