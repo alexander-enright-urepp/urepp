@@ -11,7 +11,7 @@ export const IAP_PRODUCTS = {
 export type ProductId = typeof IAP_PRODUCTS[keyof typeof IAP_PRODUCTS];
 
 // DEBUG MODE: Set to true to simulate purchases (for testing UI flow)
-const DEBUG_FAKE_PURCHASE = true;
+const DEBUG_FAKE_PURCHASE = false;
 
 // Check if running on iOS native app
 export const isIOSNative = (): boolean => {
@@ -240,12 +240,17 @@ export const restorePurchases = async (): Promise<{ success: boolean; error?: st
 // Wait up to 10 seconds for a product to reach 'valid' state
 const waitForProduct = (store: any, productId: string): Promise<any> => {
   return new Promise((resolve) => {
+    console.log('[IAP] waitForProduct called for:', productId);
+    console.log('[IAP] storeInstance exists:', !!storeInstance);
+    console.log('[IAP] storeInstance.products:', storeInstance?.products?.length || 0);
+    
     let resolved = false;
 
     const timeout = setTimeout(() => {
       if (!resolved) {
         resolved = true;
         console.error('[IAP] Timed out waiting for product:', productId);
+        console.error('[IAP] Available products:', storeInstance?.products?.map((p: any) => ({ id: p.id, state: p.state })));
         resolve(null);
       }
     }, 10000);
@@ -255,11 +260,14 @@ const waitForProduct = (store: any, productId: string): Promise<any> => {
       (p: any) => p.id === productId && p.state === 'valid' && p.price
     );
     if (existing) {
+      console.log('[IAP] Product already valid:', productId);
       clearTimeout(timeout);
       return resolve(existing);
     }
 
+    console.log('[IAP] Setting up product listener for:', productId);
     store.when('product').updated((product: any) => {
+      console.log('[IAP] Product updated:', product?.id, 'state:', product?.state);
       if (product?.id === productId && product?.state === 'valid' && product?.price) {
         if (!resolved) {
           resolved = true;

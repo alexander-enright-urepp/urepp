@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useNativePullToRefresh } from '@/lib/usePullToRefresh'
 import { ArrowLeft, Crown, Check, Star, CreditCard, Loader2, AlertTriangle, X, ArrowRight, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap'
+import { isIOSNative, purchaseIAPProduct, IAP_PRODUCTS } from '@/lib/iap-debug'
 
 interface Profile {
   id: string
