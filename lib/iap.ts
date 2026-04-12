@@ -186,13 +186,13 @@ export const purchaseIAPProduct = async (
       });
     });
 
-    // Handle product-level errors
-    store.when('product').error((err: any) => {
+    // Handle errors
+    store.when().error((err: any) => {
       if (!resolved) {
         clearTimeout(hardTimeout);
         resolved = true;
-        console.error('[IAP] Product error:', err);
-        resolve({ success: false, error: err.message || 'Product error' });
+        console.error('[IAP] Store error:', err);
+        resolve({ success: false, error: err.message || 'Purchase error' });
       }
     });
 
