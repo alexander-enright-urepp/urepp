@@ -114,11 +114,9 @@ export default function SubscriptionPage() {
           
           // Update local profile state (no page reload needed in Next.js)
           setProfile(prev => prev ? { ...prev, is_premium: true } : null)
-        } else if (result.success) {
-          // Success but no receipt (shouldn't happen with proper implementation)
-          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
         } else {
-          throw new Error(result.error || 'Purchase failed')
+          // No success or no receipt - DON'T activate premium
+          throw new Error(result.error || 'Purchase failed - no receipt received')
         }
       } else {
         // Web: Use Stripe
