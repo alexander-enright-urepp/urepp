@@ -129,8 +129,19 @@ export const purchaseIAPProduct = async (
   const product = await waitForProduct(store, productId);
 
   if (!product) {
+    console.log('[IAP] ERROR: Product not found');
     return { success: false, error: 'Product not available. Please try again.' };
   }
+
+  console.log('[IAP] Product details:', { id: product.id, state: product.state, price: product.price, title: product.title });
+
+  // Validate product can be ordered
+  if (product.state !== 'valid' && product.state !== undefined) {
+    console.log('[IAP] ERROR: Product not in valid state:', product.state);
+    return { success: false, error: 'Product not available for purchase' };
+  }
+
+  console.log('[IAP] Starting purchase flow...');
 
   return new Promise((resolve) => {
     let resolved = false;
@@ -183,7 +194,10 @@ export const purchaseIAPProduct = async (
           clearTimeout(hardTimeout);
           resolved = true;
           console.error('[IAP] Order failed:', err);
-          resolve({ success: false, error: err.message || 'Purchase failed' });
+          console.error('[IAP] Error type:', typeof err);
+          console.error('[IAP] Error keys:', Object.keys(err || {}));
+          const errorMessage = err?.message || err?.code || JSON.stringify(err) || 'Purchase failed';
+          resolve({ success: false, error: errorMessage });
         }
       });
   });
