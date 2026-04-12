@@ -14,7 +14,36 @@
 
   ],
   "products" : [
-
+    {
+      "displayName" : "UREPP Premium Monthly",
+      "familyShareable" : false,
+      "internalID" : "E4F6D8A2",
+      "localizations" : [
+        {
+          "description" : "Advanced stats, custom themes, verified badge, and analytics",
+          "displayName" : "UREPP Premium Monthly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.urepp.app.premium.monthly",
+      "referenceName" : "Monthly Subscription",
+      "type" : "RecurringSubscription"
+    },
+    {
+      "displayName" : "UREPP Premium Annual",
+      "familyShareable" : false,
+      "internalID" : "C7A3B9E1",
+      "localizations" : [
+        {
+          "description" : "Advanced stats, custom themes, verified badge, and analytics. Save $20.",
+          "displayName" : "UREPP Premium Annual",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.urepp.app.premium.yearly",
+      "referenceName" : "Annual Subscription",
+      "type" : "RecurringSubscription"
+    }
   ],
   "settings" : {
     "_applicationInternalID" : "6761732073",
