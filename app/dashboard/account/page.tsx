@@ -19,6 +19,7 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { restorePurchases } from '@/lib/iap'
 
 export default function AccountPage() {
   const router = useRouter()
@@ -39,6 +40,28 @@ export default function AccountPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+
+  // Restore purchases state
+  const [restoring, setRestoring] = useState(false)
+  const [restoreMessage, setRestoreMessage] = useState('')
+
+  const handleRestorePurchases = async () => {
+    setRestoring(true)
+    setRestoreMessage('')
+    
+    try {
+      const result = await restorePurchases()
+      if (result.success) {
+        setRestoreMessage('Purchases restored successfully!')
+      } else {
+        setRestoreMessage(result.error || 'No purchases found to restore.')
+      }
+    } catch (err: any) {
+      setRestoreMessage(err.message || 'Failed to restore purchases.')
+    } finally {
+      setRestoring(false)
+    }
+  }
 
   const handleDeleteAccount = async () => {
     setDeleting(true)
@@ -265,12 +288,21 @@ export default function AccountPage() {
             </p>
             <button
               id="restore-purchases-btn"
-              className="w-full py-3 px-4 bg-babyblue-500 hover:bg-babyblue-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+              onClick={handleRestorePurchases}
+              disabled={restoring}
+              className="w-full py-3 px-4 bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
             >
-              <Key className="w-5 h-5" />
-              Restore Purchases
+              {restoring ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />Restoring...</>
+              ) : (
+                <><Key className="w-5 h-5" />Restore Purchases</>
+              )}
             </button>
-            <p id="restore-message" className="text-sm mt-2 text-center hidden"></p>
+            {restoreMessage && (
+              <p id="restore-message" className="text-sm mt-2 text-center text-gray-600">
+                {restoreMessage}
+              </p>
+            )}
           </div>
         </div>
 
