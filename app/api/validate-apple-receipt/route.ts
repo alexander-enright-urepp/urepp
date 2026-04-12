@@ -29,6 +29,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
+    // DEBUG MODE: Accept fake receipts for testing
+    if (receipt.startsWith('FAKE_RECEIPT_')) {
+      console.log('[API] DEBUG: Processing fake receipt');
+      const planType = productId.includes('yearly') ? 'yearly' : 'monthly';
+      
+      // Calculate fake expiration (30 days for monthly, 365 for yearly)
+      const days = planType === 'yearly' ? 365 : 30;
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + days);
+      
+      const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({
+          is_premium: true,
+          premium_type: planType,
+          subscription_expires_at: expirationDate.toISOString(),
+          last_transaction_id: receipt,
+          last_product_id: productId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Failed to update profile:', updateError);
+        return NextResponse.json({ success: false, error: 'Failed to activate premium' }, { status: 500 });
+      }
+
+      return NextResponse.json({ 
+        success: true,
+        data: {
+          productId,
+          transactionId: receipt,
+          expiresDate: expirationDate.toISOString(),
+        }
+      });
+    }
+
     if (!APP_SHARED_SECRET) {
       console.error('APPLE_SHARED_SECRET not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
