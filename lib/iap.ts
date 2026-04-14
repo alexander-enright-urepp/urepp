@@ -200,7 +200,7 @@ export const purchaseIAPProduct = async (
     // Place the order
     console.log('[IAP] Placing order for:', productId);
     store
-      .order(productId)
+      .order(product)
       .then(() => {
         console.log('[IAP] Order placed, waiting for receipt...');
       })

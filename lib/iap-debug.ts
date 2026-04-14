@@ -199,7 +199,7 @@ export const purchaseIAPProduct = async (productId: string): Promise<{ success: 
     });
 
     console.log('[IAP-DEBUG] Calling store.order()...');
-    store.order(productId)
+    store.order(product)
       .then(() => console.log('[IAP-DEBUG] Order placed, waiting...'))
       .catch((err: any) => {
         if (!resolved) {
