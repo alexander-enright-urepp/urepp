@@ -109,12 +109,6 @@ export default function CoachSettingsPage() {
     setSaving(false);
   };
 
-  const copyWebhookUrl = () => {
-    navigator.clipboard.writeText(webhookUrl);
-    setMessage({ type: 'success', text: 'Webhook URL copied to clipboard!' });
-    setTimeout(() => setMessage(null), 2000);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
