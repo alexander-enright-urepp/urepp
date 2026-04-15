@@ -43,7 +43,7 @@ interface Message {
 export default function CoachMessagesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const athleteEmail = searchParams.get('athlete');
+  const athleteEmail = searchParams?.get('athlete');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
