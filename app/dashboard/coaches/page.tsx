@@ -16,7 +16,8 @@ import {
   MessageCircle,
   ChevronRight,
   User,
-  Video
+  Video,
+  Clock
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
