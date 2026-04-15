@@ -1,0 +1,301 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  Calendar, 
+  Check, 
+  Loader2,
+  AlertCircle,
+  Globe,
+  Home,
+  Tv,
+  Search,
+  Settings,
+  MessageCircle,
+  ChevronRight,
+  User,
+  Video
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+interface Profile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  calendly_link?: string;
+  is_coaching_enabled?: boolean;
+}
+
+interface Appointment {
+  id: string;
+  calendly_event_id: string;
+  event_type_name: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  athlete_name: string;
+  athlete_email: string;
+}
+
+export default function CoachesPage() {
+  const router = useRouter();
+  
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, calendly_link, is_coaching_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+        
+        // Fetch upcoming appointments
+        const { data: apptsData } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('coach_id', profileData.id)
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true })
+          .limit(10);
+        
+        setAppointments(apptsData || []);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [router]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#51b5ff]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Coach</h1>
+            <p className="text-sm text-gray-500">Your Dashboard</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link 
+              href="/dashboard/coaches/messages" 
+              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5 text-gray-600" />
+            </Link>
+            <Link 
+              href="/dashboard/coaches/settings" 
+              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-md mx-auto px-4 py-6 space-y-4">
+        {/* Upcoming Appointments */}
+        <div className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[#51b5ff]/10 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-[#51b5ff]" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">Upcoming Sessions</h2>
+              <p className="text-xs text-gray-500">{appointments.length} scheduled</p>
+            </div>
+          </div>
+
+          {appointments.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-xl">
+              <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No upcoming sessions</p>
+              {!profile?.calendly_link && (
+                <Link 
+                  href="/dashboard/coaches/settings"
+                  className="inline-block mt-2 text-sm text-[#51b5ff] hover:underline"
+                >
+                  Set up your Calendly →
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {appointments.slice(0, 3).map((appt) => (
+                <div 
+                  key={appt.id}
+                  className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-12 h-12 bg-[#51b5ff]/10 rounded-lg flex flex-col items-center justify-center">
+                      <span className="text-xs font-medium text-[#51b5ff]">
+                        {formatDate(appt.start_time).split(' ')[0]}
+                      </span>
+                      <span className="text-sm font-bold text-[#51b5ff]">
+                        {formatDate(appt.start_time).split(' ')[1]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">
+                        {appt.athlete_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatTime(appt.start_time)} · {appt.event_type_name}
+                      </p>
+                    </div>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      appt.status === 'scheduled' ? 'bg-green-500' : 'bg-gray-400'
+                    }`} />
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 mt-3">
+                    <Link
+                      href={`/dashboard/coaches/messages?athlete=${appt.athlete_email}`}
+                      className="flex-1 bg-[#51b5ff] hover:bg-[#3da8f0] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      Message
+                    </Link>
+                    <button
+                      onClick={() => {
+                        // TODO: Start video call
+                        alert('Video call feature coming soon!');
+                      }}
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <Video className="w-3 h-3" />
+                      Video Call
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Link 
+            href="/dashboard/coaches/settings"
+            className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4 hover:shadow-xl transition-shadow"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#51b5ff]/10 flex items-center justify-center mb-3">
+              <Settings className="w-5 h-5 text-[#51b5ff]" />
+            </div>
+            <p className="font-medium text-gray-900">Settings</p>
+            <p className="text-xs text-gray-500">Configure Calendly</p>
+          </Link>
+          
+          <Link 
+            href="/dashboard/coaches/messages"
+            className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4 hover:shadow-xl transition-shadow"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#51b5ff]/10 flex items-center justify-center mb-3">
+              <MessageCircle className="w-5 h-5 text-[#51b5ff]" />
+            </div>
+            <p className="font-medium text-gray-900">Messages</p>
+            <p className="text-xs text-gray-500">Chat with athletes</p>
+          </Link>
+        </div>
+
+        {/* Calendly Status */}
+        <div className={`rounded-2xl shadow-lg shadow-babyblue-200/50 border p-4 ${
+          profile?.is_coaching_enabled 
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-white border-babyblue-100'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                profile?.is_coaching_enabled ? 'bg-green-100' : 'bg-[#51b5ff]/10'
+              }`}>
+                <Globe className={`w-5 h-5 ${
+                  profile?.is_coaching_enabled ? 'text-green-600' : 'text-[#51b5ff]'
+                }`} />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">
+                  {profile?.is_coaching_enabled ? 'Accepting Bookings' : 'Not Set Up'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {profile?.is_coaching_enabled 
+                    ? 'Your Calendly is connected' 
+                    : 'Connect Calendly to start'}
+                </p>
+              </div>
+            </div>
+            <div className={`w-3 h-3 rounded-full ${
+              profile?.is_coaching_enabled ? 'bg-green-500' : 'bg-gray-300'
+            }`} />
+          </div>
+        </div>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-[#51b5ff]">
+            <Home className="w-6 h-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
+    </div>
+  );
+}

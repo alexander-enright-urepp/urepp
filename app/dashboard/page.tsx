@@ -520,7 +520,7 @@ export default function Dashboard() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
         <div className="max-w-md mx-auto flex justify-around">
-          <BottomNavLink href="/" icon={<Home className="w-6 h-6" />} label="Home" />
+          <BottomNavLink href="/dashboard/coaches" icon={<Home className="w-6 h-6" />} label="Home" />
           <BottomNavLink href="/tv" icon={<Tv className="w-6 h-6" />} label="TV" />
           <BottomNavLink href="/search" icon={<Search className="w-6 h-6" />} label="Search" />
           <BottomNavLink href="/dashboard" icon={<User className="w-6 h-6" />} label="Profile" active />
