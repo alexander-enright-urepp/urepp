@@ -52,6 +52,7 @@ interface Profile {
   profile_picture_url?: string
   role?: string
   is_premium?: boolean
+  calendly_link?: string
   theme?: string
   grad_year?: number
   high_school?: string
@@ -172,6 +173,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         profile_picture_url: profileData.profile_picture_url,
         role: profileData.role,
         is_premium: profileData.is_premium,
+        calendly_link: profileData.calendly_link,
         theme: profileData.theme,
         grad_year: profileData.grad_year,
         high_school: profileData.high_school,
@@ -447,6 +449,18 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
                 </a>
               )}
             </div>
+
+            {/* Book Session Button - Only for Coaches with Calendly */}
+            {(profile.role === 'coach' || profile.role === 'mental_performance_coach') && profile.calendly_link && (
+              <Link 
+                href={`/coaches/${profile.id}/book`}
+                className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-medium transition-all shadow-md"
+              >
+                <Calendar className="w-5 h-5" />
+                Book Mental Performance Session
+                <Crown className="w-4 h-4 opacity-80" />
+              </Link>
+            )}
           </div>
 
           {/* Tabs */}
