@@ -210,17 +210,34 @@ export default function CoachSettingsPage() {
               </div>
               <button
                 onClick={async () => {
-                  // Disconnect - delete tokens
+                  // Disconnect - delete tokens and update profile
                   if (!profile) return;
-                  const { error } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
-                  if (error) {
+                  setSaving(true);
+                  
+                  // Delete tokens
+                  const { error: tokenError } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
+                  
+                  // Also update profile to disable coaching
+                  const { error: profileError } = await supabase.from('profiles').update({
+                    is_coaching_enabled: false,
+                    calendly_link: null,
+                    updated_at: new Date().toISOString()
+                  }).eq('id', profile.id);
+                  
+                  if (tokenError || profileError) {
                     setMessage({ type: 'error', text: 'Failed to disconnect. Please try again.' });
                   } else {
                     setIsConnected(false);
+                    setIsEnabled(false);
+                    setCalendlyUrl('');
                     setMessage({ type: 'success', text: 'Calendly disconnected' });
+                    // Force page reload to clear state
+                    window.location.reload();
                   }
+                  setSaving(false);
                 }}
-                className="text-xs text-red-600 hover:text-red-700 font-medium"
+                disabled={saving}
+                className="text-xs text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
               >
                 Disconnect
               </button>
