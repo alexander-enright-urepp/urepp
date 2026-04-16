@@ -173,7 +173,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
         profile_picture_url: profileData.profile_picture_url,
         role: profileData.role,
         is_premium: profileData.is_premium,
-        calendly_link: profileData.calendly_link,
+        is_coaching_enabled: profileData.is_coaching_enabled,
         theme: profileData.theme,
         grad_year: profileData.grad_year,
         high_school: profileData.high_school,
