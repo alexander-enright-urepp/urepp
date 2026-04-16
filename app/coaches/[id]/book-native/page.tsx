@@ -59,12 +59,17 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   // Listen for auth state changes
   useEffect(() => {
     console.log('Book-native: Setting up auth listener');
+    let authCheckTimeout: NodeJS.Timeout;
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Book-native: Auth state changed:', event, session?.user?.id);
+        console.log('Book-native: Auth event:', event, 'hasSession:', !!session);
+        
+        // Clear timeout if we get an auth event
+        if (authCheckTimeout) clearTimeout(authCheckTimeout);
         
         if (session?.user) {
+          console.log('Book-native: User authenticated:', session.user.id);
           setAuthState('authenticated');
           
           // Get coach
@@ -93,6 +98,16 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
               email: session.user.email || ''
             });
           }
+        } else if (event === 'INITIAL_SESSION') {
+          // Wait a bit and check again - session might still be loading
+          console.log('Book-native: Initial session null, waiting...');
+          authCheckTimeout = setTimeout(async () => {
+            const { data: { session: retrySession } } = await supabase.auth.getSession();
+            console.log('Book-native: Retry session check:', !!retrySession);
+            if (!retrySession?.user) {
+              setAuthState('unauthenticated');
+            }
+          }, 1500);
         } else {
           console.log('Book-native: No session, showing sign in');
           setAuthState('unauthenticated');
@@ -100,15 +115,10 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       }
     );
 
-    // Also check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Book-native: Initial session check:', session?.user?.id);
-      if (!session?.user) {
-        setAuthState('unauthenticated');
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (authCheckTimeout) clearTimeout(authCheckTimeout);
+    };
   }, [params.id, supabase]);
 
   useEffect(() => {
