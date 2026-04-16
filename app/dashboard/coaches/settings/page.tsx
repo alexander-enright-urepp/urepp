@@ -46,6 +46,7 @@ export default function CoachSettingsPage() {
   // Debug: log isConnected changes
   useEffect(() => {
     console.log('isConnected changed to:', isConnected);
+    console.trace('isConnected change stack trace');
   }, [isConnected]);
 
   // Handle OAuth callback messages
