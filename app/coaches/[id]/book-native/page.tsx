@@ -179,6 +179,12 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   }
 
   if (success) {
+    // Calculate end time for display
+    const [successHours, successMinutes] = selectedTime.split(':').map(Number);
+    const successEndHour = successMinutes === 30 ? successHours + 1 : successHours;
+    const successEndMinutes = successMinutes === 30 ? 0 : 30;
+    const displayEndTime = `${successEndHour.toString().padStart(2, '0')}:${successEndMinutes.toString().padStart(2, '0')}`;
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
@@ -191,7 +197,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           </p>
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <p className="text-sm text-gray-500">{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-            <p className="text-lg font-semibold text-gray-900">{selectedTime} - {endTime}</p>
+            <p className="text-lg font-semibold text-gray-900">{selectedTime} - {displayEndTime}</p>
           </div>
           <Link 
             href="/dashboard"

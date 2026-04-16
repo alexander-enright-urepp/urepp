@@ -363,8 +363,8 @@ export default function CoachesPage() {
             <div className="w-10 h-10 rounded-xl bg-[#51b5ff]/10 flex items-center justify-center mb-3">
               <Settings className="w-5 h-5 text-[#51b5ff]" />
             </div>
-            <p className="font-medium text-gray-900">Settings</p>
-            <p className="text-xs text-gray-500">Configure Calendly</p>
+            <p className="font-medium text-gray-900">Configure Bookings</p>
+            <p className="text-xs text-gray-500">Manage availability</p>
           </Link>
           
           <Link 
@@ -377,48 +377,6 @@ export default function CoachesPage() {
             <p className="font-medium text-gray-900">Messages</p>
             <p className="text-xs text-gray-500">Chat with athletes</p>
           </Link>
-        </div>
-
-        // Accept Bookings Status
-        <div className={`rounded-2xl shadow-lg shadow-babyblue-200/50 border p-4 ${
-          profile?.is_coaching_enabled 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-white border-babyblue-100'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                profile?.is_coaching_enabled ? 'bg-green-100' : 'bg-[#51b5ff]/10'
-              }`}>
-                <Globe className={`w-5 h-5 ${
-                  profile?.is_coaching_enabled ? 'text-green-600' : 'text-[#51b5ff]'
-                }`} />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">
-                  {profile?.is_coaching_enabled ? 'Accepting Bookings' : 'Not Accepting Bookings'}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {profile?.is_coaching_enabled 
-                    ? 'Athletes can book sessions with you' 
-                    : 'Enable to allow bookings'}
-                </p>
-              </div>
-            </div>
-            {profile?.is_coaching_enabled ? (
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">Active</span>
-              </div>
-            ) : (
-              <Link
-                href="/dashboard/coaches/settings"
-                className="text-xs bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
-              >
-                Enable
-              </Link>
-            )}
-          </div>
         </div>
       </main>
 
