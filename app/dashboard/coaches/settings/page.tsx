@@ -231,10 +231,17 @@ export default function CoachSettingsPage() {
                 try {
                   console.log('Starting Calendly OAuth...');
                   // Get session and send token in Authorization header
-                  const { data: { session } } = await supabase.auth.getSession();
+                  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                  console.log('Session result:', { hasSession: !!session, hasToken: !!session?.access_token, error: sessionError });
+                  
+                  if (!session?.access_token) {
+                    setMessage({ type: 'error', text: 'Not signed in. Please sign in first.' });
+                    return;
+                  }
+                  
                   const res = await fetch('/api/auth/calendly', {
                     headers: {
-                      'Authorization': session?.access_token ? `Bearer ${session.access_token}` : ''
+                      'Authorization': `Bearer ${session.access_token}`
                     }
                   });
                   console.log('Response status:', res.status);
