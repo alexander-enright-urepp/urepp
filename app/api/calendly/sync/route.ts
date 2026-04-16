@@ -91,26 +91,42 @@ export async function POST(request: NextRequest) {
     }
     
     // Get Calendly user
+    console.log('Fetching Calendly user...');
     const userRes = await fetch('https://api.calendly.com/users/me', {
       headers: { 'Authorization': `Bearer ${accessToken}` },
     });
     
     if (!userRes.ok) {
-      return NextResponse.json({ error: 'Failed to get Calendly user' }, { status: 500 });
+      const errorText = await userRes.text();
+      console.error('Calendly user fetch failed:', userRes.status, errorText);
+      return NextResponse.json({ 
+        error: 'Failed to get Calendly user', 
+        details: errorText,
+        status: userRes.status 
+      }, { status: 500 });
     }
     
     const userData = await userRes.json();
     const calendlyUserUri = userData.resource?.uri;
     
+    console.log('Calendly user URI:', calendlyUserUri);
+    
     // Get events
     const now = new Date().toISOString();
+    console.log('Fetching events from:', now);
     const eventsRes = await fetch(
       `https://api.calendly.com/scheduled_events?user=${calendlyUserUri}&min_start_time=${now}`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
     
     if (!eventsRes.ok) {
-      return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
+      const errorText = await eventsRes.text();
+      console.error('Events fetch failed:', eventsRes.status, errorText);
+      return NextResponse.json({ 
+        error: 'Failed to fetch events', 
+        details: errorText,
+        status: eventsRes.status 
+      }, { status: 500 });
     }
     
     const eventsData = await eventsRes.json();

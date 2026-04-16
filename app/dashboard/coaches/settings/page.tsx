@@ -285,6 +285,8 @@ export default function CoachSettingsPage() {
                     const data = await res.json();
                     if (res.ok) {
                       setMessage({ type: 'success', text: 'Webhook registered!' });
+                    } else if (data.error?.includes('Calendly') || res.status === 401) {
+                      setMessage({ type: 'error', text: 'Calendly connection expired. Please disconnect and reconnect Calendly.' });
                     } else {
                       setMessage({ type: 'error', text: data.error || 'Setup failed' });
                     }
