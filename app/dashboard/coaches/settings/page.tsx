@@ -253,6 +253,7 @@ export default function CoachSettingsPage() {
                     setCalendlyUrl('');
                     setProfile(prev => prev ? { ...prev, calendly_link: undefined, is_coaching_enabled: false } : null);
                     setMessage({ type: 'success', text: 'Calendly disconnected successfully' });
+                    setSaving(false);
                     
                   } catch (err) {
                     console.error('Disconnect error:', err);
