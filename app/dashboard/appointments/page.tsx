@@ -83,35 +83,73 @@ export default function AppointmentsPage() {
 
         setProfile(profileData);
 
-        // Fetch appointments where user is the athlete
-        // Match by athlete_id OR athlete_email (for guest bookings)
-        const { data: apptsData, error: apptsError } = await supabase
-          .from('appointments')
-          .select(`
-            *,
-            coach:profiles!appointments_coach_id_fkey(
-              first_name,
-              last_name,
-              profile_picture_url,
-              username
-            )
-          `)
-          .or(`athlete_id.eq.${profileData.id},athlete_email.eq.${profileData.email}`)
-          .order('start_time', { ascending: false });
+        // Fetch appointments from BOTH tables
+        const [{ data: apptsData }, { data: sessionsData }] = await Promise.all([
+          supabase
+            .from('appointments')
+            .select(`
+              *,
+              coach:profiles!appointments_coach_id_fkey(
+                first_name,
+                last_name,
+                profile_picture_url,
+                username
+              )
+            `)
+            .or(`athlete_id.eq.${profileData.id},athlete_email.eq.${profileData.email}`)
+            .order('start_time', { ascending: false }),
+          supabase
+            .from('booked_sessions')
+            .select(`
+              *,
+              coach:profiles!booked_sessions_coach_id_fkey(
+                first_name,
+                last_name,
+                profile_picture_url,
+                username
+              )
+            `)
+            .eq('athlete_id', profileData.id)
+            .order('session_date', { ascending: false })
+        ]);
 
-        if (apptsError) {
-          console.error('Error fetching appointments:', apptsError);
-          setError('Failed to load appointments');
-        } else {
-          // Link appointments to this user if matched by email
-          const linkedAppointments = apptsData?.map(appt => ({
-            ...appt,
-            // Mark as linked if email matches
-            is_linked_by_email: appt.athlete_email === profileData.email && !appt.athlete_id
-          })) || [];
-          
-          setAppointments(linkedAppointments);
-        }
+        // Combine and format both types
+        const combinedAppointments: Appointment[] = [
+          ...(apptsData || []).map((a: any) => ({
+            id: a.id,
+            coach_id: a.coach_id,
+            athlete_id: a.athlete_id,
+            calendly_event_id: a.calendly_event_id,
+            event_type_name: a.event_type_name,
+            start_time: a.start_time,
+            end_time: a.end_time,
+            status: a.status,
+            athlete_email: a.athlete_email,
+            athlete_name: a.athlete_name,
+            notes: a.notes,
+            created_at: a.created_at,
+            coach: a.coach,
+            is_linked_by_email: a.athlete_email === profileData.email && !a.athlete_id
+          })),
+          ...(sessionsData || []).map((s: any) => ({
+            id: s.id,
+            coach_id: s.coach_id,
+            athlete_id: s.athlete_id,
+            calendly_event_id: '',
+            event_type_name: 'Coaching Session',
+            start_time: `${s.session_date}T${s.start_time}`,
+            end_time: `${s.session_date}T${s.end_time}`,
+            status: s.status === 'confirmed' ? 'scheduled' : s.status,
+            athlete_email: s.athlete_email,
+            athlete_name: s.athlete_name,
+            notes: s.notes,
+            created_at: s.created_at,
+            coach: s.coach,
+            is_linked_by_email: false
+          }))
+        ].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+
+        setAppointments(combinedAppointments);
 
         setLoading(false);
       } catch (err) {
