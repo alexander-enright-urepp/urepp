@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -7,16 +8,70 @@ export async function GET(request: NextRequest) {
   try {
     console.log('Webhook check starting...');
     
-    // Get auth token from header
-    const authHeader = request.headers.get('Authorization');
-    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    // Create Supabase admin client to look up Calendly tokens
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     
-    if (!accessToken) {
-      console.error('No access token provided');
-      return NextResponse.json({ error: 'No auth token' }, { status: 401 });
+    // Get auth token from header to identify user
+    const authHeader = request.headers.get('Authorization');
+    const sessionToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    
+    if (!sessionToken) {
+      console.error('No session token provided');
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     
-    console.log('Got access token, fetching Calendly user...');
+    // Create a client with the user's session to get their user ID
+    const userClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        },
+      }
+    );
+    
+    // Get current user
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    
+    console.log('User ID:', user.id);
+    
+    // Get profile to find coach
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (profileError || !profile) {
+      console.error('Profile not found:', profileError);
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+    
+    // Get Calendly tokens
+    const { data: tokens, error: tokenError } = await supabase
+      .from('calendly_tokens')
+      .select('access_token')
+      .eq('profile_id', profile.id)
+      .single();
+    
+    if (tokenError || !tokens?.access_token) {
+      console.error('Calendly not connected:', tokenError);
+      return NextResponse.json({ error: 'Calendly not connected' }, { status: 400 });
+    }
+    
+    const accessToken = tokens.access_token;
+    console.log('Got Calendly access token');
     
     // Get Calendly user info
     const userRes = await fetch('https://api.calendly.com/users/me', {
@@ -35,29 +90,26 @@ export async function GET(request: NextRequest) {
     }
     
     const userData = await userRes.json();
-    console.log('Calendly user data:', JSON.stringify(userData, null, 2));
-    
     const userUri = userData.resource?.uri;
     const orgUri = userData.resource?.current_organization;
     
     console.log('User URI:', userUri, 'Org URI:', orgUri);
     
     if (!userUri || !orgUri) {
-      console.error('Missing user or org URI');
       return NextResponse.json({ error: 'Missing user or org URI' }, { status: 500 });
     }
     
     // List existing webhooks
     console.log('Fetching webhooks list...');
-    const listUrl = `https://api.calendly.com/webhook_subscriptions?organization=${encodeURIComponent(orgUri)}&user=${encodeURIComponent(userUri)}`;
-    console.log('List URL:', listUrl);
-    
-    const listRes = await fetch(listUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const listRes = await fetch(
+      `https://api.calendly.com/webhook_subscriptions?organization=${encodeURIComponent(orgUri)}&user=${encodeURIComponent(userUri)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
     
     console.log('List webhooks response status:', listRes.status);
     
@@ -71,7 +123,6 @@ export async function GET(request: NextRequest) {
     }
     
     const listData = await listRes.json();
-    console.log('Webhooks list:', JSON.stringify(listData, null, 2));
     
     // Check if our webhook exists
     const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.urepp.app';
@@ -90,7 +141,7 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    console.log('No existing webhook found, creating new one...');
+    console.log('No existing webhook, creating...');
     
     // Create webhook
     const createRes = await fetch('https://api.calendly.com/webhook_subscriptions', {
