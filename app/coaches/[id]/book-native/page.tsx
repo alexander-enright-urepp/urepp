@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar, Clock, Loader2, Check } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
 
 interface Profile {
   id: string;
@@ -32,15 +32,13 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   
   const [coach, setCoach] = useState<Profile | null>(null);
   const [athleteProfile, setAthleteProfile] = useState<AthleteProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authState, setAuthState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
   const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [authChecked, setAuthChecked] = useState(false);
 
   // Generate next 14 days
   const getDates = () => {
@@ -58,65 +56,59 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     return dates;
   };
 
+  // Listen for auth state changes
   useEffect(() => {
-    const fetchData = async () => {
-      console.log('Book-native: Starting auth check...');
-      
-      // Wait a bit for auth to initialize
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Get current user session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      console.log('Book-native: Session check result:', { 
-        hasSession: !!session, 
-        hasUser: !!session?.user,
-        sessionError: sessionError?.message 
-      });
-      
+    console.log('Book-native: Setting up auth listener');
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Book-native: Auth state changed:', event, session?.user?.id);
+        
+        if (session?.user) {
+          setAuthState('authenticated');
+          
+          // Get coach
+          const { data: coachData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, username, profile_picture_url')
+            .eq('id', params.id)
+            .single();
+          
+          if (coachData) {
+            console.log('Book-native: Coach found:', coachData.first_name);
+            setCoach(coachData);
+          }
+
+          // Get athlete profile
+          const { data: athleteData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          if (athleteData) {
+            console.log('Book-native: Athlete profile found:', athleteData.first_name);
+            setAthleteProfile({
+              ...athleteData,
+              email: session.user.email || ''
+            });
+          }
+        } else {
+          console.log('Book-native: No session, showing sign in');
+          setAuthState('unauthenticated');
+        }
+      }
+    );
+
+    // Also check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Book-native: Initial session check:', session?.user?.id);
       if (!session?.user) {
-        console.log('Book-native: No user found, showing sign in');
-        setAuthChecked(true);
-        setLoading(false);
-        return;
+        setAuthState('unauthenticated');
       }
-      
-      const user = session.user;
-      console.log('Book-native: User found:', user.id);
+    });
 
-      // Get coach
-      const { data: coachData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, username, profile_picture_url')
-        .eq('id', params.id)
-        .single();
-      
-      if (coachData) {
-        console.log('Book-native: Coach found:', coachData.first_name);
-        setCoach(coachData);
-      }
-
-      const { data: athleteData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (athleteData) {
-        console.log('Book-native: Athlete profile found:', athleteData.first_name);
-        setAthleteProfile({
-          ...athleteData,
-          email: user.email || ''
-        });
-      } else {
-        console.log('Book-native: No athlete profile found for user:', user.id);
-      }
-      
-      setAuthChecked(true);
-      setLoading(false);
-      console.log('Book-native: Fetch complete');
-    };
-    fetchData();
+    return () => subscription.unsubscribe();
   }, [params.id, supabase]);
 
   useEffect(() => {
@@ -125,7 +117,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       return;
     }
 
-    // Generate ALL time slots (9 AM to 5 PM, 30 min intervals) - no restrictions
+    // Generate ALL time slots (9 AM to 5 PM, 30 min intervals)
     const slots: TimeSlot[] = [];
     for (let hour = 9; hour < 17; hour++) {
       for (let min of [0, 30]) {
@@ -172,7 +164,8 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     setSubmitting(false);
   };
 
-  if (loading || !authChecked) {
+  // Loading state
+  if (authState === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -180,14 +173,14 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     );
   }
 
-  // Not signed in - show sign in prompt (only after auth check completes)
-  if (!loading && authChecked && !athleteProfile) {
+  // Not signed in - show sign in prompt
+  if (authState === 'unauthenticated') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Sign In Required</h2>
           <p className="text-gray-600 mb-6">
-            Please sign in to book a session with {coach?.first_name || 'this coach'}.
+            Please sign in to book a session{coach ? ` with ${coach.first_name}` : ''}.
           </p>
           <div className="flex flex-col gap-3">
             <Link 
@@ -197,7 +190,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
               Sign In to Book
             </Link>
             <Link 
-              href={`/players/${coach?.username || ''}`}
+              href="/search"
               className="inline-block text-gray-500 hover:text-gray-700 px-6 py-3"
             >
               Go Back
@@ -350,13 +343,10 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
                 <button
                   key={slot.time}
                   onClick={() => setSelectedTime(slot.time)}
-                  disabled={!slot.available}
                   className={`p-3 rounded-xl text-center transition-colors ${
                     selectedTime === slot.time
                       ? 'bg-blue-500 text-white'
-                      : slot.available
-                      ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   {slot.time}
@@ -366,23 +356,34 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           </div>
         )}
 
-        {/* Submit */}
+        {/* Summary */}
         {selectedDate && selectedTime && (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Booking...
-              </>
-            ) : (
-              'Confirm Booking'
-            )}
-          </button>
+          <div className="bg-blue-50 rounded-2xl p-4 mb-4">
+            <h3 className="font-semibold text-gray-900 mb-2">Session Summary</h3>
+            <p className="text-sm text-gray-600">
+              {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+            <p className="font-semibold text-gray-900">
+              {selectedTime} - {endTime}
+            </p>
+          </div>
         )}
+
+        {/* Submit */}
+        <button
+          onClick={handleSubmit}
+          disabled={!selectedDate || !selectedTime || submitting || !athleteProfile}
+          className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-medium transition-colors"
+        >
+          {submitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Booking...
+            </span>
+          ) : (
+            'Confirm Booking'
+          )}
+        </button>
       </main>
     </div>
   );
