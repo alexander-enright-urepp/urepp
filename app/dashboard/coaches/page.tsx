@@ -378,8 +378,6 @@ export default function CoachesPage() {
             <p className="text-xs text-gray-500">Chat with athletes</p>
           </Link>
         </div>
-
-        </div>
       </main>
 
       {/* Bottom Navigation */}
