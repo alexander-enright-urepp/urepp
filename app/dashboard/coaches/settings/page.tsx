@@ -7,9 +7,7 @@ import {
   Check, 
   Loader2,
   ArrowLeft,
-  Settings,
   Link2,
-  Home
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -32,63 +30,87 @@ export default function CoachSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string>('');
   
   // Track manual disconnect
   const manuallyDisconnected = useRef(false);
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const success = searchParams?.get('success');
-    const error = searchParams?.get('error');
-    
-    if (success === 'connected') {
-      setMessage({ type: 'success', text: 'Calendly connected!' });
-      manuallyDisconnected.current = false;
-      fetchProfile();
-    } else if (error) {
-      setMessage({ type: 'error', text: 'Connection failed' });
-    }
-  }, [searchParams]);
-
-  // Fetch profile
+  // Fetch profile with DEBUG logging
   const fetchProfile = async () => {
+    console.log('=== fetchProfile START ===');
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      console.log('No user, redirecting');
       router.push('/login');
       return;
     }
+    console.log('User ID:', user.id);
 
-    const { data } = await supabase
+    // Get profile
+    const { data, error: profileError } = await supabase
       .from('profiles')
       .select('id, first_name, last_name, calendly_link, is_coaching_enabled')
       .eq('user_id', user.id)
       .single();
 
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+    }
+
     if (data) {
+      console.log('Profile found:', { id: data.id, calendly_link: data.calendly_link });
       setProfile(data);
       setCalendlyUrl(data.calendly_link || '');
       setIsEnabled(data.is_coaching_enabled || false);
       
-      // Check if tokens exist
-      const { data: tokenData } = await supabase
+      // DEBUG: Check tokens with full query info
+      console.log('Checking calendly_tokens for profile_id:', data.id);
+      const { data: tokenData, error: tokenError, count } = await supabase
         .from('calendly_tokens')
-        .select('id')
-        .eq('profile_id', data.id)
-        .maybeSingle();
+        .select('*', { count: 'exact' })
+        .eq('profile_id', data.id);
+      
+      console.log('Token query result:', { 
+        rowCount: tokenData?.length, 
+        exactCount: count,
+        error: tokenError?.message,
+        firstToken: tokenData?.[0]?.id 
+      });
+      
+      const hasTokens = tokenData && tokenData.length > 0;
+      console.log('hasTokens:', hasTokens, 'manuallyDisconnected:', manuallyDisconnected.current);
+      
+      // Build debug string
+      setDebugInfo(`Profile: ${data.id}\nTokens: ${tokenData?.length || 0} rows\nmanuallyDisconnected: ${manuallyDisconnected.current}`);
       
       // Only update if not manually disconnected
       if (!manuallyDisconnected.current) {
-        setIsConnected(!!tokenData);
+        console.log('Setting isConnected to:', hasTokens);
+        setIsConnected(hasTokens);
+      } else {
+        console.log('SKIPPING setIsConnected because manuallyDisconnected is true');
       }
+    } else {
+      console.log('No profile data');
     }
     setLoading(false);
+    console.log('=== fetchProfile END ===');
   };
 
   useEffect(() => {
-    if (!manuallyDisconnected.current) {
+    console.log('Component mount, manuallyDisconnected:', manuallyDisconnected.current);
+    fetchProfile();
+  }, []);
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const success = searchParams?.get('success');
+    if (success === 'connected') {
+      manuallyDisconnected.current = false;
       fetchProfile();
     }
-  }, []);
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -100,10 +122,9 @@ export default function CoachSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/dashboard/coaches" className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+          <Link href="/dashboard/coaches" className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="text-center">
@@ -115,6 +136,11 @@ export default function CoachSettingsPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-6 space-y-4">
+        {/* DEBUG INFO */}
+        <div className="bg-gray-100 p-3 rounded-xl text-xs font-mono whitespace-pre-wrap">
+          DEBUG: {debugInfo}
+        </div>
+
         <div className="bg-white rounded-2xl shadow-lg border border-babyblue-100 p-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-[#51b5ff]/10 flex items-center justify-center">
@@ -137,30 +163,61 @@ export default function CoachSettingsPage() {
               </div>
               <button
                 onClick={async () => {
-                  if (!profile) return;
+                  console.log('=== DISCONNECT START ===');
+                  if (!profile) {
+                    console.log('No profile!');
+                    return;
+                  }
                   
-                  // IMMEDIATELY update UI
-                  manuallyDisconnected.current = true;
-                  setIsConnected(false);
-                  setIsEnabled(false);
-                  setCalendlyUrl('');
-                  setProfile(prev => prev ? { ...prev, calendly_link: undefined, is_coaching_enabled: false } : null);
-                  setMessage({ type: 'success', text: 'Disconnecting...' });
+                  console.log('Profile ID:', profile.id);
                   setSaving(true);
                   
-                  // Then clean up DB (async, don't wait)
-                  try {
-                    await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
-                    await supabase.from('profiles').update({
-                      calendly_link: null,
-                      is_coaching_enabled: false
-                    }).eq('id', profile.id);
-                    setMessage({ type: 'success', text: 'Disconnected' });
-                  } catch (e) {
-                    console.error(e);
-                  } finally {
-                    setSaving(false);
-                  }
+                  // STEP 1: Update UI
+                  console.log('STEP 1: Updating UI state');
+                  manuallyDisconnected.current = true;
+                  setIsConnected(false);
+                  setMessage({ type: 'success', text: 'Disconnecting...' });
+                  
+                  // STEP 2: Delete tokens with DEBUG
+                  console.log('STEP 2: Deleting tokens for profile_id:', profile.id);
+                  const { data: deleteData, error: deleteError, count: deleteCount } = await supabase
+                    .from('calendly_tokens')
+                    .delete()
+                    .eq('profile_id', profile.id)
+                    .select();
+                  
+                  console.log('Delete result:', { 
+                    deletedRows: deleteData?.length, 
+                    count: deleteCount,
+                    error: deleteError?.message 
+                  });
+                  
+                  // STEP 3: Update profile
+                  console.log('STEP 3: Updating profile');
+                  const { data: updateData, error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ calendly_link: null, is_coaching_enabled: false })
+                    .eq('id', profile.id)
+                    .select();
+                  
+                  console.log('Update result:', { 
+                    updatedRows: updateData?.length,
+                    error: updateError?.message 
+                  });
+                  
+                  // STEP 4: VERIFY
+                  console.log('STEP 4: Verifying tokens deleted');
+                  const { data: verifyData } = await supabase
+                    .from('calendly_tokens')
+                    .select('*')
+                    .eq('profile_id', profile.id);
+                  
+                  console.log('Verification - tokens still exist:', verifyData?.length || 0);
+                  
+                  setDebugInfo(`Deleted: ${deleteData?.length || 0} tokens\nStill exist: ${verifyData?.length || 0} tokens\nmanuallyDisconnected: true`);
+                  setMessage({ type: 'success', text: `Disconnected (${deleteData?.length || 0} tokens removed)` });
+                  setSaving(false);
+                  console.log('=== DISCONNECT END ===');
                 }}
                 disabled={saving}
                 className="text-xs text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
@@ -170,6 +227,9 @@ export default function CoachSettingsPage() {
             </div>
           ) : (
             <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                Connect your Calendly account to accept bookings. Enter your Calendly URL or use OAuth for automatic sync.
+              </p>
               <input
                 type="text"
                 value={calendlyUrl}
@@ -177,25 +237,23 @@ export default function CoachSettingsPage() {
                 placeholder="https://calendly.com/yourname"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#51b5ff] focus:ring-2 focus:ring-[#51b5ff]/20"
               />
-              <div className="flex gap-2">
-                <button
-                  onClick={async () => {
-                    if (!profile || !calendlyUrl) return;
-                    setSaving(true);
-                    await supabase.from('profiles').update({
-                      calendly_link: calendlyUrl,
-                      is_coaching_enabled: true
-                    }).eq('id', profile.id);
-                    setIsConnected(true);
-                    setMessage({ type: 'success', text: 'Saved!' });
-                    setSaving(false);
-                  }}
-                  disabled={saving}
-                  className="flex-1 bg-[#51b5ff] hover:bg-[#3da8f0] disabled:bg-gray-300 text-white py-2 rounded-xl font-medium"
-                >
-                  {saving ? 'Saving...' : 'Save URL'}
-                </button>
-              </div>
+              <button
+                onClick={async () => {
+                  if (!profile || !calendlyUrl) return;
+                  setSaving(true);
+                  await supabase.from('profiles').update({
+                    calendly_link: calendlyUrl,
+                    is_coaching_enabled: true
+                  }).eq('id', profile.id);
+                  setIsConnected(true);
+                  setMessage({ type: 'success', text: 'Saved!' });
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="w-full bg-[#51b5ff] hover:bg-[#3da8f0] disabled:bg-gray-300 text-white py-3 rounded-xl font-medium"
+              >
+                {saving ? 'Saving...' : 'Save Calendly URL'}
+              </button>
               <button
                 onClick={async () => {
                   const { data: { session } } = await supabase.auth.getSession();
