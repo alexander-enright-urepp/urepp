@@ -29,7 +29,6 @@ interface Profile {
   id: string;
   first_name: string;
   last_name: string;
-  calendly_link?: string;
   is_coaching_enabled?: boolean;
 }
 
@@ -98,7 +97,7 @@ export default function CoachesPage() {
       // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, calendly_link, is_coaching_enabled')
+        .select('id, first_name, last_name, is_coaching_enabled')
         .eq('user_id', user.id)
         .single();
 
@@ -238,14 +237,6 @@ export default function CoachesPage() {
             <div className="text-center py-8 bg-gray-50 rounded-xl">
               <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-500">No upcoming sessions</p>
-              {!profile?.calendly_link && (
-                <Link 
-                  href="/dashboard/coaches/settings"
-                  className="inline-block mt-2 text-sm text-[#51b5ff] hover:underline"
-                >
-                  Set up your Calendly →
-                </Link>
-              )}
             </div>
           ) : (
             <div className="space-y-3">
