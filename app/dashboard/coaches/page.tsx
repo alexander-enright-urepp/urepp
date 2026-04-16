@@ -116,56 +116,43 @@ export default function CoachesPage() {
           setProfile(prev => prev ? { ...prev, is_coaching_enabled: true } : prev);
         }
         
-        // Fetch upcoming appointments from both tables
-        const [{ data: apptsData }, { data: sessionsData }] = await Promise.all([
-          supabase
-            .from('appointments')
-            .select('*')
-            .eq('coach_id', profileData.id)
-            .gte('start_time', new Date().toISOString())
-            .order('start_time', { ascending: true })
-            .limit(10),
-          supabase
-            .from('booked_sessions')
-            .select('*')
-            .eq('coach_id', profileData.id)
-            .gte('session_date', new Date().toISOString().split('T')[0])
-            .order('session_date', { ascending: true })
-            .limit(10)
-        ]);
+        // Fetch booked_sessions where user is either coach OR athlete
+        const { data: sessionsData } = await supabase
+          .from('booked_sessions')
+          .select(`
+            *,
+            coach:profiles!booked_sessions_coach_id_fkey(
+              first_name,
+              last_name,
+              profile_picture_url,
+              username
+            )
+          `)
+          .or(`coach_id.eq.${profileData.id},athlete_id.eq.${profileData.id}`)
+          .gte('session_date', new Date().toISOString().split('T')[0])
+          .order('session_date', { ascending: true })
+          .limit(20);
         
-        console.log('Coach dashboard:', {
-          coachId: profileData.id,
-          appointments: apptsData?.length || 0,
-          sessions: sessionsData?.length || 0,
+        console.log('Dashboard sessions:', {
+          userProfileId: profileData.id,
+          sessionsFound: sessionsData?.length || 0,
           sessionsData: sessionsData
         });
         
-        // Combine and format both types
-        const combinedAppointments: Appointment[] = [
-          ...(apptsData || []).map((a: any) => ({
-            id: a.id,
-            calendly_event_id: a.calendly_event_id,
-            event_type_name: a.event_type_name,
-            start_time: a.start_time,
-            end_time: a.end_time,
-            status: a.status,
-            athlete_name: a.athlete_name,
-            athlete_email: a.athlete_email
-          })),
-          ...(sessionsData || []).map((s: any) => ({
-            id: s.id,
-            calendly_event_id: '',
-            event_type_name: 'Coaching Session',
-            start_time: `${s.session_date}T${s.start_time}`,
-            end_time: `${s.session_date}T${s.end_time}`,
-            status: s.status,
-            athlete_name: s.athlete_name,
-            athlete_email: s.athlete_email
-          }))
-        ].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+        // Format sessions
+        const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => ({
+          id: s.id,
+          calendly_event_id: '',
+          event_type_name: s.coach ? `Session with ${s.coach.first_name} ${s.coach.last_name}` : 'Coaching Session',
+          start_time: `${s.session_date}T${s.start_time}`,
+          end_time: `${s.session_date}T${s.end_time}`,
+          status: s.status,
+          athlete_name: s.athlete_name,
+          athlete_email: s.athlete_email,
+          is_coach: s.coach_id === profileData.id
+        }));
         
-        setAppointments(combinedAppointments.slice(0, 10));
+        setAppointments(formattedAppointments);
       }
       
       setLoading(false);
