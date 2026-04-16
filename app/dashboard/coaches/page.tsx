@@ -70,6 +70,18 @@ export default function CoachesPage() {
       if (profileData) {
         setProfile(profileData);
         
+        // Check if Calendly is actually connected (has tokens)
+        const { data: tokenData } = await supabase
+          .from('calendly_tokens')
+          .select('id')
+          .eq('profile_id', profileData.id)
+          .maybeSingle();
+        
+        // Update profile state if tokens exist but flag isn't set
+        if (tokenData && !profileData.is_coaching_enabled) {
+          setProfile(prev => prev ? { ...prev, is_coaching_enabled: true } : prev);
+        }
+        
         // Fetch upcoming appointments
         const { data: apptsData } = await supabase
           .from('appointments')
@@ -277,7 +289,7 @@ export default function CoachesPage() {
           </Link>
         </div>
 
-        {/* Calendly Status */}
+        // Calendly Status
         <div className={`rounded-2xl shadow-lg shadow-babyblue-200/50 border p-4 ${
           profile?.is_coaching_enabled 
             ? 'bg-green-50 border-green-200' 
@@ -303,9 +315,19 @@ export default function CoachesPage() {
                 </p>
               </div>
             </div>
-            <div className={`w-3 h-3 rounded-full ${
-              profile?.is_coaching_enabled ? 'bg-green-500' : 'bg-gray-300'
-            }`} />
+            {profile?.is_coaching_enabled ? (
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500" />
+                <span className="text-xs text-green-600 font-medium">Connected</span>
+              </div>
+            ) : (
+              <Link
+                href="/dashboard/coaches/settings"
+                className="text-xs bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+              >
+                Set Up
+              </Link>
+            )}
           </div>
         </div>
       </main>
