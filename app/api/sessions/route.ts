@@ -11,8 +11,11 @@ export async function POST(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
+    console.log('Video session auth check:', { hasUser: !!user, authError: authError?.message });
+    
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('Unauthorized - auth error:', authError, 'user:', user);
+      return NextResponse.json({ error: 'Unauthorized - please sign in again' }, { status: 401 });
     }
     
     const body = await request.json();
