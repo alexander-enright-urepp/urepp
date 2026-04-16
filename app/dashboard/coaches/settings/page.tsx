@@ -44,9 +44,12 @@ export default function CoachSettingsPage() {
   useEffect(() => {
     const success = searchParams?.get('success');
     const error = searchParams?.get('error');
+    const debug = searchParams?.get('debug');
     
     if (success === 'connected') {
       setMessage({ type: 'success', text: 'Calendly connected successfully!' });
+      // Refresh connection status
+      checkConnectionStatus();
     } else if (error) {
       const errorMessages: Record<string, string> = {
         oauth_denied: 'Connection was cancelled.',
@@ -58,9 +61,40 @@ export default function CoachSettingsPage() {
         no_profile: 'Profile not found.',
         unknown: 'An unexpected error occurred.',
       };
-      setMessage({ type: 'error', text: errorMessages[error] || 'Connection failed.' });
+      let errorText = errorMessages[error] || 'Connection failed.';
+      if (debug) {
+        errorText += ` (Debug: ${decodeURIComponent(debug)})`;
+      }
+      setMessage({ type: 'error', text: errorText });
     }
   }, [searchParams]);
+
+  // Check connection status function
+  const checkConnectionStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, calendly_link, is_coaching_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+        setCalendlyUrl(profileData.calendly_link || '');
+        setIsEnabled(profileData.is_coaching_enabled || false);
+        
+        // Check if user has connected Calendly OAuth
+        const { data: tokenData } = await supabase
+          .from('calendly_tokens')
+          .select('id')
+          .eq('profile_id', profileData.id)
+          .maybeSingle();
+        
+        setIsConnected(!!tokenData);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -178,9 +212,13 @@ export default function CoachSettingsPage() {
                 onClick={async () => {
                   // Disconnect - delete tokens
                   if (!profile) return;
-                  await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
-                  setIsConnected(false);
-                  setMessage({ type: 'success', text: 'Calendly disconnected' });
+                  const { error } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
+                  if (error) {
+                    setMessage({ type: 'error', text: 'Failed to disconnect. Please try again.' });
+                  } else {
+                    setIsConnected(false);
+                    setMessage({ type: 'success', text: 'Calendly disconnected' });
+                  }
                 }}
                 className="text-xs text-red-600 hover:text-red-700 font-medium"
               >
