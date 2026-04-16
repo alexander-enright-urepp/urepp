@@ -274,6 +274,9 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-6 space-y-4">
+        {/* Upcoming Sessions - Athlete View */}
+        <AthleteSessions />
+
         {/* Profile Card */}
         {profile ? (
           <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 overflow-hidden">
@@ -570,6 +573,121 @@ function SettingsButton({ onClick, icon, label, danger }: { onClick: () => void,
         <span className={`font-medium ${danger ? 'text-red-600' : 'text-gray-700'}`}>{label}</span>
       </div>
     </button>
+  )
+}
+
+// Component: Athlete Sessions (shows bookings where user is the athlete)
+function AthleteSessions() {
+  const [sessions, setSessions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      // Get user's profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profile) {
+        setLoading(false)
+        return
+      }
+
+      // Fetch appointments where user is the athlete (by ID or email)
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          coach_id,
+          event_type_name,
+          start_time,
+          end_time,
+          status,
+          athlete_name,
+          profiles!appointments_coach_id_fkey(first_name, last_name, calendly_link)
+        `)
+        .or(`athlete_id.eq.${profile.id},athlete_email.eq.${profile.email}`)
+        .gte('start_time', new Date().toISOString())
+        .order('start_time', { ascending: true })
+        .limit(5)
+
+      setSessions(appointments || [])
+      setLoading(false)
+    }
+
+    fetchSessions()
+  }, [])
+
+  if (loading) return null
+  if (sessions.length === 0) return null
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-babyblue-100 flex items-center justify-center">
+          <Video className="w-5 h-5 text-babyblue-600" />
+        </div>
+        <div>
+          <h2 className="font-semibold text-gray-900">My Sessions</h2>
+          <p className="text-xs text-gray-500">{sessions.length} upcoming</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {sessions.map((appt: any) => (
+          <div key={appt.id} className="p-3 bg-gray-50 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-12 h-12 bg-babyblue-100 rounded-lg flex flex-col items-center justify-center">
+                <span className="text-xs font-medium text-babyblue-600">
+                  {formatDate(appt.start_time).split(' ')[0]}
+                </span>
+                <span className="text-sm font-bold text-babyblue-600">
+                  {formatDate(appt.start_time).split(' ')[1]}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 truncate">
+                  Coach {appt.profiles?.first_name} {appt.profiles?.last_name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatTime(appt.start_time)} · {appt.event_type_name}
+                </p>
+              </div>
+              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                appt.status === 'scheduled' ? 'bg-green-500' : 'bg-gray-400'
+              }`} />
+            </div>
+            
+            <button
+              onClick={() => router.push(`/dashboard/coaches`)}
+              className="w-full mt-3 bg-babyblue-500 hover:bg-babyblue-600 text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
+            >
+              <Video className="w-3 h-3" />
+              Join Call
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

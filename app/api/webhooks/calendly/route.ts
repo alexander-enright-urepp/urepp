@@ -1,20 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
-
-// Calendly webhook handler - uses service role key since Calendly has no auth cookies
 
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     
-    console.log('=== CALENDLY WEBHOOK RECEIVED ===');
-    console.log('Event type:', payload.event);
-    console.log('Full payload:', JSON.stringify(payload, null, 2));
+    console.log('=== CALENDLY WEBHOOK ===');
+    console.log('Event:', payload.event);
     
-    // Use service role client for webhook
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -24,52 +19,54 @@ export async function POST(request: NextRequest) {
     const data = payload.payload;
     
     if (!data?.event || !data?.invitee) {
-      console.error('Missing event or invitee in payload');
       return NextResponse.json({ error: 'Missing data' }, { status: 400 });
     }
     
     const event = data.event;
     const invitee = data.invitee;
     
-    // Extract info
+    // Extract scheduling URL to find coach
     const schedulingUrl = invitee.scheduling_url || '';
-    console.log('Scheduling URL:', schedulingUrl);
-    
-    // Extract Calendly username from URL
-    let calendlyUsername = '';
     const match = schedulingUrl.match(/calendly\.com\/([^\/]+)/);
-    if (match) {
-      calendlyUsername = match[1].toLowerCase();
-      console.log('Username:', calendlyUsername);
-    }
+    const calendlyUsername = match ? match[1].toLowerCase() : '';
     
-    // Find matching coach
+    // Find coach
     const { data: coaches } = await supabase
       .from('profiles')
       .select('id, calendly_link')
       .not('calendly_link', 'is', null);
     
     let coachId: string | null = null;
-    
     for (const coach of coaches || []) {
-      const coachUrl = (coach.calendly_link || '').toLowerCase();
-      if (coachUrl.includes(calendlyUsername)) {
+      if ((coach.calendly_link || '').toLowerCase().includes(calendlyUsername)) {
         coachId = coach.id;
-        console.log('Matched coach:', coachId);
         break;
       }
     }
     
     if (!coachId) {
-      console.log('No matching coach found for:', calendlyUsername);
       return NextResponse.json({ message: 'Coach not found' });
     }
     
-    // Save appointment
+    // Find athlete by email
+    let athleteId: string | null = null;
+    const { data: athleteProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', invitee.email)
+      .maybeSingle();
+    
+    if (athleteProfile) {
+      athleteId = athleteProfile.id;
+      console.log('Found athlete:', athleteId);
+    }
+    
+    // Save appointment with both IDs
     const { error } = await supabase
       .from('appointments')
       .upsert({
         coach_id: coachId,
+        athlete_id: athleteId,  // NULL if athlete not in system yet
         calendly_event_id: event.uuid,
         calendly_invitee_id: invitee.uuid,
         event_type_name: event.name,
@@ -88,8 +85,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'DB error' }, { status: 500 });
     }
     
-    console.log('Appointment saved');
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, athleteLinked: !!athleteId });
     
   } catch (error) {
     console.error('Webhook error:', error);
