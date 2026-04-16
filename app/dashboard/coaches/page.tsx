@@ -41,6 +41,7 @@ interface Appointment {
   status: string;
   athlete_name: string;
   athlete_email: string;
+  is_coach?: boolean;
 }
 
 export default function CoachesPage() {
@@ -68,20 +69,20 @@ export default function CoachesPage() {
   const handleDeleteAppointment = async (apptId: string) => {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('booked_sessions')
         .delete()
         .eq('id', apptId);
       
       if (error) {
         console.error('Delete error:', error);
-        alert('Failed to delete appointment');
+        alert('Failed to delete session');
       } else {
         setAppointments(prev => prev.filter(a => a.id !== apptId));
         setMenuOpen(null);
       }
     } catch (err) {
       console.error('Delete failed:', err);
-      alert('Failed to delete appointment');
+      alert('Failed to delete session');
     }
   };
 
@@ -116,34 +117,25 @@ export default function CoachesPage() {
           setProfile(prev => prev ? { ...prev, is_coaching_enabled: true } : prev);
         }
         
-        // Fetch booked_sessions where user is either coach OR athlete
-        const { data: sessionsData } = await supabase
+        // Fetch ALL booked_sessions for this user (simple query first)
+        const { data: sessionsData, error: sessionsError } = await supabase
           .from('booked_sessions')
-          .select(`
-            *,
-            coach:profiles!booked_sessions_coach_id_fkey(
-              first_name,
-              last_name,
-              profile_picture_url,
-              username
-            )
-          `)
+          .select('*')
           .or(`coach_id.eq.${profileData.id},athlete_id.eq.${profileData.id}`)
-          .gte('session_date', new Date().toISOString().split('T')[0])
-          .order('session_date', { ascending: true })
-          .limit(20);
+          .order('session_date', { ascending: true });
         
-        console.log('Dashboard sessions:', {
-          userProfileId: profileData.id,
-          sessionsFound: sessionsData?.length || 0,
-          sessionsData: sessionsData
+        console.log('Dashboard query debug:', {
+          profileId: profileData.id,
+          sessionsCount: sessionsData?.length,
+          error: sessionsError?.message,
+          data: sessionsData
         });
         
         // Format sessions
         const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => ({
           id: s.id,
           calendly_event_id: '',
-          event_type_name: s.coach ? `Session with ${s.coach.first_name} ${s.coach.last_name}` : 'Coaching Session',
+          event_type_name: 'Coaching Session',
           start_time: `${s.session_date}T${s.start_time}`,
           end_time: `${s.session_date}T${s.end_time}`,
           status: s.status,
