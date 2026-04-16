@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -17,9 +17,11 @@ import {
   ChevronRight,
   User,
   Video,
-  Clock
+  Clock,
+  X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import VideoCall from '@/components/VideoCall';
 
 interface Profile {
   id: string;
@@ -46,6 +48,8 @@ export default function CoachesPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCall, setActiveCall] = useState<{roomUrl: string; athleteName: string} | null>(null);
+  const [startingCall, setStartingCall] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -202,14 +206,44 @@ export default function CoachesPage() {
                       Message
                     </Link>
                     <button
-                      onClick={() => {
-                        // TODO: Start video call
-                        alert('Video call feature coming soon!');
+                      onClick={async () => {
+                        setStartingCall(appt.id);
+                        try {
+                          const response = await fetch('/api/sessions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              appointmentId: appt.id,
+                              athleteName: appt.athlete_name,
+                              coachName: `${profile?.first_name} ${profile?.last_name}`,
+                            }),
+                          });
+                          
+                          const data = await response.json();
+                          
+                          if (response.ok) {
+                            setActiveCall({
+                              roomUrl: data.roomUrl,
+                              athleteName: appt.athlete_name,
+                            });
+                          } else {
+                            alert('Failed to start video call: ' + data.error);
+                          }
+                        } catch (error) {
+                          console.error('Error starting call:', error);
+                          alert('Failed to start video call');
+                        } finally {
+                          setStartingCall(null);
+                        }
                       }}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                      disabled={startingCall === appt.id}
+                      className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
                     >
-                      <Video className="w-3 h-3" />
-                      Video Call
+                      {startingCall === appt.id ? (
+                        <><Loader2 className="w-3 h-3 animate-spin" /> Starting...</>
+                      ) : (
+                        <><Video className="w-3 h-3" /> Video Call</>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -297,6 +331,25 @@ export default function CoachesPage() {
           </Link>
         </div>
       </nav>
+
+      {/* Video Call Modal */}
+      {activeCall && (
+        <div className="fixed inset-0 z-[100]">
+          <div className="absolute top-4 right-4 z-[110]">
+            <button
+              onClick={() => setActiveCall(null)}
+              className="bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <VideoCall
+            roomUrl={activeCall.roomUrl}
+            userName={`${profile?.first_name} ${profile?.last_name}`}
+            onLeave={() => setActiveCall(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
