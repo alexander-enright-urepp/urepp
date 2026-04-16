@@ -42,6 +42,11 @@ export default function CoachSettingsPage() {
   
   // Track manual disconnect to prevent re-fetch
   const manuallyDisconnected = useRef(false);
+  
+  // Debug: log isConnected changes
+  useEffect(() => {
+    console.log('isConnected changed to:', isConnected);
+  }, [isConnected]);
 
   // Handle OAuth callback messages
   useEffect(() => {
@@ -289,6 +294,7 @@ export default function CoachSettingsPage() {
                     }
                     
                     console.log('Disconnect successful, updating UI state');
+                    console.log('Setting isConnected to FALSE, was:', isConnected);
                     
                     // Update local state
                     manuallyDisconnected.current = true;
@@ -297,6 +303,12 @@ export default function CoachSettingsPage() {
                     setCalendlyUrl('');
                     setProfile(prev => prev ? { ...prev, calendly_link: undefined, is_coaching_enabled: false } : null);
                     setMessage({ type: 'success', text: 'Calendly disconnected successfully' });
+                    
+                    // Verify state was updated
+                    setTimeout(() => {
+                      console.log('After disconnect - isConnected state:', isConnected);
+                      console.log('After disconnect - manuallyDisconnected:', manuallyDisconnected.current);
+                    }, 100);
                     
                   } catch (err) {
                     console.error('Disconnect error:', err);
