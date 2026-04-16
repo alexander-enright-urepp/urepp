@@ -259,7 +259,16 @@ export default function CoachSettingsPage() {
                   setSaving(true);
                   setMessage({ type: 'success', text: 'Syncing bookings...' });
                   try {
-                    const res = await fetch('/api/calendly/sync', { method: 'POST' });
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) {
+                      setMessage({ type: 'error', text: 'Not signed in' });
+                      setSaving(false);
+                      return;
+                    }
+                    const res = await fetch('/api/calendly/sync', { 
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${session.access_token}` }
+                    });
                     const data = await res.json();
                     if (res.ok) {
                       setMessage({ type: 'success', text: `Synced ${data.count || 0} bookings` });
