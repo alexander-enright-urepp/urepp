@@ -450,15 +450,14 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
               )}
             </div>
 
-            {/* Book Session Button - Only for Coaches with Calendly */}
-            {(profile.role === 'coach' || profile.role === 'mental_performance_coach') && profile.calendly_link && (
+            {/* Book Session Button - For Coaches and Athletes with Calendly */}
+            {profile.calendly_link && (
               <Link 
                 href={`/coaches/${profile.id}/book`}
-                className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-medium transition-all shadow-md"
+                className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-6 py-3 rounded-xl font-medium transition-all shadow-md"
               >
                 <Calendar className="w-5 h-5" />
-                Book Mental Performance Session
-                <Crown className="w-4 h-4 opacity-80" />
+                Book Session
               </Link>
             )}
           </div>
