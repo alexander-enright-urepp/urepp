@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Force dynamic rendering for OAuth callback
+export const dynamic = 'force-dynamic';
+
 // Handle Calendly OAuth callback
 export async function GET(request: NextRequest) {
   try {
