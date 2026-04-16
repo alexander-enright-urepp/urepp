@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS calendly_tokens (
   refresh_token TEXT,
   expires_at TIMESTAMPTZ,
   scope TEXT,
+  webhook_id TEXT, -- Calendly webhook subscription URI
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(profile_id)

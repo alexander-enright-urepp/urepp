@@ -148,10 +148,14 @@ export async function GET(request: NextRequest) {
       },
     });
     
+    let calendlyUserUri: string | null = null;
+    let calendlyUserData: any = null;
+    
     if (userResponse.ok) {
-      const userData = await userResponse.json();
-      console.log('Calendly user data:', JSON.stringify(userData, null, 2));
-      const schedulingUrl = userData.resource?.scheduling_url;
+      calendlyUserData = await userResponse.json();
+      console.log('Calendly user data:', JSON.stringify(calendlyUserData, null, 2));
+      calendlyUserUri = calendlyUserData.resource?.uri;
+      const schedulingUrl = calendlyUserData.resource?.scheduling_url;
       
       if (schedulingUrl) {
         console.log('Updating profile with scheduling URL:', schedulingUrl);
@@ -165,6 +169,49 @@ export async function GET(request: NextRequest) {
       }
     } else {
       console.error('Failed to fetch Calendly user:', await userResponse.text());
+    }
+    
+    // Register webhook for automatic booking sync
+    if (calendlyUserUri && calendlyUserData?.resource?.current_organization) {
+      console.log('Registering Calendly webhook...');
+      try {
+        const organizationUri = calendlyUserData.resource.current_organization;
+        const webhookUrl = `${appUrl}/api/webhooks/calendly`;
+        const webhookRes = await fetch('https://api.calendly.com/webhook_subscriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            url: webhookUrl,
+            events: ['invitee.created', 'invitee.canceled', 'invitee.no_show'],
+            organization: organizationUri,
+            user: calendlyUserUri,
+            signing_key: process.env.CALENDLY_WEBHOOK_SIGNING_KEY || 'urepp-webhook-secret',
+          }),
+        });
+        
+        if (webhookRes.ok) {
+          const webhookData = await webhookRes.json();
+          console.log('Webhook registered:', webhookData.resource?.uri);
+          
+          // Store webhook ID in calendly_tokens
+          await supabase
+            .from('calendly_tokens')
+            .update({
+              webhook_id: webhookData.resource?.uri,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('profile_id', profile.id);
+        } else {
+          console.error('Webhook registration failed:', await webhookRes.text());
+        }
+      } catch (webhookError) {
+        console.error('Webhook registration error:', webhookError);
+      }
+    } else {
+      console.log('Skipping webhook registration - missing organization or user URI');
     }
     
     console.log('Redirecting to success');

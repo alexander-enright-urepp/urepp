@@ -224,6 +224,58 @@ export default function CoachSettingsPage() {
               >
                 Disconnect
               </button>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  setMessage({ type: 'success', text: 'Checking webhook...' });
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) {
+                      setMessage({ type: 'error', text: 'Not signed in' });
+                      setSaving(false);
+                      return;
+                    }
+                    const res = await fetch('/api/calendly/webhooks', {
+                      headers: { 'Authorization': `Bearer ${session.access_token}` }
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setMessage({ type: 'success', text: `Webhook ${data.status}: ${data.webhook?.uri || 'OK'}` });
+                    } else {
+                      setMessage({ type: 'error', text: data.error || 'Webhook check failed' });
+                    }
+                  } catch (err) {
+                    setMessage({ type: 'error', text: 'Webhook check failed' });
+                  }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="text-xs bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-3 py-1 rounded-lg font-medium"
+              >
+                Check Webhook
+              </button>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  setMessage({ type: 'success', text: 'Syncing bookings...' });
+                  try {
+                    const res = await fetch('/api/calendly/sync', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setMessage({ type: 'success', text: `Synced ${data.count || 0} bookings` });
+                    } else {
+                      setMessage({ type: 'error', text: data.error || 'Sync failed' });
+                    }
+                  } catch (err) {
+                    setMessage({ type: 'error', text: 'Sync failed' });
+                  }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="text-xs bg-[#51b5ff] hover:bg-[#3da8f0] disabled:bg-gray-300 text-white px-3 py-1 rounded-lg font-medium"
+              >
+                {saving ? 'Syncing...' : 'Sync Bookings'}
+              </button>
             </div>
           ) : (
             <button
