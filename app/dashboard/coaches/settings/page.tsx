@@ -50,14 +50,19 @@ export default function CoachSettingsPage() {
 
   // Handle OAuth callback messages
   useEffect(() => {
+    console.log('OAuth callback useEffect running, searchParams:', searchParams?.toString());
     const success = searchParams?.get('success');
     const error = searchParams?.get('error');
     const debug = searchParams?.get('debug');
     
+    console.log('URL params:', { success, error, debug });
+    
     if (success === 'connected') {
+      console.log('OAuth callback detected: success=connected');
       setMessage({ type: 'success', text: 'Calendly connected successfully!' });
       // Reset manual disconnect flag
       manuallyDisconnected.current = false;
+      console.log('Calling checkConnectionStatus from OAuth callback');
       checkConnectionStatus();
     } else if (error) {
       const errorMessages: Record<string, string> = {
@@ -80,6 +85,8 @@ export default function CoachSettingsPage() {
 
   // Check connection status function
   const checkConnectionStatus = async () => {
+    console.log('checkConnectionStatus CALLED - manuallyDisconnected:', manuallyDisconnected.current);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profileData } = await supabase
@@ -100,6 +107,7 @@ export default function CoachSettingsPage() {
           .eq('profile_id', profileData.id)
           .maybeSingle();
         
+        console.log('checkConnectionStatus - tokenData found:', !!tokenData, 'Setting isConnected to:', !!tokenData);
         setIsConnected(!!tokenData);
       }
     }
