@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Calendar, 
@@ -30,6 +30,7 @@ interface Profile {
 
 export default function CoachSettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [profile, setProfile] = useState<Profile | null>(null);
   const [calendlyUrl, setCalendlyUrl] = useState('');
@@ -39,12 +40,68 @@ export default function CoachSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const success = searchParams?.get('success');
+    const error = searchParams?.get('error');
+    const debug = searchParams?.get('debug');
+    
+    if (success === 'connected') {
+      setMessage({ type: 'success', text: 'Calendly connected successfully!' });
+      // Refresh connection status
+      checkConnectionStatus();
+    } else if (error) {
+      const errorMessages: Record<string, string> = {
+        oauth_denied: 'Connection was cancelled.',
+        no_code: 'Authorization failed. Please try again.',
+        not_configured: 'Calendly is not properly configured.',
+        token_exchange: 'Failed to complete connection. Please try again.',
+        storage: 'Failed to save connection. Please try again.',
+        no_user: 'Session expired. Please sign in again.',
+        no_profile: 'Profile not found.',
+        unknown: 'An unexpected error occurred.',
+      };
+      let errorText = errorMessages[error] || 'Connection failed.';
+      if (debug) {
+        errorText += ` (Debug: ${decodeURIComponent(debug)})`;
+      }
+      setMessage({ type: 'error', text: errorText });
+    }
+  }, [searchParams]);
+
+  // Check connection status function
+  const checkConnectionStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, calendly_link, is_coaching_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData as Profile);
+        setCalendlyUrl(profileData.calendly_link || '');
+        setIsEnabled(profileData.is_coaching_enabled || false);
+        
+        // Check if user has connected Calendly OAuth
+        const { data: tokenData } = await supabase
+          .from('calendly_tokens')
+          .select('id')
+          .eq('profile_id', profileData.id)
+          .maybeSingle();
+        
+        setIsConnected(!!tokenData);
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        router.push('/login');
+        router.push('/login?redirect=/dashboard/coaches/settings');
         return;
       }
 
@@ -155,9 +212,13 @@ export default function CoachSettingsPage() {
                 onClick={async () => {
                   // Disconnect - delete tokens
                   if (!profile) return;
-                  await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
-                  setIsConnected(false);
-                  setMessage({ type: 'success', text: 'Calendly disconnected' });
+                  const { error } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
+                  if (error) {
+                    setMessage({ type: 'error', text: 'Failed to disconnect. Please try again.' });
+                  } else {
+                    setIsConnected(false);
+                    setMessage({ type: 'success', text: 'Calendly disconnected' });
+                  }
                 }}
                 className="text-xs text-red-600 hover:text-red-700 font-medium"
               >
@@ -169,7 +230,20 @@ export default function CoachSettingsPage() {
               onClick={async () => {
                 try {
                   console.log('Starting Calendly OAuth...');
-                  const res = await fetch('/api/auth/calendly');
+                  // Get session and send token in Authorization header
+                  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                  console.log('Session result:', { hasSession: !!session, hasToken: !!session?.access_token, error: sessionError });
+                  
+                  if (!session?.access_token) {
+                    setMessage({ type: 'error', text: 'Not signed in. Please sign in first.' });
+                    return;
+                  }
+                  
+                  const res = await fetch('/api/auth/calendly', {
+                    headers: {
+                      'Authorization': `Bearer ${session.access_token}`
+                    }
+                  });
                   console.log('Response status:', res.status);
                   const data = await res.json();
                   console.log('Response data:', data);

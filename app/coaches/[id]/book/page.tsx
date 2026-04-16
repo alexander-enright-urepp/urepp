@@ -218,6 +218,14 @@ export default function BookCoachPage({ params }: { params: { id: string } }) {
       {/* Calendly Embed */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center justify-between">
+            <p className="text-sm text-blue-700">
+              After booking, you'll be redirected to your dashboard
+            </p>
+            <Link href="/dashboard/coaches" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              Skip to Dashboard →
+            </Link>
+          </div>
           <CalendlyEmbed 
             calendlyUrl={coach.calendly_link!}
             coachName={`${coach.first_name} ${coach.last_name}`}

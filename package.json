@@ -20,7 +20,6 @@
     "@capacitor/splash-screen": "^5.0.8",
     "@capacitor/status-bar": "^5.0.8",
     "@daily-co/daily-js": "^0.89.1",
-    "@daily-co/daily-react": "^0.24.0",
     "@stripe/stripe-js": "^9.0.1",
     "@supabase/auth-helpers-nextjs": "^0.8.0",
     "@supabase/supabase-js": "^2.39.0",

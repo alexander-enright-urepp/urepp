@@ -2,6 +2,9 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Calendly webhook handler
 // This endpoint receives booking events from Calendly
 
@@ -12,7 +15,8 @@ export async function POST(request: NextRequest) {
     // Log the payload for debugging
     console.log('Calendly webhook received:', JSON.stringify(payload, null, 2));
     
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
     // Extract event data based on Calendly webhook structure
     const eventType = payload.event; // invitee.created, invitee.canceled, etc.

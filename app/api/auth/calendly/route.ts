@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 // Initiate Calendly OAuth flow
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Get auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+    const accessToken = authHeader?.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : null;
     
     // Check environment variables first
     const clientId = process.env.CALENDLY_CLIENT_ID;
@@ -16,6 +22,30 @@ export async function GET(request: NextRequest) {
         error: 'Server configuration error: CALENDLY_CLIENT_ID not set' 
       }, { status: 500 });
     }
+    
+    if (!accessToken) {
+      console.error('No access token provided in Authorization header');
+      return NextResponse.json({ 
+        error: 'Authentication error: Auth session missing!' 
+      }, { status: 401 });
+    }
+    
+    // Create Supabase client with auth token
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+        global: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      }
+    );
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -28,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (!user) {
-      console.error('No user session found');
+      console.error('No user found with provided token');
       return NextResponse.json({ 
         error: 'Unauthorized: Please sign in again' 
       }, { status: 401 });
