@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -39,6 +39,9 @@ export default function CoachSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Track manual disconnect to prevent re-fetch
+  const manuallyDisconnected = useRef(false);
 
   // Handle OAuth callback messages
   useEffect(() => {
@@ -48,7 +51,8 @@ export default function CoachSettingsPage() {
     
     if (success === 'connected') {
       setMessage({ type: 'success', text: 'Calendly connected successfully!' });
-      // Refresh connection status
+      // Reset manual disconnect flag
+      manuallyDisconnected.current = false;
       checkConnectionStatus();
     } else if (error) {
       const errorMessages: Record<string, string> = {
@@ -129,8 +133,11 @@ export default function CoachSettingsPage() {
       setLoading(false);
     };
 
-    fetchProfile();
-  }, [router]);
+    // Only fetch if not manually disconnected
+    if (!manuallyDisconnected.current) {
+      fetchProfile();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   const validateCalendlyUrl = (url: string): boolean => {
     if (!url) return true;
@@ -239,7 +246,8 @@ export default function CoachSettingsPage() {
                       return;
                     }
                     
-                    // Update local state - NO page reload
+                    // Update local state - set disconnect flag
+                    manuallyDisconnected.current = true;
                     setIsConnected(false);
                     setIsEnabled(false);
                     setCalendlyUrl('');
