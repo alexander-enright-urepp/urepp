@@ -27,7 +27,6 @@ interface TimeSlot {
 }
 
 export default function BookSessionPage({ params }: { params: { id: string } }) {
-  const supabase = createClientComponentClient();
   const router = useRouter();
   
   const [coach, setCoach] = useState<Profile | null>(null);
