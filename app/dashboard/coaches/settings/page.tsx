@@ -214,32 +214,49 @@ export default function CoachSettingsPage() {
                   if (!profile) return;
                   setSaving(true);
                   
-                  // Delete tokens
-                  const { error: tokenError } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
-                  
-                  // Also update profile to disable coaching
-                  const { error: profileError } = await supabase.from('profiles').update({
-                    is_coaching_enabled: false,
-                    calendly_link: null,
-                    updated_at: new Date().toISOString()
-                  }).eq('id', profile.id);
-                  
-                  if (tokenError || profileError) {
-                    setMessage({ type: 'error', text: 'Failed to disconnect. Please try again.' });
-                  } else {
+                  try {
+                    // Delete tokens first
+                    const { error: tokenError } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
+                    
+                    if (tokenError) {
+                      console.error('Token delete error:', tokenError);
+                      setMessage({ type: 'error', text: 'Failed to disconnect tokens.' });
+                      setSaving(false);
+                      return;
+                    }
+                    
+                    // Update profile to disable coaching
+                    const { error: profileError } = await supabase.from('profiles').update({
+                      is_coaching_enabled: false,
+                      calendly_link: null,
+                      updated_at: new Date().toISOString()
+                    }).eq('id', profile.id);
+                    
+                    if (profileError) {
+                      console.error('Profile update error:', profileError);
+                      setMessage({ type: 'error', text: 'Failed to update profile.' });
+                      setSaving(false);
+                      return;
+                    }
+                    
+                    // Update local state - NO page reload
                     setIsConnected(false);
                     setIsEnabled(false);
                     setCalendlyUrl('');
-                    setMessage({ type: 'success', text: 'Calendly disconnected' });
-                    // Force page reload to clear state
-                    window.location.reload();
+                    setProfile(prev => prev ? { ...prev, calendly_link: undefined, is_coaching_enabled: false } : null);
+                    setMessage({ type: 'success', text: 'Calendly disconnected successfully' });
+                    
+                  } catch (err) {
+                    console.error('Disconnect error:', err);
+                    setMessage({ type: 'error', text: 'Disconnect failed. Please try again.' });
                   }
+                  
                   setSaving(false);
                 }}
                 disabled={saving}
                 className="text-xs text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
               >
-                Disconnect
+                {saving ? 'Disconnecting...' : 'Disconnect'}
               </button>
               <button
                 onClick={async () => {
