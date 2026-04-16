@@ -602,26 +602,62 @@ function AthleteSessions() {
         return
       }
 
-      // Fetch appointments where user is the athlete (by ID or email)
-      const { data: appointments } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          coach_id,
-          event_type_name,
-          start_time,
-          end_time,
-          status,
-          athlete_name,
-          profiles!appointments_coach_id_fkey(first_name, last_name, calendly_link)
-        `)
-        .or(`athlete_id.eq.${profile.id},athlete_email.eq.${profile.email}`)
-        .gte('start_time', new Date().toISOString())
-        .order('start_time', { ascending: true })
-        .limit(5)
+      // Fetch from BOTH appointments AND booked_sessions tables
+      const [{ data: appointments }, { data: sessions }] = await Promise.all([
+        // Legacy Calendly appointments
+        supabase
+          .from('appointments')
+          .select(`
+            id,
+            coach_id,
+            event_type_name,
+            start_time,
+            end_time,
+            status,
+            athlete_name,
+            profiles!appointments_coach_id_fkey(first_name, last_name)
+          `)
+          .or(`athlete_id.eq.${profile.id},athlete_email.eq.${profile.email}`)
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true }),
+        // Native booked sessions
+        supabase
+          .from('booked_sessions')
+          .select(`
+            id,
+            coach_id,
+            session_date,
+            start_time,
+            end_time,
+            status,
+            athlete_name,
+            profiles!booked_sessions_coach_id_fkey(first_name, last_name)
+          `)
+          .or(`athlete_id.eq.${profile.id},athlete_email.eq.${profile.email}`)
+          .gte('session_date', new Date().toISOString().split('T')[0])
+          .order('session_date', { ascending: true })
+      ]);
 
-      setSessions(appointments || [])
-      setLoading(false)
+      // Combine and format both types
+      const combined = [
+        ...(appointments || []).map((a: any) => ({
+          ...a,
+          source: 'calendly',
+          display_date: a.start_time,
+          coach_name: a.profiles?.first_name + ' ' + a.profiles?.last_name
+        })),
+        ...(sessions || []).map((s: any) => ({
+          ...s,
+          event_type_name: 'Coaching Session',
+          source: 'native',
+          display_date: `${s.session_date}T${s.start_time}`,
+          start_time: `${s.session_date}T${s.start_time}`,
+          end_time: `${s.session_date}T${s.end_time}`,
+          coach_name: s.profiles?.first_name + ' ' + s.profiles?.last_name
+        }))
+      ].sort((a: any, b: any) => new Date(a.display_date).getTime() - new Date(b.display_date).getTime());
+
+      setSessions(combined.slice(0, 5))
     }
 
     fetchSessions()
@@ -666,7 +702,7 @@ function AthleteSessions() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 truncate">
-                  Coach {appt.profiles?.first_name} {appt.profiles?.last_name}
+                  Coach {appt.coach_name || `${appt.profiles?.first_name} ${appt.profiles?.last_name}`}
                 </p>
                 <p className="text-xs text-gray-500">
                   {formatTime(appt.start_time)} · {appt.event_type_name}

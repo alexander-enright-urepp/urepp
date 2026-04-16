@@ -24,6 +24,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   
   const [coach, setCoach] = useState<Profile | null>(null);
+  const [athleteProfile, setAthleteProfile] = useState<{ id: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -58,6 +59,18 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         .single();
       
       if (data) setCoach(data);
+      
+      // Get current athlete's profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: athleteData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        if (athleteData) setAthleteProfile(athleteData);
+      }
+      
       setLoading(false);
     };
     fetchCoach();
@@ -98,6 +111,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       .from('booked_sessions')
       .insert({
         coach_id: params.id,
+        athlete_id: athleteProfile?.id || null,
         athlete_email: email,
         athlete_name: name,
         session_date: selectedDate,
