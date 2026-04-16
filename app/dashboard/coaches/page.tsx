@@ -379,7 +379,7 @@ export default function CoachesPage() {
           </Link>
         </div>
 
-        // Calendly Status
+        // Accept Bookings Status
         <div className={`rounded-2xl shadow-lg shadow-babyblue-200/50 border p-4 ${
           profile?.is_coaching_enabled 
             ? 'bg-green-50 border-green-200' 
@@ -396,26 +396,26 @@ export default function CoachesPage() {
               </div>
               <div>
                 <p className="font-medium text-gray-900">
-                  {profile?.is_coaching_enabled ? 'Accepting Bookings' : 'Not Set Up'}
+                  {profile?.is_coaching_enabled ? 'Accepting Bookings' : 'Not Accepting Bookings'}
                 </p>
                 <p className="text-xs text-gray-500">
                   {profile?.is_coaching_enabled 
-                    ? 'Your Calendly is connected' 
-                    : 'Connect Calendly to start'}
+                    ? 'Athletes can book sessions with you' 
+                    : 'Enable to allow bookings'}
                 </p>
               </div>
             </div>
             {profile?.is_coaching_enabled ? (
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">Connected</span>
+                <span className="text-xs text-green-600 font-medium">Active</span>
               </div>
             ) : (
               <Link
                 href="/dashboard/coaches/settings"
                 className="text-xs bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
-                Set Up
+                Enable
               </Link>
             )}
           </div>
