@@ -69,10 +69,11 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       
       // Get current athlete's profile with full details
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        setError('Please sign in to book a session');
+        // Not signed in - show login prompt instead of error
         setLoading(false);
-        return;
+        return; // Will show sign-in UI
       }
 
       const { data: athleteData } = await supabase
@@ -154,11 +155,39 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     );
   }
 
+  // Not signed in - show sign in prompt
+  if (!athleteProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Sign In Required</h2>
+          <p className="text-gray-600 mb-6">
+            Please sign in to book a session with {coach?.first_name || 'this coach'}.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link 
+              href={`/login?redirect=/coaches/${params.id}/book-native`}
+              className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium"
+            >
+              Sign In to Book
+            </Link>
+            <Link 
+              href={`/players/${coach?.username || ''}`}
+              className="inline-block text-gray-500 hover:text-gray-700 px-6 py-3"
+            >
+              Go Back
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <p className="text-gray-900 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">{error}</p>
           <Link 
             href="/login"
             className="inline-block bg-blue-500 text-white px-6 py-3 rounded-xl font-medium"
