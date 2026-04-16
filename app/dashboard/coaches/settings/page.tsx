@@ -169,7 +169,13 @@ export default function CoachSettingsPage() {
               onClick={async () => {
                 try {
                   console.log('Starting Calendly OAuth...');
-                  const res = await fetch('/api/auth/calendly');
+                  // Get session and send token in Authorization header
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const res = await fetch('/api/auth/calendly', {
+                    headers: {
+                      'Authorization': session?.access_token ? `Bearer ${session.access_token}` : ''
+                    }
+                  });
                   console.log('Response status:', res.status);
                   const data = await res.json();
                   console.log('Response data:', data);

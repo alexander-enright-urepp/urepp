@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 
 // Initiate Calendly OAuth flow
 export async function GET(request: NextRequest) {
   try {
-    // Get cookies manually for Supabase auth
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('sb-access-token')?.value;
-    const refreshToken = cookieStore.get('sb-refresh-token')?.value;
+    // Get auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+    const accessToken = authHeader?.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : null;
     
     // Check environment variables first
     const clientId = process.env.CALENDLY_CLIENT_ID;
@@ -18,6 +18,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         error: 'Server configuration error: CALENDLY_CLIENT_ID not set' 
       }, { status: 500 });
+    }
+    
+    if (!accessToken) {
+      console.error('No access token provided in Authorization header');
+      return NextResponse.json({ 
+        error: 'Authentication error: Auth session missing!' 
+      }, { status: 401 });
     }
     
     // Create Supabase client with auth token
@@ -30,15 +37,15 @@ export async function GET(request: NextRequest) {
           persistSession: false,
         },
         global: {
-          headers: accessToken ? {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
-          } : {},
+          },
         },
       }
     );
     
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError) {
       console.error('Auth error:', authError);
@@ -48,10 +55,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (!user) {
-      console.error('No user session found. Cookies:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-      });
+      console.error('No user found with provided token');
       return NextResponse.json({ 
         error: 'Unauthorized: Please sign in again' 
       }, { status: 401 });

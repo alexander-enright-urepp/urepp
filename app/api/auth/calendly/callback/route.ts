@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 
 // Handle Calendly OAuth callback
 export async function GET(request: NextRequest) {
@@ -10,7 +9,7 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
     const state = searchParams.get('state');
     
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     
     if (error) {
       console.error('Calendly OAuth error:', error);
@@ -51,20 +50,32 @@ export async function GET(request: NextRequest) {
     
     const tokenData = await tokenResponse.json();
     
-    // Get user from state
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () =>> cookieStore });
-    const { data: { user } } = await supabase.auth.getUser();
+    // Create Supabase admin client (no user session needed for token storage)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
     
-    if (!user) {
-      return NextResponse.redirect(`${appUrl}/login?redirect=/dashboard/coaches/settings`);
+    // Decode state to get user ID
+    let userId: string | null = null;
+    if (state) {
+      try {
+        const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+        userId = stateData.userId;
+      } catch (e) {
+        console.error('Failed to decode state:', e);
+      }
     }
     
-    // Get profile ID
+    if (!userId) {
+      return NextResponse.redirect(`${appUrl}/dashboard/coaches/settings?error=no_user`);
+    }
+    
+    // Get profile ID from user ID
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
     
     if (!profile) {
@@ -121,7 +132,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('Calendly callback error:', error);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     return NextResponse.redirect(`${appUrl}/dashboard/coaches/settings?error=unknown`);
   }
 }
