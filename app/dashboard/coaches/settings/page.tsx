@@ -35,7 +35,14 @@ export default function CoachSettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [calendlyUrl, setCalendlyUrl] = useState('');
   const [isEnabled, setIsEnabled] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnectedRaw] = useState(false);
+  
+  // Wrapped setter to track all changes
+  const setIsConnected = (value: boolean) => {
+    console.log('setIsConnected CALLED with:', value);
+    console.trace('setIsConnected stack trace');
+    setIsConnectedRaw(value);
+  };
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
