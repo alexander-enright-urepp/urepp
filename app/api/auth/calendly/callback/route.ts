@@ -69,11 +69,11 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenResponse.json();
     console.log('Got tokens:', { hasAccessToken: !!tokenData.access_token, hasRefreshToken: !!tokenData.refresh_token, expiresIn: tokenData.expires_in });
     
-    // Create Supabase admin client (no user session needed for token storage)
+    // Create Supabase client with service role for token storage
     console.log('Creating Supabase client...');
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
     
     // Decode state to get user ID
