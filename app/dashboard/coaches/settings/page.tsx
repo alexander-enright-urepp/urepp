@@ -75,12 +75,12 @@ export default function CoachSettingsPage() {
     if (user) {
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, calendly_link, is_coaching_enabled')
+        .select('id, first_name, last_name, calendly_link, is_coaching_enabled')
         .eq('user_id', user.id)
         .single();
 
       if (profileData) {
-        setProfile(profileData);
+        setProfile(profileData as Profile);
         setCalendlyUrl(profileData.calendly_link || '');
         setIsEnabled(profileData.is_coaching_enabled || false);
         
