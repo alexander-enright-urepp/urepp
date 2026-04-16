@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Calendar, 
@@ -30,6 +30,7 @@ interface Profile {
 
 export default function CoachSettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [profile, setProfile] = useState<Profile | null>(null);
   const [calendlyUrl, setCalendlyUrl] = useState('');
@@ -39,12 +40,34 @@ export default function CoachSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const success = searchParams?.get('success');
+    const error = searchParams?.get('error');
+    
+    if (success === 'connected') {
+      setMessage({ type: 'success', text: 'Calendly connected successfully!' });
+    } else if (error) {
+      const errorMessages: Record<string, string> = {
+        oauth_denied: 'Connection was cancelled.',
+        no_code: 'Authorization failed. Please try again.',
+        not_configured: 'Calendly is not properly configured.',
+        token_exchange: 'Failed to complete connection. Please try again.',
+        storage: 'Failed to save connection. Please try again.',
+        no_user: 'Session expired. Please sign in again.',
+        no_profile: 'Profile not found.',
+        unknown: 'An unexpected error occurred.',
+      };
+      setMessage({ type: 'error', text: errorMessages[error] || 'Connection failed.' });
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        router.push('/login');
+        router.push('/login?redirect=/dashboard/coaches/settings');
         return;
       }
 
