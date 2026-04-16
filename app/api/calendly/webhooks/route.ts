@@ -115,9 +115,10 @@ export async function GET(request: NextRequest) {
     
     if (!listRes.ok) {
       const errorText = await listRes.text();
-      console.error('Failed to list webhooks:', errorText);
+      console.error('Failed to list webhooks:', listRes.status, errorText);
       return NextResponse.json({ 
         error: 'Failed to list webhooks', 
+        status: listRes.status,
         details: errorText 
       }, { status: 500 });
     }
