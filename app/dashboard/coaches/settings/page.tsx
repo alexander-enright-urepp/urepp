@@ -224,6 +224,28 @@ export default function CoachSettingsPage() {
               >
                 Disconnect
               </button>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  setMessage({ type: 'success', text: 'Syncing bookings...' });
+                  try {
+                    const res = await fetch('/api/calendly/sync', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setMessage({ type: 'success', text: `Synced ${data.count || 0} bookings` });
+                    } else {
+                      setMessage({ type: 'error', text: data.error || 'Sync failed' });
+                    }
+                  } catch (err) {
+                    setMessage({ type: 'error', text: 'Sync failed' });
+                  }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="text-xs bg-[#51b5ff] hover:bg-[#3da8f0] disabled:bg-gray-300 text-white px-3 py-1 rounded-lg font-medium"
+              >
+                {saving ? 'Syncing...' : 'Sync Bookings'}
+              </button>
             </div>
           ) : (
             <button
