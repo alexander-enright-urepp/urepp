@@ -134,6 +134,13 @@ export default function CoachesPage() {
             .limit(10)
         ]);
         
+        console.log('Coach dashboard:', {
+          coachId: profileData.id,
+          appointments: apptsData?.length || 0,
+          sessions: sessionsData?.length || 0,
+          sessionsData: sessionsData
+        });
+        
         // Combine and format both types
         const combinedAppointments: Appointment[] = [
           ...(apptsData || []).map((a: any) => ({
