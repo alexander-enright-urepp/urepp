@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
-    authUrl.searchParams.set('scope', 'webhooks:read webhooks:write');
+    authUrl.searchParams.set('scope', 'webhooks:read webhooks:write users:read');
     
     console.log('Redirecting to Calendly:', authUrl.toString());
     
