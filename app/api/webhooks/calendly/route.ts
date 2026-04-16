@@ -10,7 +10,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     
-    console.log('Webhook received:', JSON.stringify(payload, null, 2));
+    console.log('=== CALENDLY WEBHOOK RECEIVED ===');
+    console.log('Event type:', payload.event);
+    console.log('Full payload:', JSON.stringify(payload, null, 2));
     
     // Use service role client for webhook
     const supabase = createClient(
@@ -22,6 +24,7 @@ export async function POST(request: NextRequest) {
     const data = payload.payload;
     
     if (!data?.event || !data?.invitee) {
+      console.error('Missing event or invitee in payload');
       return NextResponse.json({ error: 'Missing data' }, { status: 400 });
     }
     
