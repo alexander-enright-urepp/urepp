@@ -116,8 +116,8 @@ export default function CoachesPage() {
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Coach</h1>
-            <p className="text-sm text-gray-500">Your Dashboard</p>
+            <h1 className="text-xl font-bold text-gray-900">Home</h1>
+            <p className="text-sm text-gray-500">Make Appointments</p>
           </div>
           <div className="flex items-center gap-2">
             <Link 

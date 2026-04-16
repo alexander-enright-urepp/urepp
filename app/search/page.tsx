@@ -16,6 +16,7 @@ import {
   Tv
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 interface Profile {
   id: string
@@ -34,6 +35,7 @@ interface Profile {
 }
 
 export default function SearchPage() {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(false)
@@ -93,15 +95,15 @@ export default function SearchPage() {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link 
-                href="/" 
+              <button 
+                onClick={() => router.back()}
                 className="w-10 h-10 rounded-xl bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-600 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
-              </Link>
+              </button>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Search</h1>
-                <p className="text-sm text-gray-500">Find athletes</p>
+                <p className="text-sm text-gray-500">Find athletes and coaches</p>
               </div>
             </div>
             <button 
@@ -179,7 +181,7 @@ export default function SearchPage() {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm text-gray-500">
-            {loading ? 'Searching...' : `${profiles.length} athletes found`}
+            {loading ? 'Searching...' : `${profiles.length} members found`}
           </p>
           {(filters.gradYear || filters.state) && (
             <button 

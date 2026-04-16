@@ -176,11 +176,11 @@ export default function CoachSettingsPage() {
                   if (data.url) {
                     window.location.href = data.url;
                   } else if (data.error) {
-                    alert('Error: ' + data.error);
+                    setMessage({ type: 'error', text: data.error });
                   }
                 } catch (err) {
                   console.error('Failed to start OAuth:', err);
-                  alert('Failed to connect. Check console for details.');
+                  setMessage({ type: 'error', text: 'Failed to connect. Please try again.' });
                 }
               }}
               className="w-full bg-[#51b5ff] hover:bg-[#3da8f0] text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"

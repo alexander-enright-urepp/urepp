@@ -7,21 +7,37 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
+    // Check environment variables first
     const clientId = process.env.CALENDLY_CLIENT_ID;
     
     if (!clientId) {
-      return NextResponse.json({ error: 'Calendly client ID not configured' }, { status: 500 });
+      console.error('CALENDLY_CLIENT_ID not configured');
+      return NextResponse.json({ 
+        error: 'Server configuration error: CALENDLY_CLIENT_ID not set' 
+      }, { status: 500 });
     }
     
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error('Auth error:', authError);
+      return NextResponse.json({ 
+        error: 'Authentication error: ' + authError.message 
+      }, { status: 401 });
+    }
+    
+    if (!user) {
+      console.error('No user session found');
+      return NextResponse.json({ 
+        error: 'Unauthorized: Please sign in again' 
+      }, { status: 401 });
+    }
+    
+    console.log('Starting Calendly OAuth for user:', user.id);
+    
     // Build the authorization URL
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/calendly/callback`;
+    const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/calendly/callback`;
     
     const state = Buffer.from(JSON.stringify({
       userId: user.id,
@@ -34,10 +50,14 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
     
+    console.log('Redirecting to Calendly:', authUrl.toString());
+    
     return NextResponse.json({ url: authUrl.toString() });
     
   } catch (error) {
     console.error('Calendly OAuth initiation error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
+    }, { status: 500 });
   }
 }

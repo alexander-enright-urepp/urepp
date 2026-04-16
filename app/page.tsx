@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   ArrowRight, 
@@ -30,11 +31,18 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
+  const router = useRouter()
+
   const fetchUser = useCallback(async () => {
     const user = await getCurrentUser()
     setUser(user)
     setLoading(false)
-  }, [])
+    
+    // Redirect to coach dashboard if user is signed in
+    if (user) {
+      router.push('/dashboard/coaches')
+    }
+  }, [router])
 
   useEffect(() => {
     fetchUser()
