@@ -52,7 +52,7 @@ interface Profile {
   profile_picture_url?: string
   role?: string
   is_premium?: boolean
-  calendly_link?: string
+  is_coaching_enabled?: boolean
   theme?: string
   grad_year?: number
   high_school?: string
@@ -450,10 +450,10 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
               )}
             </div>
 
-            {/* Book Session Button - For Coaches and Athletes with Calendly */}
-            {profile.calendly_link && (
+            {/* Book Session Button - Shows if coach accepts bookings */}
+            {profile.is_coaching_enabled && (
               <Link 
-                href={`/coaches/${profile.id}/book`}
+                href={`/coaches/${profile.id}/book-native`}
                 className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-6 py-3 rounded-xl font-medium transition-all shadow-md"
               >
                 <Calendar className="w-5 h-5" />

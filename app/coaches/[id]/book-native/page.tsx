@@ -69,7 +69,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       return;
     }
 
-    // Generate time slots (9 AM to 5 PM, 30 min intervals)
+    // Generate ALL time slots (9 AM to 5 PM, 30 min intervals) - no restrictions
     const slots: TimeSlot[] = [];
     for (let hour = 9; hour < 17; hour++) {
       for (let min of [0, 30]) {
