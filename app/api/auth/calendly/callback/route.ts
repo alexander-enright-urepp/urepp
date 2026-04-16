@@ -149,12 +149,13 @@ export async function GET(request: NextRequest) {
     });
     
     let calendlyUserUri: string | null = null;
+    let calendlyUserData: any = null;
     
     if (userResponse.ok) {
-      const userData = await userResponse.json();
-      console.log('Calendly user data:', JSON.stringify(userData, null, 2));
-      calendlyUserUri = userData.resource?.uri;
-      const schedulingUrl = userData.resource?.scheduling_url;
+      calendlyUserData = await userResponse.json();
+      console.log('Calendly user data:', JSON.stringify(calendlyUserData, null, 2));
+      calendlyUserUri = calendlyUserData.resource?.uri;
+      const schedulingUrl = calendlyUserData.resource?.scheduling_url;
       
       if (schedulingUrl) {
         console.log('Updating profile with scheduling URL:', schedulingUrl);
@@ -171,9 +172,10 @@ export async function GET(request: NextRequest) {
     }
     
     // Register webhook for automatic booking sync
-    if (calendlyUserUri) {
+    if (calendlyUserUri && calendlyUserData?.resource?.current_organization) {
       console.log('Registering Calendly webhook...');
       try {
+        const organizationUri = calendlyUserData.resource.current_organization;
         const webhookUrl = `${appUrl}/api/webhooks/calendly`;
         const webhookRes = await fetch('https://api.calendly.com/webhook_subscriptions', {
           method: 'POST',
@@ -184,7 +186,7 @@ export async function GET(request: NextRequest) {
           body: JSON.stringify({
             url: webhookUrl,
             events: ['invitee.created', 'invitee.canceled', 'invitee.no_show'],
-            organization: calendlyUserUri.replace('/users/', '/organizations/').split('/users/')[0] + '/organizations/' + calendlyUserUri.split('/').pop(),
+            organization: organizationUri,
             user: calendlyUserUri,
             signing_key: process.env.CALENDLY_WEBHOOK_SIGNING_KEY || 'urepp-webhook-secret',
           }),
@@ -208,6 +210,8 @@ export async function GET(request: NextRequest) {
       } catch (webhookError) {
         console.error('Webhook registration error:', webhookError);
       }
+    } else {
+      console.log('Skipping webhook registration - missing organization or user URI');
     }
     
     console.log('Redirecting to success');
