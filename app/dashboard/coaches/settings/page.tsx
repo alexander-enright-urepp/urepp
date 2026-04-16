@@ -269,6 +269,25 @@ export default function CoachSettingsPage() {
                       return;
                     }
                     
+                    // Step 3: VERIFY the update actually happened
+                    console.log('Step 3: Verifying profile update...');
+                    const { data: verifyData, error: verifyError } = await supabase
+                      .from('profiles')
+                      .select('id, calendly_link, is_coaching_enabled')
+                      .eq('id', profile.id)
+                      .single();
+                    
+                    console.log('Verification query result:', { verifyData, verifyError });
+                    
+                    if (verifyError) {
+                      console.error('Verification error:', verifyError);
+                    } else if (verifyData?.calendly_link !== null) {
+                      console.error('CRITICAL: Profile still has calendly_link after update:', verifyData.calendly_link);
+                      setMessage({ type: 'error', text: 'Update failed silently - link still exists in DB' });
+                      setSaving(false);
+                      return;
+                    }
+                    
                     console.log('Disconnect successful, updating UI state');
                     
                     // Update local state
