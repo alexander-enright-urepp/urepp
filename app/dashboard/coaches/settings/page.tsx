@@ -270,6 +270,37 @@ export default function CoachSettingsPage() {
               <button
                 onClick={async () => {
                   setSaving(true);
+                  setMessage({ type: 'success', text: 'Setting up webhook...' });
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) {
+                      setMessage({ type: 'error', text: 'Not signed in' });
+                      setSaving(false);
+                      return;
+                    }
+                    const res = await fetch('/api/calendly/setup-webhook', { 
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${session.access_token}` }
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setMessage({ type: 'success', text: 'Webhook registered!' });
+                    } else {
+                      setMessage({ type: 'error', text: data.error || 'Setup failed' });
+                    }
+                  } catch (err) {
+                    setMessage({ type: 'error', text: 'Setup failed' });
+                  }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="text-xs bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white px-3 py-1 rounded-lg font-medium"
+              >
+                Setup Webhook
+              </button>
+              <button
+                onClick={async () => {
+                  setSaving(true);
                   setMessage({ type: 'success', text: 'Checking webhook...' });
                   try {
                     const { data: { session } } = await supabase.auth.getSession();
