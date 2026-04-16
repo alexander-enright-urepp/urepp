@@ -60,17 +60,29 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     const fetchData = async () => {
-      // Get current user session first
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Book-native: Starting auth check...');
+      
+      // Wait a bit for auth to initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get current user session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      console.log('Book-native: Session check result:', { 
+        hasSession: !!session, 
+        hasUser: !!session?.user,
+        sessionError: sessionError?.message 
+      });
       
       if (!session?.user) {
-        // Not signed in - show login prompt
+        console.log('Book-native: No user found, showing sign in');
         setAuthChecked(true);
         setLoading(false);
         return;
       }
       
       const user = session.user;
+      console.log('Book-native: User found:', user.id);
 
       // Get coach
       const { data: coachData } = await supabase
@@ -79,7 +91,10 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         .eq('id', params.id)
         .single();
       
-      if (coachData) setCoach(coachData);
+      if (coachData) {
+        console.log('Book-native: Coach found:', coachData.first_name);
+        setCoach(coachData);
+      }
 
       const { data: athleteData } = await supabase
         .from('profiles')
@@ -88,14 +103,18 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         .single();
       
       if (athleteData) {
+        console.log('Book-native: Athlete profile found:', athleteData.first_name);
         setAthleteProfile({
           ...athleteData,
           email: user.email || ''
         });
+      } else {
+        console.log('Book-native: No athlete profile found for user:', user.id);
       }
       
       setAuthChecked(true);
       setLoading(false);
+      console.log('Book-native: Fetch complete');
     };
     fetchData();
   }, [params.id, supabase]);
