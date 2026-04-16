@@ -40,6 +40,8 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [authChecked, setAuthChecked] = useState(false);
+
   // Generate next 14 days
   const getDates = () => {
     const dates = [];
@@ -58,6 +60,18 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     const fetchData = async () => {
+      // Get current user session first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        // Not signed in - show login prompt
+        setAuthChecked(true);
+        setLoading(false);
+        return;
+      }
+      
+      const user = session.user;
+
       // Get coach
       const { data: coachData } = await supabase
         .from('profiles')
@@ -66,15 +80,6 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         .single();
       
       if (coachData) setCoach(coachData);
-      
-      // Get current athlete's profile with full details
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // Not signed in - show login prompt instead of error
-        setLoading(false);
-        return; // Will show sign-in UI
-      }
 
       const { data: athleteData } = await supabase
         .from('profiles')
@@ -89,6 +94,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         });
       }
       
+      setAuthChecked(true);
       setLoading(false);
     };
     fetchData();
@@ -147,7 +153,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     setSubmitting(false);
   };
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -155,8 +161,8 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     );
   }
 
-  // Not signed in - show sign in prompt
-  if (!athleteProfile) {
+  // Not signed in - show sign in prompt (only after auth check completes)
+  if (!loading && authChecked && !athleteProfile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
