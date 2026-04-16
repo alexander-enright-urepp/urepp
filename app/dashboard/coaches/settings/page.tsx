@@ -78,7 +78,7 @@ export default function CoachSettingsPage() {
         firstToken: tokenData?.[0]?.id 
       });
       
-      const hasTokens = tokenData && tokenData.length > 0;
+      const hasTokens = !!(tokenData && tokenData.length > 0);
       console.log('hasTokens:', hasTokens, 'manuallyDisconnected:', manuallyDisconnected.current);
       
       // Build debug string
