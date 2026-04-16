@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 // Initiate Calendly OAuth flow
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Get cookies manually for Supabase auth
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('sb-access-token')?.value;
+    const refreshToken = cookieStore.get('sb-refresh-token')?.value;
     
     // Check environment variables first
     const clientId = process.env.CALENDLY_CLIENT_ID;
@@ -17,8 +20,25 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
     
+    // Create Supabase client with auth token
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+        global: {
+          headers: accessToken ? {
+            Authorization: `Bearer ${accessToken}`,
+          } : {},
+        },
+      }
+    );
+    
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
     
     if (authError) {
       console.error('Auth error:', authError);
@@ -28,7 +48,10 @@ export async function GET(request: NextRequest) {
     }
     
     if (!user) {
-      console.error('No user session found');
+      console.error('No user session found. Cookies:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+      });
       return NextResponse.json({ 
         error: 'Unauthorized: Please sign in again' 
       }, { status: 401 });

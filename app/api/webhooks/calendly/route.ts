@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
     // Log the payload for debugging
     console.log('Calendly webhook received:', JSON.stringify(payload, null, 2));
     
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
     // Extract event data based on Calendly webhook structure
     const eventType = payload.event; // invitee.created, invitee.canceled, etc.
