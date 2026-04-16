@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -18,7 +18,9 @@ import {
   User,
   Video,
   Clock,
-  X
+  X,
+  MoreVertical,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import VideoCall from '@/components/VideoCall';
@@ -50,6 +52,39 @@ export default function CoachesPage() {
   const [loading, setLoading] = useState(true);
   const [activeCall, setActiveCall] = useState<{roomUrl: string; athleteName: string} | null>(null);
   const [startingCall, setStartingCall] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDeleteAppointment = async (apptId: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', apptId);
+      
+      if (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete appointment');
+      } else {
+        setAppointments(prev => prev.filter(a => a.id !== apptId));
+        setMenuOpen(null);
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete appointment');
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -184,8 +219,30 @@ export default function CoachesPage() {
               {appointments.slice(0, 3).map((appt) => (
                 <div 
                   key={appt.id}
-                  className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                  className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors relative"
                 >
+                  {/* Three-dot menu */}
+                  <div className="absolute top-2 right-2" ref={menuOpen === appt.id ? menuRef : undefined}>
+                    <button
+                      onClick={() => setMenuOpen(menuOpen === appt.id ? null : appt.id)}
+                      className="w-6 h-6 rounded-full hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                    </button>
+                    
+                    {menuOpen === appt.id && (
+                      <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                        <button
+                          onClick={() => handleDeleteAppointment(appt.id)}
+                          className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-12 h-12 bg-[#51b5ff]/10 rounded-lg flex flex-col items-center justify-center">
                       <span className="text-xs font-medium text-[#51b5ff]">
@@ -195,7 +252,7 @@ export default function CoachesPage() {
                         {formatDate(appt.start_time).split(' ')[1]}
                       </span>
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-6">
                       <p className="font-medium text-gray-900 truncate">
                         {appt.athlete_name}
                       </p>
