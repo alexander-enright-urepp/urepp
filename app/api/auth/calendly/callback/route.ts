@@ -148,9 +148,12 @@ export async function GET(request: NextRequest) {
       },
     });
     
+    let calendlyUserUri: string | null = null;
+    
     if (userResponse.ok) {
       const userData = await userResponse.json();
       console.log('Calendly user data:', JSON.stringify(userData, null, 2));
+      calendlyUserUri = userData.resource?.uri;
       const schedulingUrl = userData.resource?.scheduling_url;
       
       if (schedulingUrl) {
@@ -165,6 +168,46 @@ export async function GET(request: NextRequest) {
       }
     } else {
       console.error('Failed to fetch Calendly user:', await userResponse.text());
+    }
+    
+    // Register webhook for automatic booking sync
+    if (calendlyUserUri) {
+      console.log('Registering Calendly webhook...');
+      try {
+        const webhookUrl = `${appUrl}/api/webhooks/calendly`;
+        const webhookRes = await fetch('https://api.calendly.com/webhook_subscriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            url: webhookUrl,
+            events: ['invitee.created', 'invitee.canceled', 'invitee.no_show'],
+            organization: calendlyUserUri.replace('/users/', '/organizations/').split('/users/')[0] + '/organizations/' + calendlyUserUri.split('/').pop(),
+            user: calendlyUserUri,
+            signing_key: process.env.CALENDLY_WEBHOOK_SIGNING_KEY || 'urepp-webhook-secret',
+          }),
+        });
+        
+        if (webhookRes.ok) {
+          const webhookData = await webhookRes.json();
+          console.log('Webhook registered:', webhookData.resource?.uri);
+          
+          // Store webhook ID in calendly_tokens
+          await supabase
+            .from('calendly_tokens')
+            .update({
+              webhook_id: webhookData.resource?.uri,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('profile_id', profile.id);
+        } else {
+          console.error('Webhook registration failed:', await webhookRes.text());
+        }
+      } catch (webhookError) {
+        console.error('Webhook registration error:', webhookError);
+      }
     }
     
     console.log('Redirecting to success');
