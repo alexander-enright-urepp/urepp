@@ -14,6 +14,13 @@ interface Profile {
   profile_picture_url?: string;
 }
 
+interface AthleteProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
 interface TimeSlot {
   time: string;
   available: boolean;
@@ -24,15 +31,14 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   
   const [coach, setCoach] = useState<Profile | null>(null);
-  const [athleteProfile, setAthleteProfile] = useState<{ id: string } | null>(null);
+  const [athleteProfile, setAthleteProfile] = useState<AthleteProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Generate next 14 days
   const getDates = () => {
@@ -51,29 +57,40 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   };
 
   useEffect(() => {
-    const fetchCoach = async () => {
-      const { data } = await supabase
+    const fetchData = async () => {
+      // Get coach
+      const { data: coachData } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, username, profile_picture_url')
         .eq('id', params.id)
         .single();
       
-      if (data) setCoach(data);
+      if (coachData) setCoach(coachData);
       
-      // Get current athlete's profile
+      // Get current athlete's profile with full details
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: athleteData } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        if (athleteData) setAthleteProfile(athleteData);
+      if (!user) {
+        setError('Please sign in to book a session');
+        setLoading(false);
+        return;
+      }
+
+      const { data: athleteData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (athleteData) {
+        setAthleteProfile({
+          ...athleteData,
+          email: user.email || ''
+        });
       }
       
       setLoading(false);
     };
-    fetchCoach();
+    fetchData();
   }, [params.id, supabase]);
 
   useEffect(() => {
@@ -94,8 +111,8 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   }, [selectedDate]);
 
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime || !email || !name) {
-      alert('Please fill in all fields');
+    if (!selectedDate || !selectedTime || !athleteProfile) {
+      setError('Please sign in to book a session');
       return;
     }
 
@@ -111,9 +128,9 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       .from('booked_sessions')
       .insert({
         coach_id: params.id,
-        athlete_id: athleteProfile?.id || null,
-        athlete_email: email,
-        athlete_name: name,
+        athlete_id: athleteProfile.id,
+        athlete_email: athleteProfile.email,
+        athlete_name: `${athleteProfile.first_name} ${athleteProfile.last_name}`,
         session_date: selectedDate,
         start_time: selectedTime,
         end_time: endTime,
@@ -122,7 +139,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
 
     if (error) {
       console.error('Booking error:', error);
-      alert('Failed to book session');
+      setError('Failed to book session');
     } else {
       setSuccess(true);
     }
@@ -133,6 +150,22 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+          <p className="text-gray-900 mb-4">{error}</p>
+          <Link 
+            href="/login"
+            className="inline-block bg-blue-500 text-white px-6 py-3 rounded-xl font-medium"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     );
   }
@@ -158,7 +191,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           </p>
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <p className="text-sm text-gray-500">{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-            <p className="text-lg font-semibold text-gray-900">{selectedTime} - {parseInt(selectedTime.split(':')[0]) + (selectedTime.includes('30') ? 0 : 0)}:{parseInt(selectedTime.split(':')[1]) === 30 ? '00' : '30'}</p>
+            <p className="text-lg font-semibold text-gray-900">{selectedTime} - {endTime}</p>
           </div>
           <Link 
             href="/dashboard"
@@ -172,6 +205,10 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   }
 
   const dates = getDates();
+  const [hours, minutes] = selectedTime ? selectedTime.split(':').map(Number) : [0, 0];
+  const endHour = minutes === 30 ? hours + 1 : hours;
+  const endMinutes = minutes === 30 ? 0 : 30;
+  const endTime = selectedTime ? `${endHour.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}` : '';
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -206,6 +243,15 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
             </div>
           </div>
         </div>
+
+        {/* Athlete Info */}
+        {athleteProfile && (
+          <div className="bg-white rounded-2xl shadow-sm p-4 mb-6">
+            <p className="text-sm text-gray-500 mb-1">Booking as</p>
+            <p className="font-semibold text-gray-900">{athleteProfile.first_name} {athleteProfile.last_name}</p>
+            <p className="text-sm text-gray-500">{athleteProfile.email}</p>
+          </div>
+        )}
 
         {/* Date Selection */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
@@ -260,40 +306,11 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           </div>
         )}
 
-        {/* Contact Info */}
-        {(selectedDate && selectedTime) && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
-            <h3 className="font-semibold text-gray-900 mb-4">Your Info</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your full name"
-                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Submit */}
         {selectedDate && selectedTime && (
           <button
             onClick={handleSubmit}
-            disabled={submitting || !email || !name}
+            disabled={submitting}
             className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? (
