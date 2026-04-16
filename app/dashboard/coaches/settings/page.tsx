@@ -218,49 +218,73 @@ export default function CoachSettingsPage() {
               <button
                 onClick={async () => {
                   // Disconnect - delete tokens and update profile
-                  if (!profile) return;
+                  if (!profile) {
+                    console.log('No profile found, cannot disconnect');
+                    return;
+                  }
+                  
+                  console.log('Starting disconnect for profile:', profile.id);
                   setSaving(true);
+                  setMessage(null);
                   
                   try {
-                    // Delete tokens first
-                    const { error: tokenError } = await supabase.from('calendly_tokens').delete().eq('profile_id', profile.id);
+                    // Step 1: Delete tokens
+                    console.log('Step 1: Deleting calendly_tokens for profile:', profile.id);
+                    const { data: deleteData, error: tokenError } = await supabase
+                      .from('calendly_tokens')
+                      .delete()
+                      .eq('profile_id', profile.id)
+                      .select();
+                    
+                    console.log('Token delete result:', { deleteData, tokenError });
                     
                     if (tokenError) {
                       console.error('Token delete error:', tokenError);
-                      setMessage({ type: 'error', text: 'Failed to disconnect tokens.' });
+                      setMessage({ type: 'error', text: 'Failed to disconnect tokens: ' + tokenError.message });
                       setSaving(false);
                       return;
                     }
                     
-                    // Update profile to disable coaching
-                    const { error: profileError } = await supabase.from('profiles').update({
+                    // Step 2: Update profile
+                    console.log('Step 2: Updating profile', profile.id, 'with calendly_link: null');
+                    const updatePayload = {
                       is_coaching_enabled: false,
                       calendly_link: null,
                       updated_at: new Date().toISOString()
-                    }).eq('id', profile.id);
+                    };
+                    console.log('Update payload:', updatePayload);
+                    
+                    const { data: updateData, error: profileError } = await supabase
+                      .from('profiles')
+                      .update(updatePayload)
+                      .eq('id', profile.id)
+                      .select();
+                    
+                    console.log('Profile update result:', { updateData, profileError });
                     
                     if (profileError) {
                       console.error('Profile update error:', profileError);
-                      setMessage({ type: 'error', text: 'Failed to update profile.' });
+                      setMessage({ type: 'error', text: 'Failed to update profile: ' + profileError.message });
                       setSaving(false);
                       return;
                     }
                     
-                    // Update local state - set disconnect flag
+                    console.log('Disconnect successful, updating UI state');
+                    
+                    // Update local state
                     manuallyDisconnected.current = true;
                     setIsConnected(false);
                     setIsEnabled(false);
                     setCalendlyUrl('');
                     setProfile(prev => prev ? { ...prev, calendly_link: undefined, is_coaching_enabled: false } : null);
                     setMessage({ type: 'success', text: 'Calendly disconnected successfully' });
-                    setSaving(false);
                     
                   } catch (err) {
                     console.error('Disconnect error:', err);
-                    setMessage({ type: 'error', text: 'Disconnect failed. Please try again.' });
+                    setMessage({ type: 'error', text: 'Disconnect failed: ' + (err instanceof Error ? err.message : String(err)) });
+                  } finally {
+                    setSaving(false);
                   }
-                  
-                  setSaving(false);
                 }}
                 disabled={saving}
                 className="text-xs text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
