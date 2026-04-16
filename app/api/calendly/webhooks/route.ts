@@ -58,10 +58,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
     
-    // Get Calendly tokens
+    // Get Calendly tokens with refresh token
     const { data: tokens, error: tokenError } = await supabase
       .from('calendly_tokens')
-      .select('access_token')
+      .select('access_token, refresh_token, expires_at')
       .eq('profile_id', profile.id)
       .single();
     
@@ -70,7 +70,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Calendly not connected' }, { status: 400 });
     }
     
-    const accessToken = tokens.access_token;
+    let accessToken = tokens.access_token;
+    
+    // Check if token is expired and refresh if needed
+    const expiresAt = tokens.expires_at ? new Date(tokens.expires_at) : null;
+    if (expiresAt && expiresAt < new Date() && tokens.refresh_token) {
+      console.log('Token expired, refreshing...');
+      const refreshRes = await fetch('https://auth.calendly.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: tokens.refresh_token,
+          client_id: process.env.CALENDLY_CLIENT_ID!,
+          client_secret: process.env.CALENDLY_CLIENT_SECRET!,
+        }),
+      });
+      
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        accessToken = refreshData.access_token;
+        
+        // Update tokens in database
+        const newExpiresAt = new Date();
+        newExpiresAt.setSeconds(newExpiresAt.getSeconds() + refreshData.expires_in);
+        
+        await supabase
+          .from('calendly_tokens')
+          .update({
+            access_token: refreshData.access_token,
+            refresh_token: refreshData.refresh_token,
+            expires_at: newExpiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('profile_id', profile.id);
+        
+        console.log('Token refreshed');
+      } else {
+        console.error('Failed to refresh token:', await refreshRes.text());
+        return NextResponse.json({ error: 'Token expired - reconnect Calendly' }, { status: 401 });
+      }
+    }
+    
     console.log('Got Calendly access token');
     
     // Get Calendly user info
