@@ -30,7 +30,6 @@ export async function createRoom(sessionName: string, expirationMinutes = 60): P
         exp: Math.floor(Date.now() / 1000) + (expirationMinutes * 60),
         enable_chat: true,
         enable_screenshare: true,
-        enable_recording: 'cloud',
         start_audio_off: false,
         start_video_off: false,
       },

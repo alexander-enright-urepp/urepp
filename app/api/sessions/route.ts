@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (dbError) {
-      console.error('Database error:', dbError);
-      return NextResponse.json({ error: 'Failed to save session' }, { status: 500 });
+      console.error('Database error details:', JSON.stringify(dbError, null, 2));
+      return NextResponse.json({ error: 'Failed to save session: ' + dbError.message }, { status: 500 });
     }
     
     return NextResponse.json({
