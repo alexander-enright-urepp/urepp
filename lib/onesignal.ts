@@ -1,4 +1,4 @@
-// OneSignal Push Notification Setup
+// OneSignal Push Notification Setup - v5.x SDK
 // App ID: 209456e7-6318-4254-aad7-54df0d7198f4
 
 import { Capacitor } from '@capacitor/core';
@@ -7,96 +7,117 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-declare const OneSignal: any;
-
-export function initOneSignal() {
-  console.log('OneSignal: initOneSignal called');
-  console.log('OneSignal: isNativePlatform:', Capacitor.isNativePlatform());
+export function initNotifications() {
+  console.log('Push: initNotifications called');
   
   if (!Capacitor.isNativePlatform()) {
-    console.log('OneSignal: Not on native platform, skipping');
+    console.log('Push: Not native platform, skipping');
     return;
   }
 
-  // Wait for device ready
-  document.addEventListener('deviceready', () => {
-    console.log('OneSignal: deviceready fired');
-    console.log('OneSignal: window.OneSignal exists:', typeof (window as any).OneSignal);
-    
-    // Check if OneSignal plugin is available
-    const OneSignal = (window as any).OneSignal || (window as any).cordova?.plugins?.OneSignal;
-    
-    if (!OneSignal) {
-      console.error('OneSignal: Plugin not found!');
-      return;
+  // Wait for Cordova to be ready
+  const setupOneSignal = () => {
+    try {
+      console.log('Push: Setting up OneSignal...');
+      
+      // Get OneSignal from plugins
+      const OneSignal = (window as any).plugins?.OneSignal;
+      
+      if (!OneSignal) {
+        console.error('Push: OneSignal plugin not found');
+        console.log('Push: Available plugins:', Object.keys((window as any).plugins || {}));
+        return;
+      }
+      
+      console.log('Push: OneSignal found, initializing...');
+      
+      // Initialize with App ID (v5.x API)
+      OneSignal.initialize('209456e7-6318-4254-aad7-54df0d7198f4');
+      console.log('Push: OneSignal initialized');
+      
+      // Request permission
+      OneSignal.Notifications.requestPermission(true).then((accepted: boolean) => {
+        console.log('Push: Permission result:', accepted);
+        if (accepted) {
+          // Get push subscription ID
+          OneSignal.User.pushSubscription.getIdAsync().then((id: string | null) => {
+            console.log('Push: Subscription ID:', id);
+            if (id) {
+              syncPlayerIdToServer(id);
+            }
+          });
+        }
+      });
+      
+      // Listen for notification clicks
+      OneSignal.Notifications.addEventListener('click', (event: any) => {
+        console.log('Push: Notification clicked:', event);
+        const data = event?.notification?.additionalData;
+        if (data?.type === 'video_call' && data?.roomUrl) {
+          window.location.href = `/video-call?room=${encodeURIComponent(data.roomUrl)}`;
+        }
+      });
+      
+      console.log('Push: Setup complete');
+      
+    } catch (err: any) {
+      console.error('Push: Setup error:', err);
+      console.error('Push: Error stack:', err.stack);
     }
-    
-    console.log('OneSignal: Plugin found, initializing...');
-    
-    // Initialize OneSignal
-    OneSignal.setAppId('209456e7-6318-4254-aad7-54df0d7198f4');
-    
-    // Request permission
-    OneSignal.promptForPushNotificationsWithUserResponse((accepted: boolean) => {
-      console.log('OneSignal: Push notification permission accepted:', accepted);
-      if (accepted) {
-        syncPlayerIdToServer();
-      }
-    });
-    
-    // Listen for notification taps
-    OneSignal.setNotificationOpenedHandler((jsonData: any) => {
-      console.log('OneSignal: Notification opened:', JSON.stringify(jsonData));
-      const data = jsonData?.notification?.payload?.additionalData;
-      if (data?.type === 'video_call' && data?.roomUrl) {
-        window.location.href = `/video-call?room=${encodeURIComponent(data.roomUrl)}`;
-      }
-    });
-    
-    // Get player ID
-    OneSignal.getDeviceState((state: any) => {
-      console.log('OneSignal: Device state:', state);
-    });
-  }, false);
+  };
+  
+  // Check if Cordova is ready
+  if ((window as any).cordova) {
+    console.log('Push: Cordova ready, setting up');
+    document.addEventListener('deviceready', setupOneSignal, false);
+  } else {
+    console.log('Push: Waiting for Cordova...');
+    document.addEventListener('deviceready', setupOneSignal, false);
+  }
 }
 
-// Send player ID to server for targeted notifications
-export async function syncPlayerIdToServer() {
-  if (!Capacitor.isNativePlatform()) return;
-  
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  
-  OneSignal.getDeviceState(async (state: any) => {
-    if (state?.userId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('profiles').update({
-          onesignal_player_id: state.userId,
-          updated_at: new Date().toISOString()
-        }).eq('user_id', user.id);
-        console.log('OneSignal: Player ID synced to server:', state.userId);
-      }
+async function syncPlayerIdToServer(playerId: string) {
+  try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      await supabase.from('profiles').update({
+        onesignal_player_id: playerId,
+        updated_at: new Date().toISOString()
+      }).eq('user_id', user.id);
+      console.log('Push: Player ID synced:', playerId);
     }
-  });
+  } catch (err) {
+    console.error('Push: Failed to sync player ID:', err);
+  }
 }
 
-// Call this when user taps "Join Call"
 export async function notifyOtherParticipant(recipientId: string, roomUrl: string, callerName: string) {
   try {
+    console.log('Push: Sending notification to:', recipientId);
     const response = await fetch('/api/notify-call', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        recipientId,
-        roomUrl,
-        callerName
-      })
+      body: JSON.stringify({ recipientId, roomUrl, callerName })
     });
     
-    if (!response.ok) {
-      console.error('Failed to send call notification');
-    }
+    const result = await response.json();
+    console.log('Push: Notification result:', result);
+    
   } catch (error) {
-    console.error('Error sending call notification:', error);
+    console.error('Push: Error sending notification:', error);
+  }
+}
+
+export function testNotification() {
+  console.log('Push: Testing...');
+  const OneSignal = (window as any).plugins?.OneSignal;
+  if (OneSignal) {
+    OneSignal.User.pushSubscription.getIdAsync().then((id: string | null) => {
+      alert('OneSignal Player ID: ' + (id || 'Not found'));
+    });
+  } else {
+    alert('OneSignal not loaded');
   }
 }
