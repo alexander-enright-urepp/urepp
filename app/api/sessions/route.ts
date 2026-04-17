@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
       console.log('Authenticated via cookies:', user.id);
     }
     
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database client not initialized' }, { status: 500 });
+    }
+    
     const body = await request.json();
     const { appointmentId, athleteName, coachName } = body;
     
