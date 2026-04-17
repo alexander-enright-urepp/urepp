@@ -1,33 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { createRoom } from '@/lib/daily';
 
 // POST /api/sessions - Create a new video session
 export async function POST(request: NextRequest) {
   try {
-    // Get cookies - in Next.js 14+ App Router, cookies() is async
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Try to get auth from Authorization header first (Bearer token)
+    const authHeader = request.headers.get('Authorization');
+    let user = null;
     
-    // Debug: Log all cookies received
-    const allCookies = cookieStore.getAll();
-    console.log('All cookies received:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      // Create a temporary client to verify the token
+      const tempClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      );
+      const { data: { user: tokenUser }, error: tokenError } = await tempClient.auth.getUser(token);
+      if (!tokenError && tokenUser) {
+        user = tokenUser;
+        console.log('Authenticated via Bearer token:', user.id);
+      }
+    }
     
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    console.log('Video session auth check:', { 
-      hasUser: !!user, 
-      authError: authError?.message,
-      userId: user?.id,
-      cookieCount: allCookies.length,
-      hasSupabaseCookie: allCookies.some(c => c.name.includes('supabase') || c.name.includes('sb-'))
-    });
-    
-    if (authError || !user) {
-      console.error('Unauthorized - auth error:', authError, 'user:', user);
-      return NextResponse.json({ error: 'Unauthorized - please sign in again' }, { status: 401 });
+    // Fall back to cookie-based auth
+    if (!user) {
+      const cookieStore = cookies();
+      const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      
+      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !cookieUser) {
+        console.error('Unauthorized - no valid auth found');
+        return NextResponse.json({ error: 'Unauthorized - please sign in again' }, { status: 401 });
+      }
+      
+      user = cookieUser;
+      console.log('Authenticated via cookies:', user.id);
     }
     
     const body = await request.json();

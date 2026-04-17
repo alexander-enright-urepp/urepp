@@ -403,13 +403,15 @@ export default function CoachesPage() {
                       onClick={async () => {
                         setStartingCall(appt.id);
                         try {
-                          // Debug: Log cookies available
-                          console.log('Starting video call, document.cookie:', document.cookie);
+                          // Get the session token from Supabase
+                          const { data: { session } } = await supabase.auth.getSession();
                           
                           const response = await fetch('/api/sessions', {
                             method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${session?.access_token || ''}`
+                            },
                             body: JSON.stringify({
                               appointmentId: appt.id,
                               athleteName: appt.athlete_name,
