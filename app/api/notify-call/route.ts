@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6qpmkbkvyqse4omqc2r3jq3cun4cwcozgdlzar3oysrzj4dlogb2om5mm3odaxm3caesb4j2x32depi';
+// OneSignal configuration
+const ONESIGNAL_API_KEY = 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6qpmkbkvyqse4omqc2r3jq3cun4cwcozgdlzar3oysrzj4dlogb2om5mm3odaxm3caesb4j2x32depi';
 const ONESIGNAL_APP_ID = '209456e7-6318-4254-aad7-54df0d7198f4';
 
 export async function POST(request: NextRequest) {
@@ -35,18 +36,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send push notification via OneSignal v2 API
-    console.log('Sending OneSignal v2 notification to:', profile.onesignal_player_id);
+    // Send push notification via OneSignal
+    console.log('Sending OneSignal notification to:', profile.onesignal_player_id);
     
-    const response = await fetch('https://api.onesignal.com/notifications', {
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`,
+        'Authorization': `key ${ONESIGNAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_subscription_ids: [profile.onesignal_player_id],
+        include_player_ids: [profile.onesignal_player_id],
         headings: { en: 'Incoming Call 📹' },
         contents: { en: `${callerName || 'Someone'} is calling you on UREPP` },
         data: {
@@ -54,18 +55,13 @@ export async function POST(request: NextRequest) {
           roomUrl: roomUrl,
           callerName: callerName,
         },
-        priority: 10,
-        ttl: 60,
       }),
     });
 
-    console.log('OneSignal response status:', response.status);
-    
     const responseText = await response.text();
-    console.log('OneSignal raw response:', responseText);
+    console.log('OneSignal response:', response.status, responseText);
 
     if (!response.ok) {
-      console.error('OneSignal error:', responseText);
       return NextResponse.json(
         { success: false, error: 'OneSignal error: ' + responseText },
         { status: 500 }
