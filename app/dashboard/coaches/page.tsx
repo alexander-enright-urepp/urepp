@@ -476,33 +476,16 @@ export default function CoachesPage() {
             <p className="text-xs text-gray-500">Manage availability</p>
           </Link>
           
-          <button 
-            onClick={() => {
-              const OneSignal = (window as any).plugins?.OneSignal;
-              if (OneSignal) {
-                OneSignal.User.pushSubscription.getIdAsync().then((id: string | null) => {
-                  alert('Your Player ID: ' + (id || 'Not found - restart app'));
-                  if (id) {
-                    // Force sync
-                    fetch('/api/sync-player-id', {
-                      method: 'POST',
-                      headers: {'Content-Type': 'application/json'},
-                      body: JSON.stringify({playerId: id})
-                    });
-                  }
-                });
-              } else {
-                alert('OneSignal not loaded');
-              }
-            }}
-            className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4 hover:shadow-xl transition-shadow text-left"
+          <Link 
+            href="/dashboard/coaches/messages"
+            className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4 hover:shadow-xl transition-shadow"
           >
-            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center mb-3">
-              <Bell className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 rounded-xl bg-[#51b5ff]/10 flex items-center justify-center mb-3">
+              <MessageCircle className="w-5 h-5 text-[#51b5ff]" />
             </div>
-            <p className="font-medium text-gray-900">Test Push</p>
-            <p className="text-xs text-gray-500">Sync notification token</p>
-          </button>
+            <p className="font-medium text-gray-900">Messages</p>
+            <p className="text-xs text-gray-500">Chat on UREPP</p>
+          </Link>
         </div>
       </main>
 
