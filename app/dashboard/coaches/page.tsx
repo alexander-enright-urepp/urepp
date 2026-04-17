@@ -202,7 +202,7 @@ export default function CoachesPage() {
         });
         
         // Get all unique profile IDs (both coaches and athletes from sessions)
-        const profileIds = [...new Set((sessionsData || []).flatMap((s: any) => [s.coach_id, s.athlete_id]).filter(Boolean))];
+        const profileIds = Array.from(new Set((sessionsData || []).flatMap((s: any) => [s.coach_id, s.athlete_id]).filter(Boolean)));
         
         // Fetch profiles for all participants
         let profilesMap = new Map();

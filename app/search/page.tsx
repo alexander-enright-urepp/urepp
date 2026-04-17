@@ -67,29 +67,24 @@ export default function SearchPage() {
     // Build base query
     let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach'])
     
-    // Build filter conditions - we'll combine them into a single query string if needed
-    const conditions: string[] = []
-    
+    // Apply text search filter
     if (query.trim()) {
-      conditions.push(`(first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%)`)
+      queryBuilder = queryBuilder.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%`)
     }
     
-    if (selectedSport) {
-      // Sport filter - check either high_school_sports OR college_sports array
-      conditions.push(`(high_school_sports.cs.{${selectedSport}},college_sports.cs.{${selectedSport}})`)
+    // Fetch results
+    const { data: rawData } = await queryBuilder.limit(50)
+    let filteredData = rawData || []
+    
+    // Apply sport filter client-side if selected (avoids complex query building)
+    if (selectedSport && filteredData.length > 0) {
+      filteredData = filteredData.filter((p: any) => 
+        p.high_school_sports?.includes(selectedSport) || 
+        p.college_sports?.includes(selectedSport)
+      )
     }
     
-    // Apply combined filter
-    if (conditions.length === 1) {
-      queryBuilder = queryBuilder.or(conditions[0])
-    } else if (conditions.length === 2) {
-      // Both conditions must be true (AND logic between text and sport)
-      // But within sport, it's OR logic
-      queryBuilder = queryBuilder.and(`and(${conditions[0]},${conditions[1]})`)
-    }
-    
-    const { data } = await queryBuilder.limit(20)
-    setProfiles(data || [])
+    setProfiles(filteredData.slice(0, 20))
     setLoading(false)
   }
 
