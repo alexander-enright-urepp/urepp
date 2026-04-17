@@ -1,4 +1,4 @@
-// OneSignal Push Notification Setup - v5.x SDK
+// OneSignal Push Notification Setup - v3.x SDK
 // App ID: 209456e7-6318-4254-aad7-54df0d7198f4
 
 import { Capacitor } from '@capacitor/core';
@@ -16,64 +16,46 @@ export function initNotifications() {
   }
 
   // Wait for Cordova to be ready
-  const setupOneSignal = () => {
-    try {
-      console.log('Push: Setting up OneSignal...');
-      
-      // Get OneSignal from plugins
-      const OneSignal = (window as any).plugins?.OneSignal;
-      
-      if (!OneSignal) {
-        console.error('Push: OneSignal plugin not found');
-        console.log('Push: Available plugins:', Object.keys((window as any).plugins || {}));
-        return;
-      }
-      
-      console.log('Push: OneSignal found, initializing...');
-      
-      // Initialize with App ID (v5.x API)
-      OneSignal.initialize('209456e7-6318-4254-aad7-54df0d7198f4');
-      console.log('Push: OneSignal initialized');
-      
-      // Request permission
-      OneSignal.Notifications.requestPermission(true).then((accepted: boolean) => {
-        console.log('Push: Permission result:', accepted);
-        if (accepted) {
-          // Get push subscription ID
-          OneSignal.User.pushSubscription.getIdAsync().then((id: string | null) => {
-            console.log('Push: Subscription ID:', id);
-            if (id) {
-              syncPlayerIdToServer(id);
-            }
-          });
-        }
-      });
-      
-      // Listen for notification clicks
-      OneSignal.Notifications.addEventListener('click', (event: any) => {
-        console.log('Push: Notification clicked:', event);
-        const data = event?.notification?.additionalData;
-        if (data?.type === 'video_call' && data?.roomUrl) {
-          window.location.href = `/video-call?room=${encodeURIComponent(data.roomUrl)}`;
-        }
-      });
-      
-      console.log('Push: Setup complete');
-      
-    } catch (err: any) {
-      console.error('Push: Setup error:', err);
-      console.error('Push: Error stack:', err.stack);
+  document.addEventListener('deviceready', () => {
+    console.log('Push: deviceready fired');
+    
+    // Get OneSignal from window (v3 uses window.plugins.OneSignal)
+    const OneSignal = (window as any).plugins?.OneSignal;
+    
+    if (!OneSignal) {
+      console.error('Push: OneSignal plugin not found');
+      return;
     }
-  };
-  
-  // Check if Cordova is ready
-  if ((window as any).cordova) {
-    console.log('Push: Cordova ready, setting up');
-    document.addEventListener('deviceready', setupOneSignal, false);
-  } else {
-    console.log('Push: Waiting for Cordova...');
-    document.addEventListener('deviceready', setupOneSignal, false);
-  }
+    
+    console.log('Push: OneSignal v3 found, initializing...');
+    
+    // v3 API - setAppId then prompt
+    OneSignal.setAppId('209456e7-6318-4254-aad7-54df0d7198f4');
+    
+    OneSignal.promptForPushNotificationsWithUserResponse((accepted: boolean) => {
+      console.log('Push: Permission result:', accepted);
+      if (accepted) {
+        // Get player ID using v3 API
+        OneSignal.getDeviceState((state: any) => {
+          console.log('Push: Device state:', state);
+          if (state?.userId) {
+            syncPlayerIdToServer(state.userId);
+          }
+        });
+      }
+    });
+    
+    // Listen for notification opens
+    OneSignal.setNotificationOpenedHandler((jsonData: any) => {
+      console.log('Push: Notification opened:', jsonData);
+      const data = jsonData?.notification?.payload?.additionalData;
+      if (data?.type === 'video_call' && data?.roomUrl) {
+        window.location.href = `/video-call?room=${encodeURIComponent(data.roomUrl)}`;
+      }
+    });
+    
+    console.log('Push: v3 setup complete');
+  }, false);
 }
 
 async function syncPlayerIdToServer(playerId: string) {
@@ -114,8 +96,8 @@ export function testNotification() {
   console.log('Push: Testing...');
   const OneSignal = (window as any).plugins?.OneSignal;
   if (OneSignal) {
-    OneSignal.User.pushSubscription.getIdAsync().then((id: string | null) => {
-      alert('OneSignal Player ID: ' + (id || 'Not found'));
+    OneSignal.getDeviceState((state: any) => {
+      alert('OneSignal v3 Player ID: ' + (state?.userId || 'Not found'));
     });
   } else {
     alert('OneSignal not loaded');
