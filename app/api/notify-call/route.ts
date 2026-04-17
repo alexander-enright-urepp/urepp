@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${ONESIGNAL_API_KEY}`,
+        'Authorization': `Basic ${ONESIGNAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
