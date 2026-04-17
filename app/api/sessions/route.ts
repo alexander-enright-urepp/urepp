@@ -100,6 +100,17 @@ export async function POST(request: NextRequest) {
       console.error('Database error details:', JSON.stringify(dbError, null, 2));
       return NextResponse.json({ error: 'Failed to save session: ' + dbError.message }, { status: 500 });
     }
+
+    // Also update the booked_sessions table with the room URL
+    const { error: updateError } = await supabase
+      .from('booked_sessions')
+      .update({ video_room_url: room.url })
+      .eq('id', appointmentId);
+    
+    if (updateError) {
+      console.error('Failed to update booked_sessions:', updateError);
+      // Don't fail the request, just log the error
+    }
     
     return NextResponse.json({
       roomUrl: room.url,

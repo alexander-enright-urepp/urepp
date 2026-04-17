@@ -427,6 +427,15 @@ export default function CoachesPage() {
                               roomUrl: data.roomUrl,
                               athleteName: appt.athlete_name,
                             });
+                            
+                            // Send push notification to other participant
+                            if (appt.other_profile?.id) {
+                              await notifyOtherParticipant(
+                                appt.other_profile.id,
+                                data.roomUrl,
+                                `${profile?.first_name} ${profile?.last_name}`
+                              );
+                            }
                           } else {
                             alert('Failed to start video call: ' + data.error);
                           }

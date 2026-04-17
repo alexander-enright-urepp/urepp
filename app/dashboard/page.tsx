@@ -631,6 +631,7 @@ function AthleteSessions() {
             end_time,
             status,
             athlete_name,
+            video_room_url,
             profiles!booked_sessions_coach_id_fkey(first_name, last_name)
           `)
           .or(`athlete_id.eq.${profile.id},athlete_email.eq.${profile.email}`)
@@ -714,7 +715,7 @@ function AthleteSessions() {
             </div>
             
             <button
-              onClick={() => router.push(`/dashboard/coaches`)}
+              onClick={() => router.push(appt.video_room_url ? `/video-call?url=${encodeURIComponent(appt.video_room_url)}` : `/dashboard/coaches`)}
               className="w-full mt-3 bg-babyblue-500 hover:bg-babyblue-600 text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
             >
               <Video className="w-3 h-3" />
