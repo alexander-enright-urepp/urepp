@@ -403,6 +403,9 @@ export default function CoachesPage() {
                       onClick={async () => {
                         setStartingCall(appt.id);
                         try {
+                          // Debug: Log cookies available
+                          console.log('Starting video call, document.cookie:', document.cookie);
+                          
                           const response = await fetch('/api/sessions', {
                             method: 'POST',
                             credentials: 'include',

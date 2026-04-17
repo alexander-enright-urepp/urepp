@@ -6,12 +6,24 @@ import { createRoom } from '@/lib/daily';
 // POST /api/sessions - Create a new video session
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Get cookies - in Next.js 14+ App Router, cookies() is async
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
+    // Debug: Log all cookies received
+    const allCookies = cookieStore.getAll();
+    console.log('All cookies received:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    console.log('Video session auth check:', { hasUser: !!user, authError: authError?.message });
+    console.log('Video session auth check:', { 
+      hasUser: !!user, 
+      authError: authError?.message,
+      userId: user?.id,
+      cookieCount: allCookies.length,
+      hasSupabaseCookie: allCookies.some(c => c.name.includes('supabase') || c.name.includes('sb-'))
+    });
     
     if (authError || !user) {
       console.error('Unauthorized - auth error:', authError, 'user:', user);
