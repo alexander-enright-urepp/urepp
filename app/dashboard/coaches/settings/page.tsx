@@ -6,7 +6,10 @@ import {
   ArrowLeft, 
   Check, 
   Loader2,
-  Home
+  Home,
+  Tv,
+  Search,
+  User
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -71,7 +74,7 @@ export default function CoachSettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#51b5ff]" />
       </div>
     );
   }
@@ -108,7 +111,7 @@ export default function CoachSettingsPage() {
               onClick={toggleCoaching}
               disabled={saving}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                isEnabled ? 'bg-blue-500' : 'bg-gray-300'
+                isEnabled ? 'bg-[#51b5ff]' : 'bg-gray-300'
               }`}
             >
               <span
@@ -131,28 +134,22 @@ export default function CoachSettingsPage() {
       </main>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-md mx-auto flex justify-around py-2">
-          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 p-2 text-gray-500">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 py-2">
             <Home className="w-6 h-6" />
             <span className="text-xs">Home</span>
           </Link>
-          <Link href="/tv" className="flex flex-col items-center gap-1 p-2 text-gray-500">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 py-2">
+            <Tv className="w-6 h-6" />
             <span className="text-xs">TV</span>
           </Link>
-          <Link href="/search" className="flex flex-col items-center gap-1 p-2 text-gray-500">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 py-2">
+            <Search className="w-6 h-6" />
             <span className="text-xs">Search</span>
           </Link>
-          <Link href="/dashboard/coaches/settings" className="flex flex-col items-center gap-1 p-2 text-blue-500">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+          <Link href="/dashboard/coaches/settings" className="flex flex-col items-center gap-1 text-[#51b5ff] py-2">
+            <User className="w-6 h-6" />
             <span className="text-xs">Profile</span>
           </Link>
         </div>

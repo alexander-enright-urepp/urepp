@@ -1,9 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Tv, Home, Search, User, Mail } from 'lucide-react'
 
 export default function TVPage() {
+  const [activeTab, setActiveTab] = useState<'explore' | 'contact'>('explore')
+
   const handleContactSupport = () => {
     const subject = encodeURIComponent('Live Stream UREPP TV')
     const body = encodeURIComponent('I would like to live stream my games. I want to learn more. Please sign me up.')
@@ -21,64 +24,108 @@ export default function TVPage() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-12">
-        {/* TV Icon */}
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 bg-babyblue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Tv className="w-12 h-12 text-babyblue-600" />
-          </div>
-          
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Live Stream Your Games!
-          </h2>
-          <p className="text-gray-600 text-center">
-            Learn how you can live stream your games with UREPP TV.
-          </p>
+      {/* Tabs */}
+      <div className="max-w-md mx-auto px-4 pt-4">
+        <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => setActiveTab('explore')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'explore'
+                ? 'bg-white text-[#51b5ff] shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Explore
+          </button>
+          <button
+            onClick={() => setActiveTab('contact')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'contact'
+                ? 'bg-white text-[#51b5ff] shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Contact
+          </button>
         </div>
+      </div>
 
-        {/* CTA Card */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
+      <main className="max-w-md mx-auto px-4 py-8">
+        {activeTab === 'explore' ? (
+          /* Explore Tab */
           <div className="text-center">
-            <h3 className="font-semibold text-gray-900 mb-2">
-              Ready to get started?
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Contact our team and we'll help you set up live streaming for your games.
+            <div className="w-24 h-24 bg-[#51b5ff]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Tv className="w-12 h-12 text-[#51b5ff]" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Live games coming soon!
+            </h2>
+            <p className="text-gray-600">
+              We're working on bringing you live baseball games. Stay tuned!
             </p>
-            
-            <button
-              onClick={handleContactSupport}
-              className="w-full bg-babyblue-500 hover:bg-babyblue-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-babyblue-200"
-            >
-              <Mail className="w-5 h-5" />
-              Contact Support
-            </button>
           </div>
-        </div>
+        ) : (
+          /* Contact Tab */
+          <>
+            {/* TV Icon */}
+            <div className="text-center mb-8">
+              <div className="w-24 h-24 bg-[#51b5ff]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Tv className="w-12 h-12 text-[#51b5ff]" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Live Stream Your Games!
+              </h2>
+              <p className="text-gray-600 text-center">
+                Learn how you can live stream your games with UREPP TV.
+              </p>
+            </div>
 
-        {/* Features Preview */}
-        <div className="mt-8 grid grid-cols-2 gap-4">
-          <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
-            <div className="text-2xl mb-2">📺</div>
-            <h4 className="font-medium text-gray-900 text-sm">HD Streaming</h4>
-            <p className="text-xs text-gray-500 mt-1">Crystal clear video quality</p>
-          </div>
-          <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
-            <div className="text-2xl mb-2">⚡</div>
-            <h4 className="font-medium text-gray-900 text-sm">Real-time</h4>
-            <p className="text-xs text-gray-500 mt-1">Low latency broadcast</p>
-          </div>
-          <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
-            <div className="text-2xl mb-2">🏆</div>
-            <h4 className="font-medium text-gray-900 text-sm">Tournament Ready</h4>
-            <p className="text-xs text-gray-500 mt-1">Multi-game coverage</p>
-          </div>
-          <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
-            <div className="text-2xl mb-2">📱</div>
-            <h4 className="font-medium text-gray-900 text-sm">Any Device</h4>
-            <p className="text-xs text-gray-500 mt-1">Watch on phone, tablet, TV</p>
-          </div>
-        </div>
+            {/* CTA Card */}
+            <div className="bg-white rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-6">
+              <div className="text-center">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Ready to get started?
+                </h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Contact our team and we'll help you set up live streaming for your games.
+                </p>
+                
+                <button
+                  onClick={handleContactSupport}
+                  className="w-full bg-[#51b5ff] hover:bg-[#3da8f0] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-babyblue-200"
+                >
+                  <Mail className="w-5 h-5" />
+                  Contact Support
+                </button>
+              </div>
+            </div>
+
+            {/* Features Preview */}
+            <div className="mt-8 grid grid-cols-2 gap-4">
+              <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
+                <div className="text-2xl mb-2">📺</div>
+                <h4 className="font-medium text-gray-900 text-sm">HD Streaming</h4>
+                <p className="text-xs text-gray-500 mt-1">Crystal clear video quality</p>
+              </div>
+              <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
+                <div className="text-2xl mb-2">⚡</div>
+                <h4 className="font-medium text-gray-900 text-sm">Real-time</h4>
+                <p className="text-xs text-gray-500 mt-1">Low latency broadcast</p>
+              </div>
+              <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
+                <div className="text-2xl mb-2">🏆</div>
+                <h4 className="font-medium text-gray-900 text-sm">Tournament Ready</h4>
+                <p className="text-xs text-gray-500 mt-1">Multi-game coverage</p>
+              </div>
+              <div className="bg-white/50 rounded-xl p-4 border border-babyblue-100">
+                <div className="text-2xl mb-2">📱</div>
+                <h4 className="font-medium text-gray-900 text-sm">Any Device</h4>
+                <p className="text-xs text-gray-500 mt-1">Watch on phone, tablet, TV</p>
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       {/* Bottom Navigation */}
