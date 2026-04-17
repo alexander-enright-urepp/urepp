@@ -22,7 +22,9 @@ import {
   Sparkles,
   TrendingUp,
   Palette,
-  Loader2
+  Loader2,
+  MessageCircle,
+  Calendar
 } from 'lucide-react'
 import { getCurrentUser, signOut } from '@/lib/auth'
 
@@ -212,6 +214,94 @@ export default function Home() {
               title="Search"
               description="Get discovered easily"
             />
+          </div>
+        </div>
+
+        {/* Coaches TeleHealth Section */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-babyblue-100 overflow-hidden">
+          <div className="text-center mb-5">
+            <div className="inline-flex items-center gap-1.5 bg-[#51b5ff]/10 text-[#51b5ff] px-3 py-1 rounded-full text-xs font-semibold mb-3">
+              <Video className="w-3 h-3" />
+              NEW FEATURE
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Coaches TeleHealth</h2>
+            <p className="text-sm text-gray-600">
+              Gain a competitive edge with direct access to coaches. Mental performance is just as important as physical training.
+            </p>
+          </div>
+
+          {/* Mock Dashboard Preview */}
+          <div className="bg-gray-50 rounded-xl p-3 mb-5 border border-gray-200">
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 flex items-center justify-center">
+                <User className="w-4 h-4 text-babyblue-600" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-900">Coach Mike Johnson</p>
+                <p className="text-[10px] text-gray-500">Pitching Coach • Cal State Fullerton</p>
+              </div>
+            </div>
+            
+            {/* Mock Session Card */}
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-babyblue-100">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-xs font-semibold text-gray-900">Private Session</p>
+                  <p className="text-[10px] text-gray-500">Tomorrow, 3:00 PM</p>
+                </div>
+                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">Scheduled</span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button className="flex-1 bg-[#51b5ff] text-white text-[10px] font-medium py-1.5 rounded-lg flex items-center justify-center gap-1">
+                  <MessageCircle className="w-3 h-3" />
+                  Message
+                </button>
+                <button className="flex-1 bg-green-500 text-white text-[10px] font-medium py-1.5 rounded-lg flex items-center justify-center gap-1">
+                  <Video className="w-3 h-3" />
+                  Join Call
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefits List */}
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-[#51b5ff]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Book Private Sessions</h3>
+                <p className="text-xs text-gray-500">Schedule one-on-one coaching sessions directly from any coach's profile</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-4 h-4 text-[#51b5ff]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Direct Messaging</h3>
+                <p className="text-xs text-gray-500">Connect with coaches and players instantly to ask questions and build relationships</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Video className="w-4 h-4 text-green-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Join Video Calls</h3>
+                <p className="text-xs text-gray-500">Launch HD video calls right from your dashboard — no extra apps needed</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Marketing Copy */}
+          <div className="mt-5 p-3 bg-gradient-to-r from-babyblue-50 to-white rounded-lg border border-babyblue-100">
+            <p className="text-xs text-gray-700 italic leading-relaxed">
+              "Mental preparation separates good athletes from great ones. Get personalized guidance from coaches who've been there and understand what it takes to reach the next level."
+            </p>
           </div>
         </div>
 
