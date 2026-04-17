@@ -23,9 +23,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>UREPP needs access to your camera to take profile photos and videos for your recruiting profile.</string>
+	<string>UREPP needs access to your camera to take profile photos, videos for your recruiting profile, and for video calls with coaches.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Use mircophone to speak with coaches.</string>
+	<string>UREPP needs microphone access for video calls with your coach.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>UREPP needs permission to save photos and videos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

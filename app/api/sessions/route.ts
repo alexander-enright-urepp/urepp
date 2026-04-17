@@ -55,12 +55,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 });
     }
     
+    console.log('Creating video session:', { appointmentId, athleteName, coachName, userId: user.id });
+    
     // Check if session already exists for this appointment
-    const { data: existingSession } = await supabase
+    const { data: existingSession, error: checkError } = await supabase
       .from('video_sessions')
       .select('*')
       .eq('appointment_id', appointmentId)
       .single();
+    
+    if (checkError) {
+      console.log('No existing session found (or error):', checkError.message);
+    }
     
     if (existingSession) {
       return NextResponse.json({ 
