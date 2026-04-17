@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 // OneSignal configuration
-const ONESIGNAL_API_KEY = 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6qpmkbkvyqse4omqc2r3jq3cun4cwcozgdlzar3oysrzj4dlogb2om5mm3odaxm3caesb4j2x32depi';
+const ONESIGNAL_API_KEY = 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6tv2e6xfopwumtfy3d3tgcpio6q2jpxyi5cpp7ayseped3omoykf7chb5enfpjpy3y32rvktir57g5i';
 const ONESIGNAL_APP_ID = '209456e7-6318-4254-aad7-54df0d7198f4';
 
 export async function POST(request: NextRequest) {
