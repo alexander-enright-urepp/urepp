@@ -177,7 +177,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
   if (authState === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#51b5ff]" />
       </div>
     );
   }
@@ -194,7 +194,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           <div className="flex flex-col gap-3">
             <Link 
               href={`/login?redirect=/coaches/${params.id}/book-native`}
-              className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium"
+              className="inline-block bg-[#51b5ff] hover:bg-[#3da8f0] text-white px-6 py-3 rounded-xl font-medium"
             >
               Sign In to Book
             </Link>
@@ -256,8 +256,8 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
             <p className="text-lg font-semibold text-gray-900">{selectedTime} - {displayEndTime}</p>
           </div>
           <Link 
-            href="/dashboard"
-            className="inline-block bg-blue-500 text-white px-6 py-3 rounded-xl font-medium"
+            href="/dashboard/coaches"
+            className="inline-block bg-[#51b5ff] text-white px-6 py-3 rounded-xl font-medium"
           >
             Go to Dashboard
           </Link>
@@ -293,11 +293,11 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         {/* Coach Info */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-[#51b5ff]/10 flex items-center justify-center">
               {coach.profile_picture_url ? (
                 <img src={coach.profile_picture_url} alt="" className="w-full h-full rounded-full object-cover" />
               ) : (
-                <span className="text-lg font-bold text-blue-600">
+                <span className="text-lg font-bold text-[#51b5ff]">
                   {coach.first_name[0]}{coach.last_name[0]}
                 </span>
               )}
@@ -321,7 +321,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         {/* Date Selection */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
           <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-blue-500" />
+            <Calendar className="w-5 h-5 text-[#51b5ff]" />
             <h3 className="font-semibold text-gray-900">Select Date</h3>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
@@ -331,7 +331,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
                 onClick={() => setSelectedDate(date.value)}
                 className={`flex-shrink-0 w-20 p-3 rounded-xl text-center transition-colors ${
                   selectedDate === date.value 
-                    ? 'bg-blue-500 text-white' 
+                    ? 'bg-[#51b5ff] text-white' 
                     : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -347,7 +347,7 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
         {selectedDate && (
           <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
             <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-blue-500" />
+              <Clock className="w-5 h-5 text-[#51b5ff]" />
               <h3 className="font-semibold text-gray-900">Select Time</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">

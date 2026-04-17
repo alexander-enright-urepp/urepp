@@ -279,7 +279,7 @@ export default function CoachesPage() {
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Home</h1>
-            <p className="text-sm text-gray-500">Make Appointments</p>
+            <p className="text-sm text-gray-500">Book Coaching Sessions</p>
           </div>
           <div className="flex items-center gap-2">
             <Link 
