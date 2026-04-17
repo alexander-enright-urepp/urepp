@@ -29,6 +29,10 @@ import {
   Award,
   Video,
   Calendar,
+  Home,
+  Tv,
+  Search,
+  User,
   MapPin as LocationIcon,
 } from 'lucide-react'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
@@ -495,6 +499,28 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
           <span className="text-sm font-medium">Made with UREPP</span>
         </a>
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
@@ -598,6 +624,28 @@ function RecruiterCardLayout({ profile, playerStats, theme, activeTab, setActive
           )}
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
@@ -785,6 +833,28 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
           </div>
         )}
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
@@ -998,6 +1068,28 @@ function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, co
           {activeTab === 'stats' && <StatsTab stats={playerStats} />}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }
@@ -1125,6 +1217,28 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
           {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#0B0B0F] border-t border-white/10 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   )
 }

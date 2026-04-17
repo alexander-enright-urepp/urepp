@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Loader2, Check, Home, Tv, Search, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface Profile {
@@ -278,7 +278,10 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Link href={`/players/${coach.username}`} className="p-2 hover:bg-gray-100 rounded-full">
+            <Link 
+              href={coach?.username ? `/players/${coach.username}` : '/search'}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="font-semibold text-gray-900">Book Session</h1>
@@ -348,19 +351,25 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
               <h3 className="font-semibold text-gray-900">Select Time</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {availableSlots.map((slot) => (
-                <button
-                  key={slot.time}
-                  onClick={() => setSelectedTime(slot.time)}
-                  className={`p-3 rounded-xl text-center transition-colors ${
-                    selectedTime === slot.time
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {slot.time}
-                </button>
-              ))}
+              {availableSlots.map((slot) => {
+                const [hour, minute] = slot.time.split(':').map(Number);
+                const period = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+                return (
+                  <button
+                    key={slot.time}
+                    onClick={() => setSelectedTime(slot.time)}
+                    className={`p-3 rounded-xl text-center transition-colors ${
+                      selectedTime === slot.time
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {displayTime}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -394,6 +403,27 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
           )}
         </button>
       </main>
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="max-w-md mx-auto flex justify-around">
+          <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600">
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 }

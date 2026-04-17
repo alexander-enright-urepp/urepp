@@ -44,7 +44,12 @@ export default function CoachMessagesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const athleteEmail = searchParams?.get('athlete');
+  const conversationParam = searchParams?.get('conversation');
+  const startWithParam = searchParams?.get('startWith');
+  const startWithName = searchParams?.get('name');
+  const startWithPic = searchParams?.get('pic');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasProcessedStartWith = useRef(false);
   
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
@@ -167,6 +172,89 @@ export default function CoachMessagesPage() {
       subscription.unsubscribe();
     };
   }, [currentProfileId]);
+
+  // Auto-open conversation from URL param
+  useEffect(() => {
+    if (!conversationParam || conversations.length === 0) return;
+    
+    const conv = conversations.find((c: Conversation) => 
+      c.participant_1 === conversationParam || c.participant_2 === conversationParam
+    );
+    
+    if (conv) {
+      setActiveConversation(conv);
+      // Clear the param from URL without navigation
+      const url = new URL(window.location.href);
+      url.searchParams.delete('conversation');
+      window.history.replaceState({}, '', url);
+    }
+  }, [conversationParam, conversations]);
+
+  // Start new conversation from URL param
+  useEffect(() => {
+    if (!startWithParam || !currentProfileId) return;
+    if (hasProcessedStartWith.current) return;
+    
+    console.log('Starting conversation effect triggered:', { startWithParam, currentProfileId, conversationsCount: conversations.length });
+    hasProcessedStartWith.current = true;
+    
+    const startNewConversation = async () => {
+      // Check if conversation already exists
+      const existingConv = conversations.find((c: Conversation) => 
+        (c.participant_1 === startWithParam && c.participant_2 === currentProfileId) ||
+        (c.participant_2 === startWithParam && c.participant_1 === currentProfileId)
+      );
+      
+      if (existingConv) {
+        console.log('Found existing conversation:', existingConv.id);
+        setActiveConversation(existingConv);
+      } else {
+        console.log('Creating new conversation with:', startWithParam);
+        // Create new conversation
+        const { data: newConv, error } = await supabase
+          .from('conversations')
+          .insert({
+            participant_1: currentProfileId,
+            participant_2: startWithParam,
+            last_message_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating conversation:', error);
+          return;
+        }
+        
+        if (newConv) {
+          console.log('Created new conversation:', newConv.id);
+          // Create the conversation object with other_profile info
+          const newConversation: Conversation = {
+            ...newConv,
+            other_profile: {
+              id: startWithParam,
+              first_name: startWithName ? decodeURIComponent(startWithName).split(' ')[0] : 'New',
+              last_name: startWithName ? decodeURIComponent(startWithName).split(' ').slice(1).join(' ') : 'User',
+              profile_picture_url: startWithPic ? decodeURIComponent(startWithPic) : null
+            },
+            unread_count: 0
+          };
+          
+          setConversations(prev => [newConversation, ...prev]);
+          setActiveConversation(newConversation);
+        }
+      }
+      
+      // Clear params from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('startWith');
+      url.searchParams.delete('name');
+      url.searchParams.delete('pic');
+      window.history.replaceState({}, '', url);
+    };
+    
+    startNewConversation();
+  }, [startWithParam, currentProfileId, conversations]);
 
   // Fetch messages for active conversation
   useEffect(() => {

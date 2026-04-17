@@ -20,7 +20,8 @@ import {
   Clock,
   X,
   MoreVertical,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import VideoCall from '@/components/VideoCall';
@@ -32,6 +33,14 @@ interface Profile {
   is_coaching_enabled?: boolean;
 }
 
+interface OtherProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profile_picture_url?: string;
+  username?: string;
+}
+
 interface Appointment {
   id: string;
   calendly_event_id: string;
@@ -41,7 +50,10 @@ interface Appointment {
   status: string;
   athlete_name: string;
   athlete_email: string;
+  athlete_id: string;
+  coach_id: string;
   is_coach?: boolean;
+  other_profile?: OtherProfile;
 }
 
 export default function CoachesPage() {
@@ -53,6 +65,11 @@ export default function CoachesPage() {
   const [activeCall, setActiveCall] = useState<{roomUrl: string; athleteName: string} | null>(null);
   const [startingCall, setStartingCall] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -75,7 +92,7 @@ export default function CoachesPage() {
       
       if (error) {
         console.error('Delete error:', error);
-        alert('Failed to delete session');
+        alert('Failed to delete session: ' + error.message);
       } else {
         setAppointments(prev => prev.filter(a => a.id !== apptId));
         setMenuOpen(null);
@@ -84,6 +101,59 @@ export default function CoachesPage() {
       console.error('Delete failed:', err);
       alert('Failed to delete session');
     }
+  };
+
+  const handleEditClick = (appt: Appointment) => {
+    setEditingAppointment(appt);
+    setEditDate(appt.start_time.split('T')[0]);
+    setEditStartTime(appt.start_time.split('T')[1]?.substring(0, 5) || '');
+    setEditEndTime(appt.end_time.split('T')[1]?.substring(0, 5) || '');
+    setMenuOpen(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingAppointment || !editDate || !editStartTime || !editEndTime) return;
+    
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from('booked_sessions')
+      .update({
+        session_date: editDate,
+        start_time: editStartTime,
+        end_time: editEndTime,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', editingAppointment.id);
+    
+    if (error) {
+      console.error('Update error:', error);
+      alert('Failed to update session: ' + error.message);
+    } else {
+      // Refresh appointments
+      const { data: sessionsData } = await supabase
+        .from('booked_sessions')
+        .select('*')
+        .or(`coach_id.eq.${profile?.id},athlete_id.eq.${profile?.id}`)
+        .order('session_date', { ascending: true });
+      
+      const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => ({
+        id: s.id,
+        calendly_event_id: '',
+        event_type_name: 'Coaching Session',
+        start_time: `${s.session_date}T${s.start_time}`,
+        end_time: `${s.session_date}T${s.end_time}`,
+        status: s.status,
+        athlete_name: s.athlete_name,
+        athlete_email: s.athlete_email,
+        athlete_id: s.athlete_id,
+        coach_id: s.coach_id,
+        is_coach: s.coach_id === profile?.id
+      }));
+      
+      setAppointments(formattedAppointments);
+      setEditingAppointment(null);
+    }
+    setSavingEdit(false);
   };
 
   useEffect(() => {
@@ -131,18 +201,41 @@ export default function CoachesPage() {
           data: sessionsData
         });
         
-        // Format sessions
-        const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => ({
-          id: s.id,
-          calendly_event_id: '',
-          event_type_name: 'Coaching Session',
-          start_time: `${s.session_date}T${s.start_time}`,
-          end_time: `${s.session_date}T${s.end_time}`,
-          status: s.status,
-          athlete_name: s.athlete_name,
-          athlete_email: s.athlete_email,
-          is_coach: s.coach_id === profileData.id
-        }));
+        // Get all unique profile IDs (both coaches and athletes from sessions)
+        const profileIds = [...new Set((sessionsData || []).flatMap((s: any) => [s.coach_id, s.athlete_id]).filter(Boolean))];
+        
+        // Fetch profiles for all participants
+        let profilesMap = new Map();
+        if (profileIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, profile_picture_url, username')
+            .in('id', profileIds);
+          
+          profilesMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
+        }
+        
+        // Format sessions with other profile info
+        const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => {
+          const isCoach = s.coach_id === profileData.id;
+          const otherProfileId = isCoach ? s.athlete_id : s.coach_id;
+          const otherProfile = profilesMap.get(otherProfileId);
+          
+          return {
+            id: s.id,
+            calendly_event_id: '',
+            event_type_name: 'Coaching Session',
+            start_time: `${s.session_date}T${s.start_time}`,
+            end_time: `${s.session_date}T${s.end_time}`,
+            status: s.status,
+            athlete_name: s.athlete_name,
+            athlete_email: s.athlete_email,
+            athlete_id: s.athlete_id,
+            coach_id: s.coach_id,
+            is_coach: isCoach,
+            other_profile: otherProfile
+          };
+        });
         
         setAppointments(formattedAppointments);
       }
@@ -226,7 +319,7 @@ export default function CoachesPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {appointments.slice(0, 3).map((appt) => (
+              {appointments.map((appt) => (
                 <div 
                   key={appt.id}
                   className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors relative"
@@ -243,6 +336,13 @@ export default function CoachesPage() {
                     {menuOpen === appt.id && (
                       <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
                         <button
+                          onClick={() => handleEditClick(appt)}
+                          className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Edit
+                        </button>
+                        <button
                           onClick={() => handleDeleteAppointment(appt.id)}
                           className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                         >
@@ -254,20 +354,33 @@ export default function CoachesPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-12 h-12 bg-[#51b5ff]/10 rounded-lg flex flex-col items-center justify-center">
-                      <span className="text-xs font-medium text-[#51b5ff]">
-                        {formatDate(appt.start_time).split(' ')[0]}
-                      </span>
-                      <span className="text-sm font-bold text-[#51b5ff]">
-                        {formatDate(appt.start_time).split(' ')[1]}
-                      </span>
-                    </div>
+                    <Link 
+                      href={appt.other_profile?.username ? `/players/${appt.other_profile.username}` : '#'}
+                      className="flex-shrink-0"
+                    >
+                      {appt.other_profile?.profile_picture_url ? (
+                        <img
+                          src={appt.other_profile.profile_picture_url}
+                          alt={`${appt.other_profile.first_name} ${appt.other_profile.last_name}`}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center">
+                          <span className="text-sm font-bold text-[#51b5ff]">
+                            {appt.other_profile?.first_name?.[0]}{appt.other_profile?.last_name?.[0]}
+                          </span>
+                        </div>
+                      )}
+                    </Link>
                     <div className="flex-1 min-w-0 pr-6">
                       <p className="font-medium text-gray-900 truncate">
-                        {appt.athlete_name}
+                        {appt.other_profile ? `${appt.other_profile.first_name} ${appt.other_profile.last_name}` : appt.athlete_name}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {formatTime(appt.start_time)} · {appt.event_type_name}
+                        {formatTime(appt.start_time)} · Coaching Session
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formatDate(appt.start_time)}
                       </p>
                     </div>
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
@@ -278,10 +391,12 @@ export default function CoachesPage() {
                   {/* Action Buttons */}
                   <div className="flex gap-2 mt-3">
                     <Link
-                      href={`/dashboard/coaches/messages?athlete=${appt.athlete_email}`}
-                      className="flex-1 bg-[#51b5ff] hover:bg-[#3da8f0] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                      href={appt.other_profile?.id 
+                        ? `/dashboard/coaches/messages?startWith=${appt.other_profile.id}&name=${encodeURIComponent(`${appt.other_profile.first_name} ${appt.other_profile.last_name}`)}&pic=${encodeURIComponent(appt.other_profile.profile_picture_url || '')}` 
+                        : `/dashboard/coaches/messages?athlete=${appt.athlete_email}`}
+                      className="flex-1 bg-[#51b5ff] hover:bg-[#3da8f0] text-white text-sm font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
                     >
-                      <MessageCircle className="w-3 h-3" />
+                      <MessageCircle className="w-4 h-4" />
                       Message
                     </Link>
                     <button
@@ -378,6 +493,61 @@ export default function CoachesPage() {
           </Link>
         </div>
       </nav>
+
+      {/* Edit Modal */}
+      {editingAppointment && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Session</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#51b5ff] focus:border-transparent"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#51b5ff] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                  <input
+                    type="time"
+                    value={editEndTime}
+                    onChange={(e) => setEditEndTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#51b5ff] focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setEditingAppointment(null)}
+                className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="flex-1 py-2 bg-[#51b5ff] hover:bg-[#3da8f0] text-white rounded-lg disabled:opacity-50"
+              >
+                {savingEdit ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Video Call Modal */}
       {activeCall && (

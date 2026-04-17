@@ -40,14 +40,9 @@ export default function SearchPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    gradYear: '',
-    position: '',
-    state: '',
-  })
+  const [selectedSport, setSelectedSport] = useState('')
 
-  const gradYears = [2025, 2026, 2027, 2028, 2029]
-  const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  const sports = ['Baseball', 'Basketball', 'Cross Country', 'Football', 'Golf', 'Soccer', 'Softball', 'Swimming', 'Tennis', 'Track & Field', 'Volleyball', 'Wrestling']
 
   const loadProfiles = useCallback(async () => {
     setLoading(true)
@@ -68,19 +63,29 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     setLoading(true)
+    
+    // Build base query
     let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach'])
     
+    // Build filter conditions - we'll combine them into a single query string if needed
+    const conditions: string[] = []
+    
     if (query.trim()) {
-      queryBuilder = queryBuilder.or(
-        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%`
-      )
+      conditions.push(`(first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%)`)
     }
     
-    if (filters.gradYear) {
-      queryBuilder = queryBuilder.eq('grad_year', parseInt(filters.gradYear))
+    if (selectedSport) {
+      // Sport filter - check either high_school_sports OR college_sports array
+      conditions.push(`(high_school_sports.cs.{${selectedSport}},college_sports.cs.{${selectedSport}})`)
     }
-    if (filters.state) {
-      queryBuilder = queryBuilder.eq('state', filters.state)
+    
+    // Apply combined filter
+    if (conditions.length === 1) {
+      queryBuilder = queryBuilder.or(conditions[0])
+    } else if (conditions.length === 2) {
+      // Both conditions must be true (AND logic between text and sport)
+      // But within sport, it's OR logic
+      queryBuilder = queryBuilder.and(`and(${conditions[0]},${conditions[1]})`)
     }
     
     const { data } = await queryBuilder.limit(20)
@@ -141,33 +146,18 @@ export default function SearchPage() {
         {/* Filters */}
         {showFilters && (
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-babyblue-100 mb-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-500 mb-1.5 block">Grad Year</label>
-                <select
-                  value={filters.gradYear}
-                  onChange={(e) => setFilters(f => ({ ...f, gradYear: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-babyblue-400 outline-none text-sm"
-                >
-                  <option value="">Any</option>
-                  {gradYears.map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1.5 block">State</label>
-                <select
-                  value={filters.state}
-                  onChange={(e) => setFilters(f => ({ ...f, state: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-babyblue-400 outline-none text-sm"
-                >
-                  <option value="">Any</option>
-                  {states.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1.5 block">Sport</label>
+              <select
+                value={selectedSport}
+                onChange={(e) => setSelectedSport(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-babyblue-400 outline-none text-sm"
+              >
+                <option value="">All Sports</option>
+                {sports.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
             <button 
               onClick={handleSearch}
@@ -183,12 +173,12 @@ export default function SearchPage() {
           <p className="text-sm text-gray-500">
             {loading ? 'Searching...' : `${profiles.length} members found`}
           </p>
-          {(filters.gradYear || filters.state) && (
+          {selectedSport && (
             <button 
-              onClick={() => { setFilters({ gradYear: '', position: '', state: '' }); handleSearch(); }}
+              onClick={() => { setSelectedSport(''); handleSearch(); }}
               className="text-xs text-babyblue-600 hover:underline"
             >
-              Clear filters
+              Clear filter
             </button>
           )}
         </div>
