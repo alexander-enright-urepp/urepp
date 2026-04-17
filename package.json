@@ -27,6 +27,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
+    "onesignal-cordova-plugin": "^5.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.0",

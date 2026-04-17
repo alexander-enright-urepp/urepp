@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { notifyOtherParticipant } from '@/lib/onesignal';
 import { 
   Calendar, 
   Check, 
