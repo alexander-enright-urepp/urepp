@@ -45,18 +45,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send push notification via OneSignal
-    console.log('Sending OneSignal notification to:', profile.onesignal_player_id);
+    // Send push notification via OneSignal v5 API
+    console.log('Sending OneSignal v5 notification to subscription:', profile.onesignal_player_id);
     
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    const response = await fetch('https://api.onesignal.com/notifications', {
       method: 'POST',
       headers: {
-        'Authorization': `key ${ONESIGNAL_API_KEY}`,
+        'Authorization': `Key ${ONESIGNAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_player_ids: [profile.onesignal_player_id],
+        include_subscription_ids: [profile.onesignal_player_id],
         headings: { en: 'Incoming Call 📹' },
         contents: { en: `${callerName || 'Someone'} is calling you on UREPP` },
         data: {
