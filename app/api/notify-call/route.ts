@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send push notification via OneSignal
+    console.log('Sending OneSignal notification to:', profile.onesignal_player_id);
+    
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
@@ -57,16 +59,20 @@ export async function POST(request: NextRequest) {
       }),
     });
 
+    console.log('OneSignal response status:', response.status);
+    
+    const responseText = await response.text();
+    console.log('OneSignal raw response:', responseText);
+
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('OneSignal error:', errorData);
+      console.error('OneSignal error:', responseText);
       return NextResponse.json(
-        { success: false, error: 'Failed to send notification' },
+        { success: false, error: 'OneSignal error: ' + responseText },
         { status: 500 }
       );
     }
 
-    const result = await response.json();
+    const result = JSON.parse(responseText);
     console.log('Call notification sent:', result);
 
     return NextResponse.json({ success: true, result });
