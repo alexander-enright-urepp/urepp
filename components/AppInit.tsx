@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { UREPPApp } from '@/lib/ios-bridge'
 import { initializeIAP } from '@/lib/iap'
-import { initNotifications } from '@/lib/onesignal'
+import { initPushNotifications } from '@/lib/capacitor-push'
 
 export default function AppInit() {
   useEffect(() => {
@@ -11,7 +11,7 @@ export default function AppInit() {
     if (typeof window !== 'undefined') {
       UREPPApp.init().catch(console.error)
       initializeIAP().catch(console.error)
-      initNotifications() // Initialize push notifications
+      initPushNotifications() // Initialize Capacitor push notifications
     }
   }, [])
 

@@ -1,93 +1,106 @@
-// Web Push Notifications - works in Capacitor wrapper apps
-// Uses iOS 16.4+ Safari Web Push support
+// Simple polling-based notifications for wrapper apps
+// Works reliably in Capacitor wrapper mode
 
-import { Capacitor } from '@capacitor/core';
+import { createClient } from '@supabase/supabase-js';
 
-export async function initPushNotifications() {
-  console.log('Push: init called');
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+let pollingInterval: NodeJS.Timeout | null = null;
+
+export function initNotifications() {
+  console.log('Notifications: Starting polling-based notifications');
   
-  if (!('Notification' in window)) {
-    console.log('Push: Notifications not supported');
-    return;
-  }
+  // Start polling every 5 seconds
+  startPolling();
+}
+
+function startPolling() {
+  if (pollingInterval) return;
   
-  console.log('Push: Notification permission:', Notification.permission);
+  pollingInterval = setInterval(async () => {
+    checkForNotifications();
+  }, 5000);
   
-  // Request permission
-  const permission = await Notification.requestPermission();
-  console.log('Push: New permission:', permission);
-  
-  if (permission === 'granted') {
-    // In a wrapper app, we can still show local notifications
-    console.log('Push: Permission granted');
+  console.log('Notifications: Polling started (5s interval)');
+}
+
+async function checkForNotifications() {
+  try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    // For wrapper apps, we use a polling approach
-    // or show in-app notifications
-    startNotificationPolling();
+    if (!user) return;
+    
+    // Check for pending call notifications
+    const { data: notifications } = await supabase
+      .from('pending_notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('type', 'incoming_call')
+      .eq('delivered', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    if (notifications && notifications.length > 0) {
+      const notification = notifications[0];
+      
+      // Show notification
+      showInAppNotification(
+        'Incoming Call 📹',
+        notification.data.callerName + ' is calling you',
+        notification.data
+      );
+      
+      // Mark as delivered
+      await supabase
+        .from('pending_notifications')
+        .update({ delivered: true, delivered_at: new Date().toISOString() })
+        .eq('id', notification.id);
+    }
+  } catch (err) {
+    console.error('Notification polling error:', err);
   }
 }
 
-// Polling approach for wrapper apps
-function startNotificationPolling() {
-  console.log('Push: Starting notification polling');
-  
-  // Check for new notifications every 10 seconds
-  setInterval(async () => {
-    // This would check your backend for pending notifications
-    // For now, we just log
-    console.log('Push: Polling for notifications...');
-  }, 10000);
-}
-
-// Show a local notification (works in wrapper apps)
-export function showLocalNotification(title: string, body: string, data?: any) {
-  if (Notification.permission !== 'granted') {
-    console.log('Push: No permission to show notification');
-    return;
+function showInAppNotification(title: string, body: string, data: any) {
+  // Use vibration if available
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
   }
   
-  const notification = new Notification(title, {
-    body,
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
-    tag: data?.type || 'default',
-    data: data
-  });
-  
-  notification.onclick = () => {
-    console.log('Push: Notification clicked', data);
-    window.focus();
-    
-    if (data?.type === 'video_call' && data?.roomUrl) {
+  // Show alert (in real app, use a nicer UI)
+  if (confirm(title + '\n' + body + '\n\nJoin call?')) {
+    if (data?.roomUrl) {
       window.location.href = `/video-call?room=${encodeURIComponent(data.roomUrl)}`;
     }
-  };
-}
-
-// For call notifications
-export async function notifyOtherParticipant(recipientId: string, roomUrl: string, callerName: string) {
-  try {
-    console.log('Push: Sending call notification to:', recipientId);
-    
-    const response = await fetch('/api/notify-call', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        recipientId,
-        roomUrl,
-        callerName
-      })
-    });
-    
-    const result = await response.json();
-    console.log('Push: Notification result:', result);
-    
-  } catch (error) {
-    console.error('Push: Error sending notification:', error);
   }
 }
 
-// Test notification
-export function testNotification() {
-  showLocalNotification('Test', 'This is a test notification', { type: 'test' });
+export async function notifyOtherParticipant(recipientId: string, roomUrl: string, callerName: string) {
+  try {
+    console.log('Sending call notification to:', recipientId);
+    
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Store notification in database
+    await supabase.from('pending_notifications').insert({
+      user_id: recipientId,
+      type: 'incoming_call',
+      data: { roomUrl, callerName },
+      delivered: false,
+      created_at: new Date().toISOString()
+    });
+    
+    console.log('Notification stored for polling');
+  } catch (error) {
+    console.error('Error storing notification:', error);
+  }
+}
+
+export function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
 }
