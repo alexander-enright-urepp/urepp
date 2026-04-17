@@ -38,8 +38,9 @@ export async function createRoom(sessionName: string, expirationMinutes = 60): P
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Failed to create room: ${error.message}`);
+    const errorText = await response.text();
+    console.error('Daily.co API error:', response.status, errorText);
+    throw new Error(`Failed to create room: ${response.status} ${errorText || 'Unknown error'}`);
   }
 
   const room = await response.json();
