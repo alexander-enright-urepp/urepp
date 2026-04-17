@@ -405,6 +405,7 @@ export default function CoachesPage() {
                         try {
                           const response = await fetch('/api/sessions', {
                             method: 'POST',
+                            credentials: 'include',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                               appointmentId: appt.id,
