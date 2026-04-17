@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     // Try to get auth from Authorization header first (Bearer token)
     const authHeader = request.headers.get('Authorization');
     let user = null;
+    let supabase = null;
     
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
       const { data: { user: tokenUser }, error: tokenError } = await tempClient.auth.getUser(token);
       if (!tokenError && tokenUser) {
         user = tokenUser;
+        supabase = tempClient;
         console.log('Authenticated via Bearer token:', user.id);
       }
     }
@@ -28,9 +30,9 @@ export async function POST(request: NextRequest) {
     // Fall back to cookie-based auth
     if (!user) {
       const cookieStore = cookies();
-      const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      const routeClient = createRouteHandlerClient({ cookies: () => cookieStore });
       
-      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser();
+      const { data: { user: cookieUser }, error: authError } = await routeClient.auth.getUser();
       
       if (authError || !cookieUser) {
         console.error('Unauthorized - no valid auth found');
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
       }
       
       user = cookieUser;
+      supabase = routeClient;
       console.log('Authenticated via cookies:', user.id);
     }
     
