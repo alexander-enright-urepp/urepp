@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DailyIframe, { DailyCall } from '@daily-co/daily-js';
 import { Loader2, X } from 'lucide-react';
@@ -13,6 +13,8 @@ interface VideoCallProps {
 
 export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps) {
   const router = useRouter();
+  const callFrameRef = useRef<DailyCall | null>(null);
+  const initializedRef = useRef(false);
 
   const handleLeftMeeting = useCallback(() => {
     if (onLeave) {
@@ -23,7 +25,9 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
   }, [onLeave, router]);
 
   useEffect(() => {
-    if (!roomUrl) return;
+    if (!roomUrl || initializedRef.current) return;
+
+    initializedRef.current = true;
 
     const callFrame = DailyIframe.createFrame({
       iframeStyle: {
@@ -39,6 +43,8 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
       showFullscreenButton: true,
     });
 
+    callFrameRef.current = callFrame;
+
     callFrame.join({
       url: roomUrl,
       userName: userName,
@@ -49,7 +55,11 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     callFrame.on('left-meeting', handleLeftMeeting);
 
     return () => {
-      callFrame.destroy();
+      if (callFrameRef.current) {
+        callFrameRef.current.destroy();
+        callFrameRef.current = null;
+      }
+      initializedRef.current = false;
     };
   }, [roomUrl, userName, handleLeftMeeting]);
 
