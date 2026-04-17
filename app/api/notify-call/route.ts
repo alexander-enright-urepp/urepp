@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6q5yy6mmkfbesnedqkndjiyahk464a7mfjdzeukerosh2tol2mbqzp2s6quskt4twaahnfopkupebqi';
+const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6qyduoqg5rtui2nabqzd7cxj4k52ohnisj62ri54y6tezjo7yw5lw766naxgb64e7mfppav54uh663y';
 const ONESIGNAL_APP_ID = '209456e7-6318-4254-aad7-54df0d7198f4';
 
 export async function POST(request: NextRequest) {
@@ -35,18 +35,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send push notification via OneSignal
-    console.log('Sending OneSignal notification to:', profile.onesignal_player_id);
+    // Send push notification via OneSignal v2 API
+    console.log('Sending OneSignal v2 notification to:', profile.onesignal_player_id);
     
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    const response = await fetch('https://api.onesignal.com/notifications', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${ONESIGNAL_API_KEY}`,
+        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_player_ids: [profile.onesignal_player_id],
+        include_subscription_ids: [profile.onesignal_player_id],
         headings: { en: 'Incoming Call 📹' },
         contents: { en: `${callerName || 'Someone'} is calling you on UREPP` },
         data: {
@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
           roomUrl: roomUrl,
           callerName: callerName,
         },
-        priority: 10, // High priority
-        ttl: 60, // 60 seconds expiration
+        priority: 10,
+        ttl: 60,
       }),
     });
 
