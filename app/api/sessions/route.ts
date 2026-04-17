@@ -70,11 +70,18 @@ export async function POST(request: NextRequest) {
     }
     
     // Create Daily room
-    const roomName = `urepp-session-${appointmentId}-${Date.now()}`;
-    const room = await createRoom(
-      `UREPP: ${coachName} ↔ ${athleteName}`,
-      120 // 2 hour expiration
-    );
+    let room;
+    try {
+      const roomName = `urepp-session-${appointmentId}-${Date.now()}`;
+      room = await createRoom(
+        `UREPP: ${coachName} ↔ ${athleteName}`,
+        120 // 2 hour expiration
+      );
+      console.log('Daily room created:', room.name);
+    } catch (dailyError: any) {
+      console.error('Failed to create Daily room:', dailyError.message);
+      return NextResponse.json({ error: 'Failed to create video room: ' + dailyError.message }, { status: 500 });
+    }
     
     // Store in database
     const { data: session, error: dbError } = await supabase
