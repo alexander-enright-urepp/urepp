@@ -1,9 +1,16 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DailyIframe, { DailyCall } from '@daily-co/daily-js';
 import { Loader2, X } from 'lucide-react';
+
+// Global flag to prevent duplicate frames across component remounts
+declare global {
+  interface Window {
+    _dailyFrameActive?: boolean;
+  }
+}
 
 interface VideoCallProps {
   roomUrl: string;
@@ -13,10 +20,11 @@ interface VideoCallProps {
 
 export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps) {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const callFrameRef = useRef<DailyCall | null>(null);
-  const initializedRef = useRef(false);
 
   const handleLeftMeeting = useCallback(() => {
+    window._dailyFrameActive = false;
     if (onLeave) {
       onLeave();
     } else {
@@ -25,43 +33,79 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
   }, [onLeave, router]);
 
   useEffect(() => {
-    if (!roomUrl || initializedRef.current) return;
+    if (!roomUrl) return;
+    
+    // Check if another frame is already active
+    if (window._dailyFrameActive) {
+      console.log('Daily frame already active, skipping creation');
+      return;
+    }
 
-    initializedRef.current = true;
+    try {
+      window._dailyFrameActive = true;
 
-    const callFrame = DailyIframe.createFrame({
-      iframeStyle: {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        border: '0',
-        zIndex: '1000',
-      },
-      showLeaveButton: true,
-      showFullscreenButton: true,
-    });
+      const callFrame = DailyIframe.createFrame({
+        iframeStyle: {
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          border: '0',
+          zIndex: '1000',
+        },
+        showLeaveButton: true,
+        showFullscreenButton: true,
+      });
 
-    callFrameRef.current = callFrame;
+      callFrameRef.current = callFrame;
 
-    callFrame.join({
-      url: roomUrl,
-      userName: userName,
-      showLocalVideo: true,
-      showParticipantsBar: true,
-    });
+      callFrame.join({
+        url: roomUrl,
+        userName: userName,
+        showLocalVideo: true,
+        showParticipantsBar: true,
+      });
 
-    callFrame.on('left-meeting', handleLeftMeeting);
+      callFrame.on('left-meeting', handleLeftMeeting);
+      callFrame.on('error', (e: any) => {
+        console.error('Daily error:', e);
+        setError('Video call error: ' + (e.errorMsg || 'Unknown error'));
+      });
+
+    } catch (err: any) {
+      console.error('Failed to create Daily frame:', err);
+      setError(err.message || 'Failed to start video call');
+      window._dailyFrameActive = false;
+    }
 
     return () => {
-      if (callFrameRef.current) {
-        callFrameRef.current.destroy();
-        callFrameRef.current = null;
+      try {
+        if (callFrameRef.current) {
+          callFrameRef.current.destroy();
+          callFrameRef.current = null;
+        }
+      } catch (e) {
+        console.log('Error cleaning up Daily frame:', e);
       }
-      initializedRef.current = false;
+      window._dailyFrameActive = false;
     };
   }, [roomUrl, userName, handleLeftMeeting]);
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 p-4">
+        <X className="w-12 h-12 text-red-500 mb-4" />
+        <p className="text-white text-center mb-4">{error}</p>
+        <button 
+          onClick={() => onLeave?.() || router.back()}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   if (!roomUrl) {
     return (

@@ -567,7 +567,7 @@ export default function CoachesPage() {
 
       {/* Video Call Modal */}
       {activeCall && (
-        <div className="fixed inset-0 z-[100]">
+        <div className="fixed inset-0 z-[100]" key={activeCall.roomUrl}>
           <div className="absolute top-4 right-4 z-[110]">
             <button
               onClick={() => setActiveCall(null)}
