@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// OneSignal configuration
-const ONESIGNAL_API_KEY = 'os_v2_app_eckfnz3ddbbfjkwxktpq24my6q2kmedhpy2ewjfjgfdbaxr27text4qqqvyo3cnap7wwmitlwxmyk3gg72gh2iakvzkhsojpjulsnrq';
+// OneSignal configuration - uses environment variable
+const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY;
 const ONESIGNAL_APP_ID = '209456e7-6318-4254-aad7-54df0d7198f4';
 
 export async function POST(request: NextRequest) {
@@ -13,6 +13,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
+      );
+    }
+
+    // Check if API key is configured
+    if (!ONESIGNAL_API_KEY) {
+      console.error('ONESIGNAL_API_KEY not configured');
+      return NextResponse.json(
+        { success: false, error: 'Push notification service not configured' },
+        { status: 500 }
       );
     }
 
