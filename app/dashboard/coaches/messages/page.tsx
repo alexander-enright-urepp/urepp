@@ -12,7 +12,9 @@ import {
   User,
   Send,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  MoreVertical,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -59,6 +61,8 @@ export default function CoachMessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   // Get current user
   useEffect(() => {
@@ -193,41 +197,87 @@ export default function CoachMessagesPage() {
   // Start new conversation from URL param
   useEffect(() => {
     if (!startWithParam || !currentProfileId) return;
-    if (hasProcessedStartWith.current) return;
+    if (hasProcessedStartWith.current) {
+      console.log('Already processed startWith, skipping');
+      return;
+    }
     
-    console.log('Starting conversation effect triggered:', { startWithParam, currentProfileId, conversationsCount: conversations.length });
+    console.log('Starting conversation effect triggered:', { startWithParam, currentProfileId });
     hasProcessedStartWith.current = true;
     
     const startNewConversation = async () => {
-      // Check if conversation already exists
-      const existingConv = conversations.find((c: Conversation) => 
-        (c.participant_1 === startWithParam && c.participant_2 === currentProfileId) ||
-        (c.participant_2 === startWithParam && c.participant_1 === currentProfileId)
-      );
+      // First, check database directly for existing conversation (not just local state)
+      const { data: existingConvs, error: checkError } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(
+          `and(participant_1.eq.${currentProfileId},participant_2.eq.${startWithParam}),and(participant_1.eq.${startWithParam},participant_2.eq.${currentProfileId})`
+        )
+        .limit(1);
       
-      if (existingConv) {
-        console.log('Found existing conversation:', existingConv.id);
-        setActiveConversation(existingConv);
-      } else {
-        console.log('Creating new conversation with:', startWithParam);
-        // Create new conversation
-        const { data: newConv, error } = await supabase
-          .from('conversations')
-          .insert({
-            participant_1: currentProfileId,
-            participant_2: startWithParam,
-            last_message_at: new Date().toISOString()
-          })
-          .select()
+      if (checkError) {
+        console.error('Error checking for existing conversation:', checkError);
+      }
+      
+      if (existingConvs && existingConvs.length > 0) {
+        console.log('Found existing conversation in DB:', existingConvs[0].id);
+        const existingConv = existingConvs[0];
+        
+        // Fetch the other user's profile
+        const otherId = existingConv.participant_1 === currentProfileId ? existingConv.participant_2 : existingConv.participant_1;
+        const { data: otherProfile } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, profile_picture_url')
+          .eq('id', otherId)
           .single();
         
-        if (error) {
-          console.error('Error creating conversation:', error);
+        const conversation: Conversation = {
+          ...existingConv,
+          other_profile: otherProfile || {
+            id: otherId,
+            first_name: startWithName ? decodeURIComponent(startWithName).split(' ')[0] : 'Unknown',
+            last_name: startWithName ? decodeURIComponent(startWithName).split(' ').slice(1).join(' ') : 'User',
+            profile_picture_url: startWithPic ? decodeURIComponent(startWithPic) : null
+          },
+          unread_count: 0
+        };
+        
+        // Only add to conversations if not already there
+        setConversations(prev => {
+          if (prev.some(c => c.id === conversation.id)) {
+            return prev;
+          }
+          return [conversation, ...prev];
+        });
+        setActiveConversation(conversation);
+      } else {
+        console.log('Creating new conversation with:', startWithParam);
+        // Use the database function to safely create/get conversation (handles duplicates)
+        const { data: convId, error: rpcError } = await supabase
+          .rpc('get_or_create_conversation', {
+            p_participant_1: currentProfileId,
+            p_participant_2: startWithParam
+          });
+        
+        if (rpcError) {
+          console.error('Error creating conversation via RPC:', rpcError);
           return;
         }
         
-        if (newConv) {
-          console.log('Created new conversation:', newConv.id);
+        if (convId) {
+          console.log('Created/found conversation:', convId);
+          // Fetch the full conversation
+          const { data: newConv, error: fetchError } = await supabase
+            .from('conversations')
+            .select('*')
+            .eq('id', convId)
+            .single();
+          
+          if (fetchError || !newConv) {
+            console.error('Error fetching new conversation:', fetchError);
+            return;
+          }
+          
           // Create the conversation object with other_profile info
           const newConversation: Conversation = {
             ...newConv,
@@ -240,7 +290,12 @@ export default function CoachMessagesPage() {
             unread_count: 0
           };
           
-          setConversations(prev => [newConversation, ...prev]);
+          setConversations(prev => {
+            if (prev.some(c => c.id === newConversation.id)) {
+              return prev;
+            }
+            return [newConversation, ...prev];
+          });
           setActiveConversation(newConversation);
         }
       }
@@ -254,7 +309,12 @@ export default function CoachMessagesPage() {
     };
     
     startNewConversation();
-  }, [startWithParam, currentProfileId, conversations]);
+    
+    // Reset the ref when component unmounts
+    return () => {
+      hasProcessedStartWith.current = false;
+    };
+  }, [startWithParam, currentProfileId]);
 
   // Fetch messages for active conversation
   useEffect(() => {
@@ -503,40 +563,97 @@ export default function CoachMessagesPage() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
                 {conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => setActiveConversation(conv)}
-                    className="w-full bg-white rounded-2xl shadow-sm border border-babyblue-100 p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
-                  >
-                    {conv.other_profile?.profile_picture_url ? (
-                      <img 
-                        src={conv.other_profile.profile_picture_url}
-                        alt={`${conv.other_profile.first_name} ${conv.other_profile.last_name}`}
-                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-[#51b5ff]/10 flex items-center justify-center flex-shrink-0">
-                        <User className="w-6 h-6 text-[#51b5ff]" />
+                  <div key={conv.id} className="w-full bg-white rounded-2xl shadow-sm border border-babyblue-100 p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+                    <button
+                      onClick={() => setActiveConversation(conv)}
+                      className="flex-1 flex items-center gap-3 text-left"
+                    >
+                      {conv.other_profile?.profile_picture_url ? (
+                        <img 
+                          src={conv.other_profile.profile_picture_url}
+                          alt={`${conv.other_profile.first_name} ${conv.other_profile.last_name}`}
+                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#51b5ff]/10 flex items-center justify-center flex-shrink-0">
+                          <User className="w-6 h-6 text-[#51b5ff]" />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">
+                          {conv.other_profile.first_name} {conv.other_profile.last_name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Last active {formatDate(conv.last_message_at)}
+                        </p>
                       </div>
-                    )}
+                    </button>
                     
-                    <div className="flex-1 text-left">
-                      <p className="font-semibold text-gray-900">
-                        {conv.other_profile.first_name} {conv.other_profile.last_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Last active {formatDate(conv.last_message_at)}
-                      </p>
+                    {/* Three dots menu */}
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpen(menuOpen === conv.id ? null : conv.id);
+                        }}
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        disabled={deleting === conv.id}
+                      >
+                        {deleting === conv.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                        ) : (
+                          <MoreVertical className="w-5 h-5 text-gray-500" />
+                        )}
+                      </button>
+                      
+                      {/* Dropdown menu */}
+                      {menuOpen === conv.id && (
+                        <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 min-w-[140px]">
+                          <button
+                            onClick={async () => {
+                              setDeleting(conv.id);
+                              setMenuOpen(null);
+                              
+                              const { error } = await supabase
+                                .from('conversations')
+                                .delete()
+                                .eq('id', conv.id);
+                              
+                              if (error) {
+                                console.error('Error deleting conversation:', error);
+                                alert('Failed to delete conversation');
+                              } else {
+                                setConversations(prev => prev.filter(c => c.id !== conv.id));
+                              }
+                              setDeleting(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 text-sm"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
+                    
                     {conv.unread_count > 0 && (
                       <span className="w-5 h-5 bg-[#51b5ff] text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {conv.unread_count}
                       </span>
                     )}
-                  </button>
+                  </div>
                 ))}
+                
+                {/* Click outside to close menu */}
+                {menuOpen && (
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setMenuOpen(null)}
+                  />
+                )}
               </div>
             )}
           </div>
