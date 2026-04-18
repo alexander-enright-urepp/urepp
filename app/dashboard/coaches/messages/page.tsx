@@ -51,7 +51,7 @@ export default function CoachMessagesPage() {
   const startWithName = searchParams?.get('name');
   const startWithPic = searchParams?.get('pic');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const hasProcessedStartWith = useRef(false);
+  const processedRef = useRef<string | null>(null);
   
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
@@ -194,16 +194,21 @@ export default function CoachMessagesPage() {
     }
   }, [conversationParam, conversations]);
 
+  // Track which startWith/currentProfileId combo we've processed
+  const processedRef = useRef<string | null>(null);
+
   // Start new conversation from URL param
   useEffect(() => {
     if (!startWithParam || !currentProfileId) return;
-    if (hasProcessedStartWith.current) {
-      console.log('Already processed startWith, skipping');
+    
+    const comboKey = `${startWithParam}-${currentProfileId}`;
+    if (processedRef.current === comboKey) {
+      console.log('Already processed this combo, skipping');
       return;
     }
     
+    processedRef.current = comboKey;
     console.log('Starting conversation effect triggered:', { startWithParam, currentProfileId });
-    hasProcessedStartWith.current = true;
     
     const startNewConversation = async () => {
       // First, check database directly for existing conversation (not just local state)
@@ -309,11 +314,6 @@ export default function CoachMessagesPage() {
     };
     
     startNewConversation();
-    
-    // Reset the ref when component unmounts
-    return () => {
-      hasProcessedStartWith.current = false;
-    };
   }, [startWithParam, currentProfileId]);
 
   // Fetch messages for active conversation
