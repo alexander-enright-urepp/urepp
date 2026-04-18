@@ -194,9 +194,6 @@ export default function CoachMessagesPage() {
     }
   }, [conversationParam, conversations]);
 
-  // Track which startWith/currentProfileId combo we've processed
-  const processedRef = useRef<string | null>(null);
-
   // Start new conversation from URL param
   useEffect(() => {
     if (!startWithParam || !currentProfileId) return;
