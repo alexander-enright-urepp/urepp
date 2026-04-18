@@ -1,0 +1,704 @@
+
+> urepp@0.1.0 test
+> playwright test
+
+
+Running 265 tests using 3 workers
+
+[1A[2K[1/265] [chromium] › tests/smoke-auth.spec.ts:23:7 › Smoke: Auth Pages › Auth signin page loads
+[1A[2K[2/265] [chromium] › tests/smoke-auth.spec.ts:10:7 › Smoke: Auth Pages › Signup page loads
+[1A[2K[3/265] [chromium] › tests/smoke-auth.spec.ts:17:7 › Smoke: Auth Pages › Auth signup page loads
+[1A[2K[4/265] [chromium] › tests/smoke-auth.spec.ts:29:7 › Smoke: Auth Pages › Signup form has required fields
+[1A[2K[5/265] [chromium] › tests/smoke-auth.spec.ts:36:7 › Smoke: Auth Pages › Login form has required fields
+[1A[2K[6/265] [chromium] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID
+[1A[2K[7/265] [chromium] › tests/smoke-coaches.spec.ts:17:7 › Smoke: Coach Pages › Coach native booking page loads
+[1A[2K[8/265] [chromium] › tests/smoke-coaches.spec.ts:23:7 › Smoke: Coach Pages › Coach messages page loads
+[1A[2K[9/265] [chromium] › tests/smoke-coaches.spec.ts:29:7 › Smoke: Coach Pages › Coach settings page loads
+[1A[2K[10/265] [chromium] › tests/smoke-critical-flows.spec.ts:10:7 › Smoke: Critical Flows › Navigation: Home → TV → Search
+[1A[2K[11/265] [chromium] › tests/smoke-critical-flows.spec.ts:24:7 › Smoke: Critical Flows › TV tab switching works
+[1A[2K[12/265] [chromium] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work
+[1A[2K[13/265] [chromium] › tests/smoke-critical-flows.spec.ts:49:7 › Smoke: Critical Flows › Auth redirect flow
+[1A[2K  1) [chromium] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"/search"[39m
+    Received string:    [31m"http://localhost:3000/tv"[39m
+
+      39 |     // Click Search
+      40 |     await page.click('a:has-text("Search")');
+    > 41 |     await expect(page.url()).toContain('/search');
+         |                              ^
+      42 |     
+      43 |     // Go back and click Profile
+      44 |     await page.goto('/tv');
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-critical-flows.spec.ts:41:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-chromium/error-context.md
+
+
+[1A[2K[14/265] [chromium] › tests/smoke-critical-flows.spec.ts:64:7 › Smoke: Critical Flows › 404 handling for invalid routes
+[1A[2K[15/265] [chromium] › tests/smoke-dashboard.spec.ts:10:7 › Smoke: Dashboard Pages › Main dashboard page loads or redirects
+[1A[2K[16/265] [chromium] › tests/smoke-dashboard.spec.ts:18:7 › Smoke: Dashboard Pages › Dashboard - Academics page
+[1A[2K[17/265] [chromium] › tests/smoke-dashboard.spec.ts:24:7 › Smoke: Dashboard Pages › Dashboard - Appointments page
+[1A[2K[18/265] [chromium] › tests/smoke-dashboard.spec.ts:30:7 › Smoke: Dashboard Pages › Dashboard - Coaches page
+[1A[2K[19/265] [chromium] › tests/smoke-dashboard.spec.ts:36:7 › Smoke: Dashboard Pages › Dashboard - Videos page
+[1A[2K  2) [chromium] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2').first()[22m
+
+
+      12 |     await page.goto('/coaches/test-coach-id/book');
+      13 |     await expect(page.locator('body')).toBeVisible();
+    > 14 |     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
+         |                                                  ^
+      15 |   });
+      16 |
+      17 |   test('Coach native booking page loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-coaches.spec.ts:14:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-chromium/error-context.md
+
+
+[1A[2K[20/265] [chromium] › tests/smoke-dashboard.spec.ts:42:7 › Smoke: Dashboard Pages › Dashboard - Links page
+[1A[2K[21/265] [chromium] › tests/smoke-dashboard.spec.ts:48:7 › Smoke: Dashboard Pages › Dashboard - Teams page
+[1A[2K[22/265] [chromium] › tests/smoke-dashboard.spec.ts:54:7 › Smoke: Dashboard Pages › Dashboard - Awards page
+[1A[2K[23/265] [chromium] › tests/smoke-dashboard.spec.ts:60:7 › Smoke: Dashboard Pages › Dashboard - Account page
+[1A[2K[24/265] [chromium] › tests/smoke-dashboard.spec.ts:66:7 › Smoke: Dashboard Pages › Dashboard - Themes page
+[1A[2K[25/265] [chromium] › tests/smoke-dashboard.spec.ts:72:7 › Smoke: Dashboard Pages › Dashboard - Measurements page
+[1A[2K[26/265] [chromium] › tests/smoke-dashboard.spec.ts:78:7 › Smoke: Dashboard Pages › Dashboard - Recruiting page
+[1A[2K[27/265] [chromium] › tests/smoke-dashboard.spec.ts:84:7 › Smoke: Dashboard Pages › Dashboard - Stats page
+[1A[2K[28/265] [chromium] › tests/smoke-dashboard.spec.ts:90:7 › Smoke: Dashboard Pages › Dashboard - Analytics page
+[1A[2K[29/265] [chromium] › tests/smoke-dashboard.spec.ts:96:7 › Smoke: Dashboard Pages › Dashboard - Subscription page
+[1A[2K[30/265] [chromium] › tests/smoke-mobile.spec.ts:11:7 › Smoke: Mobile Responsiveness › Home page on mobile
+[1A[2K[31/265] [chromium] › tests/smoke-mobile.spec.ts:20:7 › Smoke: Mobile Responsiveness › TV page on mobile
+[1A[2K[32/265] [chromium] › tests/smoke-mobile.spec.ts:26:7 › Smoke: Mobile Responsiveness › Search page on mobile
+[1A[2K[33/265] [chromium] › tests/smoke-mobile.spec.ts:32:7 › Smoke: Mobile Responsiveness › Signup page on mobile
+[1A[2K[34/265] [chromium] › tests/smoke-mobile.spec.ts:38:7 › Smoke: Mobile Responsiveness › Dashboard on mobile
+[1A[2K[35/265] [chromium] › tests/smoke-profiles.spec.ts:10:7 › Smoke: Profile Pages › Edit profile page loads
+[1A[2K[36/265] [chromium] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username
+[1A[2K[37/265] [chromium] › tests/smoke-profiles.spec.ts:23:7 › Smoke: Profile Pages › Recruiter dashboard loads
+[1A[2K[38/265] [chromium] › tests/smoke-public.spec.ts:10:7 › Smoke: Public Pages › Home page loads
+[1A[2K[39/265] [chromium] › tests/smoke-public.spec.ts:17:7 › Smoke: Public Pages › Search page loads
+[1A[2K[40/265] [chromium] › tests/smoke-public.spec.ts:23:7 › Smoke: Public Pages › TV page loads
+[1A[2K[41/265] [chromium] › tests/smoke-public.spec.ts:30:7 › Smoke: Public Pages › Terms page loads
+[1A[2K[42/265] [chromium] › tests/smoke-public.spec.ts:36:7 › Smoke: Public Pages › Privacy page loads
+[1A[2K[43/265] [chromium] › tests/smoke-public.spec.ts:42:7 › Smoke: Public Pages › Recruiter login page loads
+[1A[2K[44/265] [chromium] › tests/smoke-public.spec.ts:48:7 › Smoke: Public Pages › Bottom navigation visible on mobile
+[1A[2K[45/265] [chromium] › tests/tv-page.spec.ts:12:7 › TV Page › should have Explore and Contact tabs
+[1A[2K[46/265] [chromium] › tests/tv-page.spec.ts:8:7 › TV Page › should display TV page title
+[1A[2K[47/265] [chromium] › tests/tv-page.spec.ts:17:7 › TV Page › should show Featured Videos section by default
+[1A[2K[48/265] [chromium] › tests/tv-page.spec.ts:22:7 › TV Page › should show loading or empty state when no videos
+[1A[2K[49/265] [chromium] › tests/tv-page.spec.ts:30:7 › TV Page › should switch to Contact tab
+[1A[2K[50/265] [chromium] › tests/tv-page.spec.ts:36:7 › TV Page › should navigate back to Explore from Contact
+[1A[2K[51/265] [chromium] › tests/tv-page.spec.ts:44:7 › TV Page › should have bottom navigation
+[1A[2K[52/265] [chromium] › tests/tv-page.spec.ts:52:7 › TV Page › TV link should be active
+[1A[2K[53/265] [chromium] › tests/tv-page.spec.ts:61:7 › TV Page - Mobile › should display correctly on mobile
+[1A[2K[54/265] [firefox] › tests/smoke-auth.spec.ts:10:7 › Smoke: Auth Pages › Signup page loads
+[1A[2K[55/265] [firefox] › tests/smoke-auth.spec.ts:17:7 › Smoke: Auth Pages › Auth signup page loads
+[1A[2K  3) [chromium] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2, [class*="profile"]').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2, [class*="profile"]').first()[22m
+
+
+      18 |     await page.goto('/players/testuser');
+      19 |     await expect(page.locator('body')).toBeVisible();
+    > 20 |     await expect(page.locator('h1, h2, [class*="profile"]').first()).toBeVisible({ timeout: 10000 });
+         |                                                                      ^
+      21 |   });
+      22 |
+      23 |   test('Recruiter dashboard loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-profiles.spec.ts:20:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-chromium/error-context.md
+
+
+[1A[2K[56/265] [firefox] › tests/smoke-auth.spec.ts:23:7 › Smoke: Auth Pages › Auth signin page loads
+[1A[2K[57/265] [firefox] › tests/smoke-auth.spec.ts:29:7 › Smoke: Auth Pages › Signup form has required fields
+[1A[2K[58/265] [firefox] › tests/smoke-auth.spec.ts:36:7 › Smoke: Auth Pages › Login form has required fields
+[1A[2K[59/265] [firefox] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID
+[1A[2K[60/265] [firefox] › tests/smoke-coaches.spec.ts:17:7 › Smoke: Coach Pages › Coach native booking page loads
+[1A[2K[61/265] [firefox] › tests/smoke-coaches.spec.ts:23:7 › Smoke: Coach Pages › Coach messages page loads
+[1A[2K[62/265] [firefox] › tests/smoke-coaches.spec.ts:29:7 › Smoke: Coach Pages › Coach settings page loads
+[1A[2K[63/265] [firefox] › tests/smoke-critical-flows.spec.ts:10:7 › Smoke: Critical Flows › Navigation: Home → TV → Search
+[1A[2K[64/265] [firefox] › tests/smoke-critical-flows.spec.ts:24:7 › Smoke: Critical Flows › TV tab switching works
+[1A[2K[65/265] [firefox] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work
+[1A[2K[66/265] [firefox] › tests/smoke-critical-flows.spec.ts:49:7 › Smoke: Critical Flows › Auth redirect flow
+[1A[2K[67/265] [firefox] › tests/smoke-critical-flows.spec.ts:64:7 › Smoke: Critical Flows › 404 handling for invalid routes
+[1A[2K  4) [firefox] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"/search"[39m
+    Received string:    [31m"http://localhost:3000/tv"[39m
+
+      39 |     // Click Search
+      40 |     await page.click('a:has-text("Search")');
+    > 41 |     await expect(page.url()).toContain('/search');
+         |                              ^
+      42 |     
+      43 |     // Go back and click Profile
+      44 |     await page.goto('/tv');
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-critical-flows.spec.ts:41:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-firefox/error-context.md
+
+
+[1A[2K[68/265] [firefox] › tests/smoke-dashboard.spec.ts:18:7 › Smoke: Dashboard Pages › Dashboard - Academics page
+[1A[2K[69/265] [firefox] › tests/smoke-dashboard.spec.ts:10:7 › Smoke: Dashboard Pages › Main dashboard page loads or redirects
+[1A[2K[70/265] [firefox] › tests/smoke-dashboard.spec.ts:24:7 › Smoke: Dashboard Pages › Dashboard - Appointments page
+[1A[2K[71/265] [firefox] › tests/smoke-dashboard.spec.ts:30:7 › Smoke: Dashboard Pages › Dashboard - Coaches page
+[1A[2K  5) [firefox] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2').first()[22m
+
+
+      12 |     await page.goto('/coaches/test-coach-id/book');
+      13 |     await expect(page.locator('body')).toBeVisible();
+    > 14 |     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
+         |                                                  ^
+      15 |   });
+      16 |
+      17 |   test('Coach native booking page loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-coaches.spec.ts:14:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-firefox/error-context.md
+
+
+[1A[2K[72/265] [firefox] › tests/smoke-dashboard.spec.ts:42:7 › Smoke: Dashboard Pages › Dashboard - Links page
+[1A[2K[73/265] [firefox] › tests/smoke-dashboard.spec.ts:36:7 › Smoke: Dashboard Pages › Dashboard - Videos page
+[1A[2K[74/265] [firefox] › tests/smoke-dashboard.spec.ts:48:7 › Smoke: Dashboard Pages › Dashboard - Teams page
+[1A[2K[75/265] [firefox] › tests/smoke-dashboard.spec.ts:54:7 › Smoke: Dashboard Pages › Dashboard - Awards page
+[1A[2K[76/265] [firefox] › tests/smoke-dashboard.spec.ts:60:7 › Smoke: Dashboard Pages › Dashboard - Account page
+[1A[2K[77/265] [firefox] › tests/smoke-dashboard.spec.ts:66:7 › Smoke: Dashboard Pages › Dashboard - Themes page
+[1A[2K[78/265] [firefox] › tests/smoke-dashboard.spec.ts:72:7 › Smoke: Dashboard Pages › Dashboard - Measurements page
+[1A[2K[79/265] [firefox] › tests/smoke-dashboard.spec.ts:78:7 › Smoke: Dashboard Pages › Dashboard - Recruiting page
+[1A[2K[80/265] [firefox] › tests/smoke-dashboard.spec.ts:84:7 › Smoke: Dashboard Pages › Dashboard - Stats page
+[1A[2K[81/265] [firefox] › tests/smoke-dashboard.spec.ts:90:7 › Smoke: Dashboard Pages › Dashboard - Analytics page
+[1A[2K[82/265] [firefox] › tests/smoke-dashboard.spec.ts:96:7 › Smoke: Dashboard Pages › Dashboard - Subscription page
+[1A[2K[83/265] [firefox] › tests/smoke-mobile.spec.ts:11:7 › Smoke: Mobile Responsiveness › Home page on mobile
+[1A[2K[84/265] [firefox] › tests/smoke-mobile.spec.ts:20:7 › Smoke: Mobile Responsiveness › TV page on mobile
+[1A[2K[85/265] [firefox] › tests/smoke-mobile.spec.ts:26:7 › Smoke: Mobile Responsiveness › Search page on mobile
+[1A[2K[86/265] [firefox] › tests/smoke-mobile.spec.ts:32:7 › Smoke: Mobile Responsiveness › Signup page on mobile
+[1A[2K[87/265] [firefox] › tests/smoke-mobile.spec.ts:38:7 › Smoke: Mobile Responsiveness › Dashboard on mobile
+[1A[2K[88/265] [firefox] › tests/smoke-profiles.spec.ts:10:7 › Smoke: Profile Pages › Edit profile page loads
+[1A[2K[89/265] [firefox] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username
+[1A[2K[90/265] [firefox] › tests/smoke-profiles.spec.ts:23:7 › Smoke: Profile Pages › Recruiter dashboard loads
+[1A[2K[91/265] [firefox] › tests/smoke-public.spec.ts:10:7 › Smoke: Public Pages › Home page loads
+[1A[2K[92/265] [firefox] › tests/smoke-public.spec.ts:17:7 › Smoke: Public Pages › Search page loads
+[1A[2K[93/265] [firefox] › tests/smoke-public.spec.ts:23:7 › Smoke: Public Pages › TV page loads
+[1A[2K[94/265] [firefox] › tests/smoke-public.spec.ts:30:7 › Smoke: Public Pages › Terms page loads
+[1A[2K[95/265] [firefox] › tests/smoke-public.spec.ts:36:7 › Smoke: Public Pages › Privacy page loads
+[1A[2K[96/265] [firefox] › tests/smoke-public.spec.ts:42:7 › Smoke: Public Pages › Recruiter login page loads
+[1A[2K[97/265] [firefox] › tests/smoke-public.spec.ts:48:7 › Smoke: Public Pages › Bottom navigation visible on mobile
+[1A[2K[98/265] [firefox] › tests/tv-page.spec.ts:12:7 › TV Page › should have Explore and Contact tabs
+[1A[2K[99/265] [firefox] › tests/tv-page.spec.ts:8:7 › TV Page › should display TV page title
+[1A[2K[100/265] [firefox] › tests/tv-page.spec.ts:17:7 › TV Page › should show Featured Videos section by default
+[1A[2K[101/265] [firefox] › tests/tv-page.spec.ts:22:7 › TV Page › should show loading or empty state when no videos
+[1A[2K[102/265] [firefox] › tests/tv-page.spec.ts:30:7 › TV Page › should switch to Contact tab
+[1A[2K[103/265] [firefox] › tests/tv-page.spec.ts:36:7 › TV Page › should navigate back to Explore from Contact
+[1A[2K  6) [firefox] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2, [class*="profile"]').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2, [class*="profile"]').first()[22m
+
+
+      18 |     await page.goto('/players/testuser');
+      19 |     await expect(page.locator('body')).toBeVisible();
+    > 20 |     await expect(page.locator('h1, h2, [class*="profile"]').first()).toBeVisible({ timeout: 10000 });
+         |                                                                      ^
+      21 |   });
+      22 |
+      23 |   test('Recruiter dashboard loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-profiles.spec.ts:20:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-firefox/error-context.md
+
+
+[1A[2K[104/265] [firefox] › tests/tv-page.spec.ts:52:7 › TV Page › TV link should be active
+[1A[2K[105/265] [firefox] › tests/tv-page.spec.ts:61:7 › TV Page - Mobile › should display correctly on mobile
+[1A[2K[106/265] [firefox] › tests/tv-page.spec.ts:44:7 › TV Page › should have bottom navigation
+[1A[2K[107/265] [webkit] › tests/smoke-auth.spec.ts:17:7 › Smoke: Auth Pages › Auth signup page loads
+[1A[2K[108/265] [webkit] › tests/smoke-auth.spec.ts:10:7 › Smoke: Auth Pages › Signup page loads
+[1A[2K[109/265] [webkit] › tests/smoke-auth.spec.ts:23:7 › Smoke: Auth Pages › Auth signin page loads
+[1A[2K[110/265] [webkit] › tests/smoke-auth.spec.ts:29:7 › Smoke: Auth Pages › Signup form has required fields
+[1A[2K[111/265] [webkit] › tests/smoke-auth.spec.ts:36:7 › Smoke: Auth Pages › Login form has required fields
+[1A[2K[112/265] [webkit] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID
+[1A[2K[113/265] [webkit] › tests/smoke-coaches.spec.ts:17:7 › Smoke: Coach Pages › Coach native booking page loads
+[1A[2K[114/265] [webkit] › tests/smoke-coaches.spec.ts:23:7 › Smoke: Coach Pages › Coach messages page loads
+[1A[2K[115/265] [webkit] › tests/smoke-coaches.spec.ts:29:7 › Smoke: Coach Pages › Coach settings page loads
+[1A[2K[116/265] [webkit] › tests/smoke-critical-flows.spec.ts:10:7 › Smoke: Critical Flows › Navigation: Home → TV → Search
+[1A[2K[117/265] [webkit] › tests/smoke-critical-flows.spec.ts:24:7 › Smoke: Critical Flows › TV tab switching works
+[1A[2K[118/265] [webkit] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work
+[1A[2K[119/265] [webkit] › tests/smoke-critical-flows.spec.ts:49:7 › Smoke: Critical Flows › Auth redirect flow
+[1A[2K[120/265] [webkit] › tests/smoke-critical-flows.spec.ts:64:7 › Smoke: Critical Flows › 404 handling for invalid routes
+[1A[2K  7) [webkit] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"/search"[39m
+    Received string:    [31m"http://localhost:3000/tv"[39m
+
+      39 |     // Click Search
+      40 |     await page.click('a:has-text("Search")');
+    > 41 |     await expect(page.url()).toContain('/search');
+         |                              ^
+      42 |     
+      43 |     // Go back and click Profile
+      44 |     await page.goto('/tv');
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-critical-flows.spec.ts:41:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-webkit/error-context.md
+
+
+[1A[2K[121/265] [webkit] › tests/smoke-dashboard.spec.ts:18:7 › Smoke: Dashboard Pages › Dashboard - Academics page
+[1A[2K[122/265] [webkit] › tests/smoke-dashboard.spec.ts:24:7 › Smoke: Dashboard Pages › Dashboard - Appointments page
+[1A[2K  8) [webkit] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2').first()[22m
+
+
+      12 |     await page.goto('/coaches/test-coach-id/book');
+      13 |     await expect(page.locator('body')).toBeVisible();
+    > 14 |     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
+         |                                                  ^
+      15 |   });
+      16 |
+      17 |   test('Coach native booking page loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-coaches.spec.ts:14:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-webkit/error-context.md
+
+
+[1A[2K[123/265] [webkit] › tests/smoke-dashboard.spec.ts:36:7 › Smoke: Dashboard Pages › Dashboard - Videos page
+[1A[2K[124/265] [webkit] › tests/smoke-dashboard.spec.ts:42:7 › Smoke: Dashboard Pages › Dashboard - Links page
+[1A[2K[125/265] [webkit] › tests/smoke-dashboard.spec.ts:48:7 › Smoke: Dashboard Pages › Dashboard - Teams page
+[1A[2K[126/265] [webkit] › tests/smoke-dashboard.spec.ts:54:7 › Smoke: Dashboard Pages › Dashboard - Awards page
+[1A[2K[127/265] [webkit] › tests/smoke-dashboard.spec.ts:60:7 › Smoke: Dashboard Pages › Dashboard - Account page
+[1A[2K[128/265] [webkit] › tests/smoke-dashboard.spec.ts:66:7 › Smoke: Dashboard Pages › Dashboard - Themes page
+[1A[2K[129/265] [webkit] › tests/smoke-dashboard.spec.ts:72:7 › Smoke: Dashboard Pages › Dashboard - Measurements page
+[1A[2K[130/265] [webkit] › tests/smoke-dashboard.spec.ts:10:7 › Smoke: Dashboard Pages › Main dashboard page loads or redirects
+[1A[2K[131/265] [webkit] › tests/smoke-dashboard.spec.ts:30:7 › Smoke: Dashboard Pages › Dashboard - Coaches page
+[1A[2K[132/265] [webkit] › tests/smoke-dashboard.spec.ts:78:7 › Smoke: Dashboard Pages › Dashboard - Recruiting page
+[1A[2K[133/265] [webkit] › tests/smoke-dashboard.spec.ts:84:7 › Smoke: Dashboard Pages › Dashboard - Stats page
+[1A[2K[134/265] [webkit] › tests/smoke-dashboard.spec.ts:90:7 › Smoke: Dashboard Pages › Dashboard - Analytics page
+[1A[2K[135/265] [webkit] › tests/smoke-dashboard.spec.ts:96:7 › Smoke: Dashboard Pages › Dashboard - Subscription page
+[1A[2K[136/265] [webkit] › tests/smoke-mobile.spec.ts:20:7 › Smoke: Mobile Responsiveness › TV page on mobile
+[1A[2K[137/265] [webkit] › tests/smoke-mobile.spec.ts:11:7 › Smoke: Mobile Responsiveness › Home page on mobile
+[1A[2K[138/265] [webkit] › tests/smoke-mobile.spec.ts:26:7 › Smoke: Mobile Responsiveness › Search page on mobile
+[1A[2K[139/265] [webkit] › tests/smoke-mobile.spec.ts:32:7 › Smoke: Mobile Responsiveness › Signup page on mobile
+[1A[2K[140/265] [webkit] › tests/smoke-mobile.spec.ts:38:7 › Smoke: Mobile Responsiveness › Dashboard on mobile
+[1A[2K[141/265] [webkit] › tests/smoke-profiles.spec.ts:10:7 › Smoke: Profile Pages › Edit profile page loads
+[1A[2K[142/265] [webkit] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username
+[1A[2K[143/265] [webkit] › tests/smoke-profiles.spec.ts:23:7 › Smoke: Profile Pages › Recruiter dashboard loads
+[1A[2K[144/265] [webkit] › tests/smoke-public.spec.ts:10:7 › Smoke: Public Pages › Home page loads
+[1A[2K[145/265] [webkit] › tests/smoke-public.spec.ts:17:7 › Smoke: Public Pages › Search page loads
+[1A[2K[146/265] [webkit] › tests/smoke-public.spec.ts:23:7 › Smoke: Public Pages › TV page loads
+[1A[2K[147/265] [webkit] › tests/smoke-public.spec.ts:30:7 › Smoke: Public Pages › Terms page loads
+[1A[2K[148/265] [webkit] › tests/smoke-public.spec.ts:36:7 › Smoke: Public Pages › Privacy page loads
+[1A[2K[149/265] [webkit] › tests/smoke-public.spec.ts:42:7 › Smoke: Public Pages › Recruiter login page loads
+[1A[2K[150/265] [webkit] › tests/smoke-public.spec.ts:48:7 › Smoke: Public Pages › Bottom navigation visible on mobile
+[1A[2K[151/265] [webkit] › tests/tv-page.spec.ts:8:7 › TV Page › should display TV page title
+[1A[2K[152/265] [webkit] › tests/tv-page.spec.ts:12:7 › TV Page › should have Explore and Contact tabs
+[1A[2K[153/265] [webkit] › tests/tv-page.spec.ts:17:7 › TV Page › should show Featured Videos section by default
+[1A[2K[154/265] [webkit] › tests/tv-page.spec.ts:22:7 › TV Page › should show loading or empty state when no videos
+[1A[2K[155/265] [webkit] › tests/tv-page.spec.ts:30:7 › TV Page › should switch to Contact tab
+[1A[2K[156/265] [webkit] › tests/tv-page.spec.ts:36:7 › TV Page › should navigate back to Explore from Contact
+[1A[2K[157/265] [webkit] › tests/tv-page.spec.ts:44:7 › TV Page › should have bottom navigation
+[1A[2K[158/265] [webkit] › tests/tv-page.spec.ts:52:7 › TV Page › TV link should be active
+[1A[2K[159/265] [webkit] › tests/tv-page.spec.ts:61:7 › TV Page - Mobile › should display correctly on mobile
+[1A[2K  9) [webkit] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2, [class*="profile"]').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2, [class*="profile"]').first()[22m
+
+
+      18 |     await page.goto('/players/testuser');
+      19 |     await expect(page.locator('body')).toBeVisible();
+    > 20 |     await expect(page.locator('h1, h2, [class*="profile"]').first()).toBeVisible({ timeout: 10000 });
+         |                                                                      ^
+      21 |   });
+      22 |
+      23 |   test('Recruiter dashboard loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-profiles.spec.ts:20:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-webkit/error-context.md
+
+
+[1A[2K[160/265] [Mobile Chrome] › tests/smoke-auth.spec.ts:10:7 › Smoke: Auth Pages › Signup page loads
+[1A[2K[161/265] [Mobile Chrome] › tests/smoke-auth.spec.ts:23:7 › Smoke: Auth Pages › Auth signin page loads
+[1A[2K[162/265] [Mobile Chrome] › tests/smoke-auth.spec.ts:17:7 › Smoke: Auth Pages › Auth signup page loads
+[1A[2K[163/265] [Mobile Chrome] › tests/smoke-auth.spec.ts:29:7 › Smoke: Auth Pages › Signup form has required fields
+[1A[2K[164/265] [Mobile Chrome] › tests/smoke-auth.spec.ts:36:7 › Smoke: Auth Pages › Login form has required fields
+[1A[2K[165/265] [Mobile Chrome] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID
+[1A[2K[166/265] [Mobile Chrome] › tests/smoke-coaches.spec.ts:17:7 › Smoke: Coach Pages › Coach native booking page loads
+[1A[2K[167/265] [Mobile Chrome] › tests/smoke-coaches.spec.ts:23:7 › Smoke: Coach Pages › Coach messages page loads
+[1A[2K[168/265] [Mobile Chrome] › tests/smoke-coaches.spec.ts:29:7 › Smoke: Coach Pages › Coach settings page loads
+[1A[2K[169/265] [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:10:7 › Smoke: Critical Flows › Navigation: Home → TV → Search
+[1A[2K[170/265] [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:24:7 › Smoke: Critical Flows › TV tab switching works
+[1A[2K[171/265] [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work
+[1A[2K[172/265] [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:49:7 › Smoke: Critical Flows › Auth redirect flow
+[1A[2K[173/265] [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:64:7 › Smoke: Critical Flows › 404 handling for invalid routes
+[1A[2K  10) [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"/search"[39m
+    Received string:    [31m"http://localhost:3000/tv"[39m
+
+      39 |     // Click Search
+      40 |     await page.click('a:has-text("Search")');
+    > 41 |     await expect(page.url()).toContain('/search');
+         |                              ^
+      42 |     
+      43 |     // Go back and click Profile
+      44 |     await page.goto('/tv');
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-critical-flows.spec.ts:41:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-Mobile-Chrome/error-context.md
+
+
+[1A[2K[174/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:18:7 › Smoke: Dashboard Pages › Dashboard - Academics page
+[1A[2K[175/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:24:7 › Smoke: Dashboard Pages › Dashboard - Appointments page
+[1A[2K[176/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:30:7 › Smoke: Dashboard Pages › Dashboard - Coaches page
+[1A[2K[177/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:10:7 › Smoke: Dashboard Pages › Main dashboard page loads or redirects
+[1A[2K[178/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:36:7 › Smoke: Dashboard Pages › Dashboard - Videos page
+[1A[2K[179/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:42:7 › Smoke: Dashboard Pages › Dashboard - Links page
+[1A[2K[180/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:48:7 › Smoke: Dashboard Pages › Dashboard - Teams page
+[1A[2K[181/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:54:7 › Smoke: Dashboard Pages › Dashboard - Awards page
+[1A[2K  11) [Mobile Chrome] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2').first()[22m
+
+
+      12 |     await page.goto('/coaches/test-coach-id/book');
+      13 |     await expect(page.locator('body')).toBeVisible();
+    > 14 |     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
+         |                                                  ^
+      15 |   });
+      16 |
+      17 |   test('Coach native booking page loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-coaches.spec.ts:14:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-Mobile-Chrome/error-context.md
+
+
+[1A[2K[182/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:66:7 › Smoke: Dashboard Pages › Dashboard - Themes page
+[1A[2K[183/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:72:7 › Smoke: Dashboard Pages › Dashboard - Measurements page
+[1A[2K[184/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:60:7 › Smoke: Dashboard Pages › Dashboard - Account page
+[1A[2K[185/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:78:7 › Smoke: Dashboard Pages › Dashboard - Recruiting page
+[1A[2K[186/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:84:7 › Smoke: Dashboard Pages › Dashboard - Stats page
+[1A[2K[187/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:90:7 › Smoke: Dashboard Pages › Dashboard - Analytics page
+[1A[2K[188/265] [Mobile Chrome] › tests/smoke-dashboard.spec.ts:96:7 › Smoke: Dashboard Pages › Dashboard - Subscription page
+[1A[2K[189/265] [Mobile Chrome] › tests/smoke-mobile.spec.ts:11:7 › Smoke: Mobile Responsiveness › Home page on mobile
+[1A[2K[190/265] [Mobile Chrome] › tests/smoke-mobile.spec.ts:20:7 › Smoke: Mobile Responsiveness › TV page on mobile
+[1A[2K[191/265] [Mobile Chrome] › tests/smoke-mobile.spec.ts:26:7 › Smoke: Mobile Responsiveness › Search page on mobile
+[1A[2K[192/265] [Mobile Chrome] › tests/smoke-mobile.spec.ts:32:7 › Smoke: Mobile Responsiveness › Signup page on mobile
+[1A[2K[193/265] [Mobile Chrome] › tests/smoke-mobile.spec.ts:38:7 › Smoke: Mobile Responsiveness › Dashboard on mobile
+[1A[2K[194/265] [Mobile Chrome] › tests/smoke-profiles.spec.ts:10:7 › Smoke: Profile Pages › Edit profile page loads
+[1A[2K[195/265] [Mobile Chrome] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username
+[1A[2K[196/265] [Mobile Chrome] › tests/smoke-profiles.spec.ts:23:7 › Smoke: Profile Pages › Recruiter dashboard loads
+[1A[2K[197/265] [Mobile Chrome] › tests/smoke-public.spec.ts:10:7 › Smoke: Public Pages › Home page loads
+[1A[2K[198/265] [Mobile Chrome] › tests/smoke-public.spec.ts:17:7 › Smoke: Public Pages › Search page loads
+[1A[2K[199/265] [Mobile Chrome] › tests/smoke-public.spec.ts:23:7 › Smoke: Public Pages › TV page loads
+[1A[2K[200/265] [Mobile Chrome] › tests/smoke-public.spec.ts:30:7 › Smoke: Public Pages › Terms page loads
+[1A[2K[201/265] [Mobile Chrome] › tests/smoke-public.spec.ts:36:7 › Smoke: Public Pages › Privacy page loads
+[1A[2K[202/265] [Mobile Chrome] › tests/smoke-public.spec.ts:42:7 › Smoke: Public Pages › Recruiter login page loads
+[1A[2K[203/265] [Mobile Chrome] › tests/smoke-public.spec.ts:48:7 › Smoke: Public Pages › Bottom navigation visible on mobile
+[1A[2K[204/265] [Mobile Chrome] › tests/tv-page.spec.ts:8:7 › TV Page › should display TV page title
+[1A[2K[205/265] [Mobile Chrome] › tests/tv-page.spec.ts:12:7 › TV Page › should have Explore and Contact tabs
+[1A[2K[206/265] [Mobile Chrome] › tests/tv-page.spec.ts:17:7 › TV Page › should show Featured Videos section by default
+[1A[2K[207/265] [Mobile Chrome] › tests/tv-page.spec.ts:22:7 › TV Page › should show loading or empty state when no videos
+[1A[2K[208/265] [Mobile Chrome] › tests/tv-page.spec.ts:30:7 › TV Page › should switch to Contact tab
+[1A[2K[209/265] [Mobile Chrome] › tests/tv-page.spec.ts:36:7 › TV Page › should navigate back to Explore from Contact
+[1A[2K[210/265] [Mobile Chrome] › tests/tv-page.spec.ts:44:7 › TV Page › should have bottom navigation
+[1A[2K[211/265] [Mobile Chrome] › tests/tv-page.spec.ts:52:7 › TV Page › TV link should be active
+[1A[2K[212/265] [Mobile Chrome] › tests/tv-page.spec.ts:61:7 › TV Page - Mobile › should display correctly on mobile
+[1A[2K[213/265] [Mobile Safari] › tests/smoke-auth.spec.ts:10:7 › Smoke: Auth Pages › Signup page loads
+[1A[2K[214/265] [Mobile Safari] › tests/smoke-auth.spec.ts:17:7 › Smoke: Auth Pages › Auth signup page loads
+[1A[2K  12) [Mobile Chrome] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2, [class*="profile"]').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2, [class*="profile"]').first()[22m
+
+
+      18 |     await page.goto('/players/testuser');
+      19 |     await expect(page.locator('body')).toBeVisible();
+    > 20 |     await expect(page.locator('h1, h2, [class*="profile"]').first()).toBeVisible({ timeout: 10000 });
+         |                                                                      ^
+      21 |   });
+      22 |
+      23 |   test('Recruiter dashboard loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-profiles.spec.ts:20:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-Mobile-Chrome/error-context.md
+
+
+[1A[2K[215/265] [Mobile Safari] › tests/smoke-auth.spec.ts:29:7 › Smoke: Auth Pages › Signup form has required fields
+[1A[2K[216/265] [Mobile Safari] › tests/smoke-auth.spec.ts:23:7 › Smoke: Auth Pages › Auth signin page loads
+[1A[2K[217/265] [Mobile Safari] › tests/smoke-auth.spec.ts:36:7 › Smoke: Auth Pages › Login form has required fields
+[1A[2K[218/265] [Mobile Safari] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID
+[1A[2K[219/265] [Mobile Safari] › tests/smoke-coaches.spec.ts:17:7 › Smoke: Coach Pages › Coach native booking page loads
+[1A[2K[220/265] [Mobile Safari] › tests/smoke-coaches.spec.ts:23:7 › Smoke: Coach Pages › Coach messages page loads
+[1A[2K[221/265] [Mobile Safari] › tests/smoke-coaches.spec.ts:29:7 › Smoke: Coach Pages › Coach settings page loads
+[1A[2K[222/265] [Mobile Safari] › tests/smoke-critical-flows.spec.ts:10:7 › Smoke: Critical Flows › Navigation: Home → TV → Search
+[1A[2K[223/265] [Mobile Safari] › tests/smoke-critical-flows.spec.ts:24:7 › Smoke: Critical Flows › TV tab switching works
+[1A[2K[224/265] [Mobile Safari] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work
+[1A[2K[225/265] [Mobile Safari] › tests/smoke-critical-flows.spec.ts:49:7 › Smoke: Critical Flows › Auth redirect flow
+[1A[2K  13) [Mobile Safari] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"/search"[39m
+    Received string:    [31m"http://localhost:3000/tv"[39m
+
+      39 |     // Click Search
+      40 |     await page.click('a:has-text("Search")');
+    > 41 |     await expect(page.url()).toContain('/search');
+         |                              ^
+      42 |     
+      43 |     // Go back and click Profile
+      44 |     await page.goto('/tv');
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-critical-flows.spec.ts:41:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-critical-flows-Smoke-8124b-ottom-navigation-links-work-Mobile-Safari/error-context.md
+
+
+[1A[2K[226/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:10:7 › Smoke: Dashboard Pages › Main dashboard page loads or redirects
+[1A[2K[227/265] [Mobile Safari] › tests/smoke-critical-flows.spec.ts:64:7 › Smoke: Critical Flows › 404 handling for invalid routes
+[1A[2K[228/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:18:7 › Smoke: Dashboard Pages › Dashboard - Academics page
+[1A[2K[229/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:24:7 › Smoke: Dashboard Pages › Dashboard - Appointments page
+[1A[2K[230/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:30:7 › Smoke: Dashboard Pages › Dashboard - Coaches page
+[1A[2K[231/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:36:7 › Smoke: Dashboard Pages › Dashboard - Videos page
+[1A[2K[232/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:42:7 › Smoke: Dashboard Pages › Dashboard - Links page
+[1A[2K[233/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:48:7 › Smoke: Dashboard Pages › Dashboard - Teams page
+[1A[2K[234/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:54:7 › Smoke: Dashboard Pages › Dashboard - Awards page
+[1A[2K  14) [Mobile Safari] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2').first()[22m
+
+
+      12 |     await page.goto('/coaches/test-coach-id/book');
+      13 |     await expect(page.locator('body')).toBeVisible();
+    > 14 |     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
+         |                                                  ^
+      15 |   });
+      16 |
+      17 |   test('Coach native booking page loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-coaches.spec.ts:14:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-coaches-Smoke-Coach--5a3b9--booking-page-loads-with-ID-Mobile-Safari/error-context.md
+
+
+[1A[2K[235/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:60:7 › Smoke: Dashboard Pages › Dashboard - Account page
+[1A[2K[236/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:66:7 › Smoke: Dashboard Pages › Dashboard - Themes page
+[1A[2K[237/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:72:7 › Smoke: Dashboard Pages › Dashboard - Measurements page
+[1A[2K[238/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:78:7 › Smoke: Dashboard Pages › Dashboard - Recruiting page
+[1A[2K[239/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:84:7 › Smoke: Dashboard Pages › Dashboard - Stats page
+[1A[2K[240/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:90:7 › Smoke: Dashboard Pages › Dashboard - Analytics page
+[1A[2K[241/265] [Mobile Safari] › tests/smoke-dashboard.spec.ts:96:7 › Smoke: Dashboard Pages › Dashboard - Subscription page
+[1A[2K[242/265] [Mobile Safari] › tests/smoke-mobile.spec.ts:11:7 › Smoke: Mobile Responsiveness › Home page on mobile
+[1A[2K[243/265] [Mobile Safari] › tests/smoke-mobile.spec.ts:20:7 › Smoke: Mobile Responsiveness › TV page on mobile
+[1A[2K[244/265] [Mobile Safari] › tests/smoke-mobile.spec.ts:26:7 › Smoke: Mobile Responsiveness › Search page on mobile
+[1A[2K[245/265] [Mobile Safari] › tests/smoke-mobile.spec.ts:32:7 › Smoke: Mobile Responsiveness › Signup page on mobile
+[1A[2K[246/265] [Mobile Safari] › tests/smoke-mobile.spec.ts:38:7 › Smoke: Mobile Responsiveness › Dashboard on mobile
+[1A[2K[247/265] [Mobile Safari] › tests/smoke-profiles.spec.ts:10:7 › Smoke: Profile Pages › Edit profile page loads
+[1A[2K[248/265] [Mobile Safari] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username
+[1A[2K[249/265] [Mobile Safari] › tests/smoke-profiles.spec.ts:23:7 › Smoke: Profile Pages › Recruiter dashboard loads
+[1A[2K[250/265] [Mobile Safari] › tests/smoke-public.spec.ts:10:7 › Smoke: Public Pages › Home page loads
+[1A[2K[251/265] [Mobile Safari] › tests/smoke-public.spec.ts:17:7 › Smoke: Public Pages › Search page loads
+[1A[2K[252/265] [Mobile Safari] › tests/smoke-public.spec.ts:23:7 › Smoke: Public Pages › TV page loads
+[1A[2K[253/265] [Mobile Safari] › tests/smoke-public.spec.ts:30:7 › Smoke: Public Pages › Terms page loads
+[1A[2K[254/265] [Mobile Safari] › tests/smoke-public.spec.ts:36:7 › Smoke: Public Pages › Privacy page loads
+[1A[2K[255/265] [Mobile Safari] › tests/smoke-public.spec.ts:42:7 › Smoke: Public Pages › Recruiter login page loads
+[1A[2K[256/265] [Mobile Safari] › tests/smoke-public.spec.ts:48:7 › Smoke: Public Pages › Bottom navigation visible on mobile
+[1A[2K[257/265] [Mobile Safari] › tests/tv-page.spec.ts:8:7 › TV Page › should display TV page title
+[1A[2K[258/265] [Mobile Safari] › tests/tv-page.spec.ts:12:7 › TV Page › should have Explore and Contact tabs
+[1A[2K[259/265] [Mobile Safari] › tests/tv-page.spec.ts:17:7 › TV Page › should show Featured Videos section by default
+[1A[2K[260/265] [Mobile Safari] › tests/tv-page.spec.ts:22:7 › TV Page › should show loading or empty state when no videos
+[1A[2K[261/265] [Mobile Safari] › tests/tv-page.spec.ts:30:7 › TV Page › should switch to Contact tab
+[1A[2K[262/265] [Mobile Safari] › tests/tv-page.spec.ts:36:7 › TV Page › should navigate back to Explore from Contact
+[1A[2K[263/265] [Mobile Safari] › tests/tv-page.spec.ts:44:7 › TV Page › should have bottom navigation
+[1A[2K[264/265] [Mobile Safari] › tests/tv-page.spec.ts:52:7 › TV Page › TV link should be active
+[1A[2K[265/265] [Mobile Safari] › tests/tv-page.spec.ts:61:7 › TV Page - Mobile › should display correctly on mobile
+[1A[2K  15) [Mobile Safari] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('h1, h2, [class*="profile"]').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('h1, h2, [class*="profile"]').first()[22m
+
+
+      18 |     await page.goto('/players/testuser');
+      19 |     await expect(page.locator('body')).toBeVisible();
+    > 20 |     await expect(page.locator('h1, h2, [class*="profile"]').first()).toBeVisible({ timeout: 10000 });
+         |                                                                      ^
+      21 |   });
+      22 |
+      23 |   test('Recruiter dashboard loads', async ({ page }) => {
+        at /Users/alexanderenright/.openclaw/workspace/urepp/tests/smoke-profiles.spec.ts:20:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-profiles-Smoke-Profi-2e785-le-page-loads-with-username-Mobile-Safari/error-context.md
+
+
+[1A[2K  15 failed
+    [chromium] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+    [chromium] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+    [chromium] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+    [firefox] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+    [firefox] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+    [firefox] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+    [webkit] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+    [webkit] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+    [webkit] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+    [Mobile Chrome] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+    [Mobile Chrome] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+    [Mobile Chrome] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+    [Mobile Safari] › tests/smoke-coaches.spec.ts:10:7 › Smoke: Coach Pages › Coach booking page loads with ID 
+    [Mobile Safari] › tests/smoke-critical-flows.spec.ts:36:7 › Smoke: Critical Flows › Bottom navigation links work 
+    [Mobile Safari] › tests/smoke-profiles.spec.ts:16:7 › Smoke: Profile Pages › Player profile page loads with username 
+  250 passed (4.3m)

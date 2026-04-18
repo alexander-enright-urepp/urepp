@@ -8,8 +8,8 @@ import AppInit from '@/components/AppInit'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'UREPP - Universal Recruitment Profile Platform',
-  description: 'Create and share your sports recruiting profile',
+  title: 'UREPP - A sports recruiting platform for high school and junior college sports.',
+  description: 'A sports recruiting platform for high school and junior college sports.',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
