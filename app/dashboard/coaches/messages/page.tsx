@@ -357,7 +357,15 @@ export default function CoachMessagesPage() {
         filter: `conversation_id=eq.${activeConversation.id}`
       }, (payload) => {
         console.log('New message received:', payload);
-        fetchMessages();
+        // Append new message directly instead of refetching
+        const newMessage = payload.new as Message;
+        setMessages(current => {
+          // Avoid duplicates
+          if (current.some(m => m.id === newMessage.id)) {
+            return current;
+          }
+          return [...current, newMessage];
+        });
       })
       .subscribe();
     
