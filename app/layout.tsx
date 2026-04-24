@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'UREPP - Universal Recruitment Profile Platform',
   description: 'Create and share your sports recruiting profile',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon2.ico',
     apple: '/apple-touch-icon.png',
   },
   viewport: {
