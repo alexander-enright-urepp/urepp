@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 // Apple receipt validation endpoint
 // Production: https://buy.itunes.apple.com/verifyReceipt
@@ -11,11 +10,18 @@ const APPLE_PRODUCTION_URL = 'https://buy.itunes.apple.com/verifyReceipt';
 // Shared secret from App Store Connect
 const APP_SHARED_SECRET = process.env.APPLE_SHARED_SECRET || '';
 
-// Create Supabase admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+// Lazy-load Supabase client to avoid build-time errors
+function getSupabaseAdmin() {
+  const { createClient } = require('@supabase/supabase-js');
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase environment variables not configured');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export async function POST(request: Request) {
   try {
@@ -39,6 +45,7 @@ export async function POST(request: Request) {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + days);
       
+      const supabaseAdmin = getSupabaseAdmin();
       const { error: updateError } = await supabaseAdmin
         .from('profiles')
         .update({
@@ -102,6 +109,7 @@ export async function POST(request: Request) {
     const planType = productId.includes('yearly') ? 'yearly' : 'monthly';
     
     // ✅ Update database - mark user as premium with subscription details
+    const supabaseAdmin = getSupabaseAdmin();
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
       .update({
