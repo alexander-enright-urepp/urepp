@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'UREPP - Sports Recruiting Platform',
   description: 'A sports recruiting platform for high school and junior college sports.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon2.ico',
     apple: '/apple-touch-icon.png',
   },
   viewport: {

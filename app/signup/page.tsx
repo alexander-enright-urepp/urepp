@@ -5,21 +5,100 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import { Loader2, Mail, Lock, ArrowLeft, Home, Search, User, CheckCircle, Tv } from 'lucide-react'
+import { Loader2, Mail, Lock, ArrowLeft, User, CheckCircle } from 'lucide-react'
 
 export default function SignUp() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  
+  // Age verification fields
+  const [dateOfBirth, setDateOfBirth] = useState({ year: '', month: '', day: '' })
+  const [isAgeVerified, setIsAgeVerified] = useState(false)
+  const [ageError, setAgeError] = useState('')
+  
+  // Consent
+  const [consentChecked, setConsentChecked] = useState(false)
+  
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i)
+  const months = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ]
+  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'))
+
+  // Calculate age in real-time
+  const calculateAge = () => {
+    const { year, month, day } = dateOfBirth
+    if (year && month && day) {
+      const birthDate = new Date(`${year}-${month}-${day}`)
+      const today = new Date()
+      
+      if (isNaN(birthDate.getTime()) || birthDate > today) {
+        setIsAgeVerified(false)
+        setAgeError('Please enter a valid date')
+        return
+      }
+
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+
+      if (age >= 13) {
+        setIsAgeVerified(true)
+        setAgeError('')
+      } else {
+        setIsAgeVerified(false)
+        setAgeError('You must be at least 13 years old to use UREPP')
+      }
+    }
+  }
+
+  // Update age calculation when DOB changes
+  const updateDOB = (field: 'year' | 'month' | 'day', value: string) => {
+    setDateOfBirth(prev => ({ ...prev, [field]: value }))
+    // Clear errors when user changes date
+    if (ageError) setAgeError('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+
+    // Validate age
+    calculateAge()
+    if (!isAgeVerified) {
+      setError('You must be at least 13 years old to create an account')
+      setIsLoading(false)
+      return
+    }
+
+    // Validate consent
+    if (!consentChecked) {
+      setError('You must agree to the Terms of Service and Privacy Policy')
+      setIsLoading(false)
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -39,6 +118,20 @@ export default function SignUp() {
       setError(error.message)
       setIsLoading(false)
     } else if (data.user) {
+      // Store age verification in profile
+      const birthDateStr = `${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}`
+      
+      const { error: updateError } = await supabase.rpc('verify_user_age', {
+        user_uuid: data.user.id,
+        birth_date: birthDateStr,
+        app_version: '1.0.0'
+      })
+
+      if (updateError) {
+        console.error('Failed to store age verification:', updateError)
+        // Continue anyway - user is signed up
+      }
+      
       // Auto sign in after signup
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -46,7 +139,7 @@ export default function SignUp() {
       })
       
       if (!signInError) {
-        // Redirect to create profile instead of showing success screen
+        // Redirect to create profile
         router.push('/profile/create')
       } else {
         setSuccess(true)
@@ -133,6 +226,7 @@ export default function SignUp() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <div className="relative">
@@ -148,6 +242,7 @@ export default function SignUp() {
               </div>
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
@@ -163,6 +258,7 @@ export default function SignUp() {
               </div>
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <div className="relative">
@@ -178,10 +274,84 @@ export default function SignUp() {
               </div>
             </div>
 
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Date of Birth <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  value={dateOfBirth.month}
+                  onChange={(e) => updateDOB('month', e.target.value)}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                >
+                  <option value="">Month</option>
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={dateOfBirth.day}
+                  onChange={(e) => updateDOB('day', e.target.value)}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                >
+                  <option value="">Day</option>
+                  {days.map((d) => (
+                    <option key={d} value={d}>{parseInt(d)}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={dateOfBirth.year}
+                  onChange={(e) => updateDOB('year', e.target.value)}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                >
+                  <option value="">Year</option>
+                  {years.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              {ageError && (
+                <p className="text-red-500 text-xs mt-1">{ageError}</p>
+              )}
+              {isAgeVerified && (
+                <p className="text-green-600 text-xs mt-1">✓ Age verified (13+)</p>
+              )}
+            </div>
+
+            {/* Consent Checkbox */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => setConsentChecked(e.target.checked)}
+                  required
+                  className="mt-1 w-5 h-5 text-babyblue-600 border-gray-300 rounded focus:ring-babyblue-500"
+                />
+                <span className="text-sm text-gray-700">
+                  I confirm I am at least 13 years old and agree to the{' '}
+                  <Link href="/terms" className="text-babyblue-600 hover:underline" target="_blank">
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-babyblue-600 hover:underline" target="_blank">
+                    Privacy Policy
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md shadow-babyblue-200"
+              disabled={isLoading || !consentChecked}
+              className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md shadow-babyblue-200"
             >
               {isLoading ? (
                 <>
@@ -212,33 +382,11 @@ export default function SignUp() {
               <CheckCircle className="w-3 h-3" /> 100% Free
             </span>
             <span className="flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" /> No Spam
+              <CheckCircle className="w-3 h-3" /> COPPA Compliant
             </span>
           </div>
         </div>
       </main>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
-        <div className="max-w-md mx-auto flex justify-around">
-          <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
-            <Home className="w-6 h-6" />
-            <span className="text-xs font-medium">Home</span>
-          </Link>
-          <Link href="/tv" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
-            <Tv className="w-6 h-6" />
-            <span className="text-xs font-medium">TV</span>
-          </Link>
-          <Link href="/search" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
-            <Search className="w-6 h-6" />
-            <span className="text-xs font-medium">Search</span>
-          </Link>
-          <Link href="/login" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
-            <User className="w-6 h-6" />
-            <span className="text-xs font-medium">Profile</span>
-          </Link>
-        </div>
-      </nav>
     </div>
   )
 }
