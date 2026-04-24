@@ -1,6 +1,15 @@
 -- Profile Claims Schema
 -- Run this in Supabase SQL Editor
 
+-- Add is_claimed field to profiles table
+ALTER TABLE IF EXISTS profiles 
+ADD COLUMN IF NOT EXISTS is_claimed BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS claimed_by UUID REFERENCES auth.users(id);
+
+-- Create index for claimed lookups
+CREATE INDEX IF NOT EXISTS idx_profiles_is_claimed ON profiles(is_claimed);
+
 -- Create table for profile claim requests
 CREATE TABLE IF NOT EXISTS profile_claims (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -16,7 +25,7 @@ CREATE TABLE IF NOT EXISTS profile_claims (
     resolved_by UUID REFERENCES auth.users(id)
 );
 
--- Index for lookups
+-- Indexes for lookups
 CREATE INDEX IF NOT EXISTS idx_profile_claims_profile_id ON profile_claims(profile_id);
 CREATE INDEX IF NOT EXISTS idx_profile_claims_status ON profile_claims(status);
 CREATE INDEX IF NOT EXISTS idx_profile_claims_email ON profile_claims(claimer_email);
@@ -50,6 +59,7 @@ CREATE POLICY "Allow admins to update claims" ON profile_claims
 -- Comments
 COMMENT ON TABLE profile_claims IS 'Stores profile ownership claim requests from users';
 COMMENT ON COLUMN profile_claims.status IS 'pending, approved, rejected';
+COMMENT ON COLUMN profiles.is_claimed IS 'Whether this profile has been claimed by its owner';
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
