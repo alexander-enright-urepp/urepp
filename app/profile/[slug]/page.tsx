@@ -392,8 +392,19 @@ export default function ProfilePage() {
 
         {/* Footer */}
         <footer className="mt-10 pt-8 pb-8 border-t border-gray-200 bg-white rounded-2xl px-6">
-          {/* Claim Profile Link */}
+          {/* Made with UREPP */}
           <div className="text-center mb-6">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
+            >
+              <span className="text-lg">🏀</span>
+              Made with UREPP
+            </Link>
+          </div>
+
+          {/* Claim Profile Link */}
+          <div className="text-center mb-4">
             <button
               onClick={() => setIsClaimModalOpen(true)}
               className="text-babyblue-600 hover:text-babyblue-700 text-sm font-medium underline underline-offset-2"
@@ -416,17 +427,6 @@ export default function ProfilePage() {
               className="hover:text-babyblue-600 transition-colors"
             >
               Privacy Policy
-            </Link>
-          </div>
-
-          {/* Made with UREPP */}
-          <div className="mt-6 text-center">
-            <Link 
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
-            >
-              <span className="text-lg">🏀</span>
-              Made with UREPP
             </Link>
           </div>
         </footer>
