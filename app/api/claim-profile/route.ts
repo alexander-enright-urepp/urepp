@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+// Your email to notify
+const ADMIN_EMAIL = 'alex@urepp.com' // Change this to your email
 
 export async function POST(request: Request) {
   try {
@@ -76,8 +82,27 @@ export async function POST(request: Request) {
       )
     }
 
-    // TODO: Send email notification to admin
-    // You can integrate with Resend, SendGrid, etc. here
+    // Send email notification to admin
+    try {
+      await resend.emails.send({
+        from: 'UREPP <claims@urepp.com>',
+        to: ADMIN_EMAIL,
+        subject: `New Profile Claim: ${profileUsername}`,
+        html: `
+          <h2>New Profile Claim Submitted</h2>
+          <p><strong>Profile:</strong> ${profileUsername}</p>
+          <p><strong>URL:</strong> <a href="${profileUrl}">${profileUrl}</a></p>
+          <p><strong>Claimer Email:</strong> ${email}</p>
+          <p><strong>Message:</strong> ${message || 'No message provided'}</p>
+          <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          <hr />
+          <p>Review this claim in the admin dashboard.</p>
+        `
+      })
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError)
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
