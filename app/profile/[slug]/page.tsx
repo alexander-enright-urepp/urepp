@@ -390,8 +390,10 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Footer */}
-        <footer className="mt-10 pt-8 pb-8 border-t border-gray-200 bg-white rounded-2xl px-6">
+        {/* Footer - DEBUG */}
+        <footer className="mt-10 pt-8 pb-8 border-t border-red-500 bg-yellow-100 rounded-2xl px-6">
+          <p className="text-red-600 font-bold text-center mb-4">FOOTER DEBUG VISIBLE</p>
+          
           {/* Made with UREPP */}
           <div className="text-center mb-6">
             <Link 
