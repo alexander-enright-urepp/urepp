@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
 import ProfileFooter from '@/components/ProfileFooter'
+import ClaimProfileModal from '@/components/ClaimProfileModal'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 import { trackAnalytics } from '@/lib/analytics'
@@ -359,6 +360,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, copied, copyProfileLink, trackSocialClick, trackStatsView, trackMediaClick }: any) {
   const isDark = theme.background === 'dark' || theme.headerStyle === 'dark'
   const bgClass = isDark ? 'bg-[#0B0B0F] text-white' : 'bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100'
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
   
   return (
     <div className={`min-h-screen ${bgClass} pb-20`}>
@@ -487,7 +489,7 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
         <footer className="mt-12 pb-24">
           <div className="text-center mb-4">
             <button
-              onClick={() => window.alert('Claim profile feature coming soon!')}
+              onClick={() => setIsClaimModalOpen(true)}
               className="text-gray-500 hover:text-gray-700 text-sm underline underline-offset-2 transition-colors"
             >
               Is this you? Claim this profile
@@ -503,6 +505,14 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
             </Link>
           </div>
         </footer>
+
+        {/* Claim Profile Modal */}
+        <ClaimProfileModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
+          profileUrl={`https://urepp.com/players/${profile.username}`}
+          profileUsername={profile.username}
+        />
       </main>
       
       {/* UREPP Badge */}

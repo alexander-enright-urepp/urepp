@@ -88,7 +88,7 @@ export default function ClaimProfileModal({
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Claim Submitted!</h3>
               <p className="text-gray-600 text-sm">
-                We&apos;ve received your request. Our team will review it and get back to you at {email} within 24-48 hours.
+                Someone at UREPP will get back to you soon via email.
               </p>
               <button
                 onClick={handleClose}
