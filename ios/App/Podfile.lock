@@ -8,6 +8,8 @@ PODS:
   - CapacitorCordova (5.7.8)
   - CapacitorPreferences (5.0.8):
     - Capacitor
+  - CapacitorPushNotifications (5.1.2):
+    - Capacitor
   - CapacitorSplashScreen (5.0.8):
     - Capacitor
   - CapacitorStatusBar (5.0.8):
@@ -34,6 +36,7 @@ DEPENDENCIES:
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
@@ -54,6 +57,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorPreferences:
     :path: "../../node_modules/@capacitor/preferences"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
@@ -69,12 +74,13 @@ SPEC CHECKSUMS:
   CapacitorCamera: 916a67c6726fabcc623df79d3f934828f2520103
   CapacitorCordova: 31ab98dca2ddcee051027a1afe7e8c85c82f7297
   CapacitorPreferences: 5331d7a33044d252dcb2f7fee712f0322c04bae7
+  CapacitorPushNotifications: 95dc889e9f3540e3c4f118f7ed53fd61db82100b
   CapacitorSplashScreen: 0b962a2bee014151569dc59b089ba0e93daeeaf0
   CapacitorStatusBar: 8e0a8f213504695505dc8c4f808dffbe03aa0e0f
   CordovaPlugins: caa80a641321b286e82b795626045c9ee3100016
   CordovaPluginsStatic: 5d030f261e11cfffbbe2f2c53cae50adb687ee56
   OneSignalXCFramework: 087934ab0d4d7445fcf1c015c7c782359e26c020
 
-PODFILE CHECKSUM: 0be7526a4418b0da2af64809367565b1bb42e615
+PODFILE CHECKSUM: 6444d226781142774825ff1761923f077dea336a
 
 COCOAPODS: 1.16.2

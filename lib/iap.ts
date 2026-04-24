@@ -13,6 +13,10 @@ export type ProductId = typeof IAP_PRODUCTS[keyof typeof IAP_PRODUCTS];
 // DEBUG MODE: Set to true to simulate purchases (for testing UI flow)
 const DEBUG_FAKE_PURCHASE = false;
 
+// STOREKIT CONFIG MODE: Set to true when using Xcode StoreKit Configuration (.storekit file)
+// This mode skips receipt requirements and uses transaction states instead
+const STOREKIT_CONFIG_MODE = true; // Set to false for TestFlight/Production
+
 // Check if running on iOS native app
 export const isIOSNative = (): boolean => {
   try {
@@ -99,7 +103,7 @@ export const purchaseIAPProduct = async (
   productId: string
 ): Promise<{ success: boolean; receipt?: string; error?: string }> => {
   console.log('[IAP] Purchase requested for:', productId);
-  console.log('[IAP] DEBUG_FAKE_PURCHASE:', DEBUG_FAKE_PURCHASE);
+  console.log('[IAP] STOREKIT_CONFIG_MODE:', STOREKIT_CONFIG_MODE);
   
   // DEBUG MODE: Simulate purchase for UI testing
   if (DEBUG_FAKE_PURCHASE) {
@@ -155,9 +159,39 @@ export const purchaseIAPProduct = async (
         console.error('[IAP] Purchase hard timeout reached');
         resolve({ success: false, error: 'Purchase timed out. Please try again.' });
       }
-    }, 30000); // 30s for the full purchase flow
+    }, STOREKIT_CONFIG_MODE ? 60000 : 30000); // 60s for StoreKit Config (slower)
 
-    // Listen for receipt on this specific product
+    // STOREKIT CONFIG MODE: Listen for transaction states, not receipts
+    if (STOREKIT_CONFIG_MODE) {
+      console.log('[IAP] StoreKit Config mode: listening for transaction states...');
+      
+      store.when('transaction').updated((transaction: any) => {
+        if (resolved) return;
+        
+        console.log('[IAP] Transaction update:', {
+          state: transaction.state,
+          productId: transaction.products?.[0]?.id,
+          expectedProductId: productId
+        });
+        
+        const transactionProductId = transaction.products?.[0]?.id;
+        
+        // Check if this transaction is for our product
+        if (transactionProductId !== productId) return;
+        
+        // StoreKit Config transaction states: requested → initiated → purchasing → purchased → finished
+        if (transaction.state === 'purchased' || transaction.state === 'finished' || transaction.state === 'approved') {
+          console.log('[IAP] StoreKit Config: Transaction completed!', transaction.state);
+          clearTimeout(hardTimeout);
+          resolved = true;
+          transaction.finish();
+          // Use a mock receipt for StoreKit Config testing
+          resolve({ success: true, receipt: 'STOREKIT_CONFIG_TEST_' + Date.now() });
+        }
+      });
+    }
+
+    // STANDARD MODE: Listen for receipt (also keep this as backup)
     store.when('receipt').updated((receipt: any) => {
       if (resolved) return;
 
