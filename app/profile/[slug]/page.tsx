@@ -391,7 +391,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-10 pt-8 border-t border-gray-200">
+        <footer className="mt-10 pt-8 pb-8 border-t border-gray-200 bg-white rounded-2xl px-6">
           {/* Claim Profile Link */}
           <div className="text-center mb-6">
             <button
