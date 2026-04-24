@@ -1216,6 +1216,27 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
           {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} dark />}
           {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
         </div>
+
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
       </main>
 
       {/* Bottom Navigation */}
