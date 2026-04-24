@@ -451,8 +451,8 @@ export default function SubscriptionPage() {
         <div className="bg-white/50 rounded-2xl p-6 border border-babyblue-100">
           <h3 className="font-semibold text-gray-900 mb-3">Subscription Information</h3>
           <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>Monthly Plan:</strong> $9.99/month, auto-renews monthly</p>
-            <p><strong>Yearly Plan:</strong> $99.99/year, auto-renews yearly (save $20)</p>
+            <p><strong>Monthly Plan:</strong> $10/month, auto-renews monthly</p>
+            <p><strong>Yearly Plan:</strong> $100/year, auto-renews yearly (save $20)</p>
             <p>Payment will be charged to your Apple ID account at confirmation of purchase.</p>
             <p>Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.</p>
             <p>Your account will be charged for renewal within 24 hours prior to the end of the current period.</p>
