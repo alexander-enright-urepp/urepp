@@ -22,8 +22,10 @@ import {
   Play,
   BarChart3,
   Loader2,
-  Crown
+  Crown,
+  ShieldCheck
 } from 'lucide-react'
+import ClaimProfileModal from '@/components/ClaimProfileModal'
 import { supabase } from '@/lib/supabase'
 
 interface Profile {
@@ -158,6 +160,7 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<StatEntry[]>([])
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
 
   useEffect(() => {
     if (slug) {
@@ -388,15 +391,55 @@ export default function ProfilePage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
-          >
-            <span className="text-lg">🏀</span>
-            Made with UREPP
-          </Link>
-        </div>
+        <footer className="mt-10 pt-8 border-t border-gray-200">
+          {/* Claim Profile Link */}
+          <div className="text-center mb-6">
+            <button
+              onClick={() => setIsClaimModalOpen(true)}
+              className="text-babyblue-600 hover:text-babyblue-700 text-sm font-medium underline underline-offset-2"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+
+          {/* Legal Links */}
+          <div className="flex justify-center items-center gap-4 text-sm text-gray-500">
+            <Link 
+              href="/terms" 
+              className="hover:text-babyblue-600 transition-colors"
+            >
+              Terms
+            </Link>
+            <span className="text-gray-300">•</span>
+            <Link 
+              href="/privacy" 
+              className="hover:text-babyblue-600 transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+
+          {/* Made with UREPP */}
+          <div className="mt-6 text-center">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border border-babyblue-200 text-babyblue-600 font-medium hover:bg-babyblue-50 transition-colors shadow-sm"
+            >
+              <span className="text-lg">🏀</span>
+              Made with UREPP
+            </Link>
+          </div>
+        </footer>
+
+        {/* Claim Profile Modal */}
+        {profile && (
+          <ClaimProfileModal
+            isOpen={isClaimModalOpen}
+            onClose={() => setIsClaimModalOpen(false)}
+            profileUrl={`https://urepp.com/profile/${profile.username}`}
+            profileUsername={profile.username}
+          />
+        )}
       </main>
     </div>
   )
