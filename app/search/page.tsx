@@ -50,6 +50,7 @@ export default function SearchPage() {
       .from('profiles')
       .select('*')
       .in('role', ['athlete', 'coach'])
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20)
     
@@ -65,7 +66,7 @@ export default function SearchPage() {
     setLoading(true)
     
     // Build base query
-    let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach'])
+    let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach']).is('deleted_at', null)
     
     // Apply text search filter
     if (query.trim()) {
