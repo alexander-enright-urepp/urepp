@@ -344,10 +344,7 @@ export default function CoachMessagesPage() {
     // Fetch immediately
     fetchMessages();
     
-    // POLLING: Fetch messages every 2 seconds for real-time feel
-    const pollInterval = setInterval(fetchMessages, 2000);
-    
-    // Try WebSocket subscription as backup
+    // WebSocket subscription for real-time messages (no polling)
     const subscription = supabase
       .channel(`messages:${activeConversation.id}`)
       .on('postgres_changes', {
@@ -357,12 +354,14 @@ export default function CoachMessagesPage() {
         filter: `conversation_id=eq.${activeConversation.id}`
       }, (payload) => {
         console.log('New message received via WebSocket:', payload);
-        fetchMessages(); // Refresh on WebSocket event
+        // Add new message directly instead of refetching all
+        setMessages(prev => [...prev, payload.new as Message]);
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('WebSocket subscription status:', status);
+      });
     
     return () => {
-      clearInterval(pollInterval);
       subscription.unsubscribe();
     };
   }, [activeConversation?.id]);
