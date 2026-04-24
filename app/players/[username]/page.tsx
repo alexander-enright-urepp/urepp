@@ -36,6 +36,7 @@ import {
   MapPin as LocationIcon,
 } from 'lucide-react'
 import { YouTubeThumbnail } from '@/components/YouTubeThumbnail'
+import ProfileFooter from '@/components/ProfileFooter'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 import { trackAnalytics } from '@/lib/analytics'
@@ -482,6 +483,26 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
             {activeTab === 'stats' && <StatsTab stats={playerStats} />}
           </div>
         </div>
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
       </main>
       
       {/* UREPP Badge */}
@@ -623,6 +644,26 @@ function RecruiterCardLayout({ profile, playerStats, theme, activeTab, setActive
             </>
           )}
         </div>
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
       </main>
 
       {/* Bottom Navigation */}
@@ -832,6 +873,26 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
             </div>
           </div>
         )}
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
       </main>
 
       {/* Bottom Navigation */}
@@ -950,6 +1011,26 @@ function MinimalProLayout({ profile, playerStats, copied, copyProfileLink, track
         {activeTab === 'resume' && <ResumeTab profile={profile} />}
         {activeTab === 'media' && <MediaTab videos={profile.videos} onVideoClick={trackMediaClick} />}
         {activeTab === 'stats' && <StatsTab stats={playerStats} />}
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
       </main>
     </div>
   )
@@ -1217,6 +1298,26 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
           {activeTab === 'stats' && <StatsTab stats={playerStats} dark />}
         </div>
 
+        {/* Footer Links */}
+        <footer className="mt-12 pb-24">
+          <div className="text-center mb-4">
+            <button
+              onClick={() => window.alert('Claim profile feature coming soon!')}
+              className="text-white/60 hover:text-white text-sm underline underline-offset-2 transition-colors"
+            >
+              Is this you? Claim this profile
+            </button>
+          </div>
+          <div className="flex justify-center items-center gap-4 text-sm text-white/40">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">
+              Terms
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
         {/* Footer Links */}
         <footer className="mt-12 pb-24">
           <div className="text-center mb-4">
