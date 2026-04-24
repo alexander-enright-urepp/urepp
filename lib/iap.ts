@@ -137,7 +137,9 @@ export const purchaseIAPProduct = async (
   console.log('[IAP] Product details:', { id: product.id, state: product.state, price: product.price, title: product.title });
 
   // Validate product can be ordered
-  if (product.state !== 'valid' && product.state !== undefined) {
+  // NOTE: StoreKit Configuration products may have state: undefined initially
+  // We'll proceed as long as product exists - the actual purchase will fail if invalid
+  if (product.state && product.state !== 'valid') {
     console.log('[IAP] ERROR: Product not in valid state:', product.state);
     return { success: false, error: 'Product not available for purchase' };
   }
@@ -266,27 +268,38 @@ export const restorePurchases = async (): Promise<{ success: boolean; error?: st
 // HELPERS
 // ---------------------------------------------------------------------------
 
-// Wait for product - simplified version
+// Wait for product - StoreKit compatible version
 const waitForProduct = async (store: any, productId: string): Promise<any> => {
   console.log('[IAP] waitForProduct START:', productId);
   
-  // Wait a bit for store to populate
-  await new Promise(resolve => setTimeout(resolve, 500));
+  // Wait longer for StoreKit config to load (2 seconds)
+  await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Check if product exists
-  const products = storeInstance?.products || [];
+  // Try store.get() first - works better with StoreKit Configuration (.storekit files)
+  console.log('[IAP] Trying store.get()...');
+  try {
+    const product = store.get(productId);
+    if (product) {
+      console.log('[IAP] Product found via store.get():', product.id, 'state:', product.state);
+      return product;
+    }
+  } catch (e) {
+    console.log('[IAP] store.get() failed, falling back to products array');
+  }
+  
+  // Fallback to checking products array
+  const products = store.products || [];
   console.log('[IAP] Available products:', products.length);
+  console.log('[IAP] Product IDs:', products.map((p: any) => p.id));
   
   const product = products.find((p: any) => p.id === productId);
   
   if (product) {
-    console.log('[IAP] Product found:', product.id, 'state:', product.state);
-    // Even if not 'valid', try to use it - StoreKit test might not set state properly
+    console.log('[IAP] Product found in array:', product.id, 'state:', product.state);
     return product;
   }
   
   console.error('[IAP] Product not found:', productId);
-  console.error('[IAP] Available products:', products.map((p: any) => p.id));
   return null;
 };
 
