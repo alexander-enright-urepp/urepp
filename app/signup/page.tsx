@@ -75,9 +75,35 @@ export default function SignUp() {
 
   // Update age calculation when DOB changes
   const updateDOB = (field: 'year' | 'month' | 'day', value: string) => {
-    setDateOfBirth(prev => ({ ...prev, [field]: value }))
-    // Clear errors when user changes date
-    if (ageError) setAgeError('')
+    const newDOB = { ...dateOfBirth, [field]: value }
+    setDateOfBirth(newDOB)
+    
+    // Calculate age immediately when all fields are filled
+    if (newDOB.year && newDOB.month && newDOB.day) {
+      const birthDate = new Date(`${newDOB.year}-${newDOB.month}-${newDOB.day}`)
+      const today = new Date()
+      
+      if (isNaN(birthDate.getTime()) || birthDate > today) {
+        setIsAgeVerified(false)
+        setAgeError('Please enter a valid date')
+        return
+      }
+
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+
+      if (age >= 13) {
+        setIsAgeVerified(true)
+        setAgeError('')
+      } else {
+        setIsAgeVerified(false)
+        setAgeError('You must be at least 13 years old to use UREPP')
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,8 +111,7 @@ export default function SignUp() {
     setIsLoading(true)
     setError('')
 
-    // Validate age
-    calculateAge()
+    // Validate age (already calculated in updateDOB)
     if (!isAgeVerified) {
       setError('You must be at least 13 years old to create an account')
       setIsLoading(false)
