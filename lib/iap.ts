@@ -203,6 +203,15 @@ export const purchaseIAPProduct = async (
   }
 
   console.log('[IAP] Starting purchase flow...');
+  console.log('[IAP] Platform:', Capacitor.getPlatform());
+  console.log('[IAP] CdvPurchase available:', typeof (window as any).CdvPurchase !== 'undefined');
+  
+  // Log store state before purchase
+  console.log('[IAP] Store state:', {
+    products: store.products?.length || 0,
+    productIds: store.products?.map((p: any) => p.id) || [],
+    storeReady: storeReady
+  });
 
   return new Promise((resolve) => {
     let resolved = false;
@@ -315,12 +324,23 @@ export const purchaseIAPProduct = async (
       canPurchase: product.canPurchase
     });
     
-    // StoreKit Config: Use product.order() directly, not store.order(product)
-    const orderPromise = STOREKIT_CONFIG_MODE && product.order 
-      ? product.order() 
-      : store.order(product);
+    // StoreKit Config with subscriptions: Try multiple approaches
+    let orderPromise;
     
-    console.log('[IAP] Using order method:', STOREKIT_CONFIG_MODE && product.order ? 'product.order()' : 'store.order()');
+    if (STOREKIT_CONFIG_MODE) {
+      // For StoreKit Config, try product.order() first, then fallback to store.order(productId)
+      if (product.order) {
+        console.log('[IAP] StoreKit Config: Using product.order()');
+        orderPromise = product.order();
+      } else {
+        console.log('[IAP] StoreKit Config: Using store.order() with product ID string');
+        orderPromise = store.order(productId);
+      }
+    } else {
+      // Production: Use standard store.order(product)
+      console.log('[IAP] Production: Using store.order(product)');
+      orderPromise = store.order(product);
+    }
     
     orderPromise
       .then(() => {
@@ -408,66 +428,57 @@ export const restorePurchases = async (): Promise<{ success: boolean; error?: st
 // Wait for product - StoreKit compatible version
 const waitForProduct = async (store: any, productId: string): Promise<any> => {
   console.log('[IAP] waitForProduct START:', productId);
+  console.log('[IAP] Store products:', store.products?.length || 0);
+  console.log('[IAP] Store products IDs:', store.products?.map((p: any) => p.id) || []);
   
-  // Wait for StoreKit config to load (2 seconds initial wait)
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Wait for StoreKit config to load (3 seconds for subscriptions)
+  console.log('[IAP] Waiting 3 seconds for StoreKit to load subscriptions...');
+  await new Promise(resolve => setTimeout(resolve, 3000));
   
-  // Try store.get() first - works better with StoreKit Configuration (.storekit files)
-  console.log('[IAP] Trying store.get()...');
-  let product = null;
+  // For StoreKit Config with subscriptions, products might be nested in subscriptionGroups
+  // Let's check all possible locations
+  console.log('[IAP] Checking for product in multiple locations...');
   
-  try {
-    product = store.get(productId);
-    if (product) {
-      console.log('[IAP] Product found via store.get():', product.id, 'state:', product.state, 'canPurchase:', product.canPurchase);
-    }
-  } catch (e) {
-    console.log('[IAP] store.get() failed:', e);
-  }
-  
-  // If product exists but isn't valid yet, wait for it to become valid
-  if (product && product.state !== 'valid') {
-    console.log('[IAP] Product found but state is', product.state, '- waiting for valid state...');
-    
-    // Wait up to 10 seconds for product to become valid
-    for (let i = 0; i < 20; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refresh the product
-      try {
-        product = store.get(productId);
-      } catch (e) {
-        // ignore
-      }
-      
-      console.log(`[IAP] Check ${i+1}/20: product state =`, product?.state, 'canPurchase =', product?.canPurchase);
-      
-      if (product?.state === 'valid' || product?.canPurchase === true) {
-        console.log('[IAP] Product is now ready!');
-        break;
-      }
-    }
-  }
-  
+  // 1. Try store.get() first
+  let product = store.get(productId);
   if (product) {
-    console.log('[IAP] Final product state:', product.state, 'canPurchase:', product.canPurchase);
+    console.log('[IAP] Product found via store.get():', product.id, 'state:', product.state, 'canPurchase:', product.canPurchase, 'type:', product.type);
     return product;
   }
   
-  // Fallback to checking products array
-  console.log('[IAP] Falling back to products array...');
-  const products = store.products || [];
-  console.log('[IAP] Available products:', products.length);
-  console.log('[IAP] Product IDs:', products.map((p: any) => p.id));
-  
-  const arrayProduct = products.find((p: any) => p.id === productId);
-  
-  if (arrayProduct) {
-    console.log('[IAP] Product found in array:', arrayProduct.id, 'state:', arrayProduct.state);
-    return arrayProduct;
+  // 2. Check store.products array
+  if (store.products) {
+    product = store.products.find((p: any) => p.id === productId);
+    if (product) {
+      console.log('[IAP] Product found in store.products array:', product.id);
+      return product;
+    }
   }
   
-  console.error('[IAP] Product not found:', productId);
+  // 3. For StoreKit Config, try direct access with longer wait
+  console.log('[IAP] Product not found immediately, waiting longer for StoreKit...');
+  for (let i = 0; i < 10; i++) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    product = store.get(productId);
+    if (product) {
+      console.log(`[IAP] Product found after ${i + 4} seconds:`, product.id, 'state:', product.state);
+      return product;
+    }
+    
+    if (store.products) {
+      product = store.products.find((p: any) => p.id === productId);
+      if (product) {
+        console.log(`[IAP] Product found in array after ${i + 4} seconds:`, product.id);
+        return product;
+      }
+    }
+    
+    console.log(`[IAP] Check ${i + 1}/10: still waiting...`);
+  }
+  
+  console.error('[IAP] Product not found after extended wait:', productId);
+  console.error('[IAP] Available products:', store.products?.map((p: any) => p.id) || 'none');
   return null;
 };
 
