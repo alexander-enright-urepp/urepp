@@ -307,18 +307,25 @@ export const purchaseIAPProduct = async (
     });
 
     // Place the order
-    console.log('[IAP] About to call store.order()...');
+    console.log('[IAP] About to call order...');
     console.log('[IAP] Product being ordered:', { 
       id: product.id, 
       state: product.state, 
-      type: product.type 
+      type: product.type,
+      canPurchase: product.canPurchase
     });
     
-    store
-      .order(product)
+    // StoreKit Config: Use product.order() directly, not store.order(product)
+    const orderPromise = STOREKIT_CONFIG_MODE && product.order 
+      ? product.order() 
+      : store.order(product);
+    
+    console.log('[IAP] Using order method:', STOREKIT_CONFIG_MODE && product.order ? 'product.order()' : 'store.order()');
+    
+    orderPromise
       .then(() => {
         console.log('[IAP] Order placed successfully! Waiting for callbacks...');
-        console.log('[IAP] store.order() promise resolved');
+        console.log('[IAP] order() promise resolved');
       })
       .catch((err: any) => {
         if (!resolved) {
