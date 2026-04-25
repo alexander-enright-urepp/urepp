@@ -25,8 +25,8 @@ export default function SignUp() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const currentYear = new Date().getFullYear()
-  const years = Array.from({ length: 100 }, (_, i) => currentYear - i)
+  // Years from 2013 going back 100 years
+  const years = Array.from({ length: 100 }, (_, i) => 2013 - i)
   const months = [
     { value: '01', label: 'January' },
     { value: '02', label: 'February' },

@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-load Supabase to prevent build errors
+let supabaseAdmin: SupabaseClient | null = null
+
+const getSupabaseAdmin = (): SupabaseClient => {
+  if (!supabaseAdmin) {
+    const { createClient } = require('@supabase/supabase-js')
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+  }
+  return supabaseAdmin!
+}
 
 // Your email to notify
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'alex@urepp.com'
@@ -38,7 +47,7 @@ export async function POST(request: Request) {
     console.log('[ClaimProfile] Looking up profile:', profileUsername)
     
     // Find the profile by username
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile, error: profileError } = await getSupabaseAdmin()
       .from('profiles')
       .select('id, user_id, username')
       .eq('username', profileUsername)
@@ -63,7 +72,7 @@ export async function POST(request: Request) {
     console.log('[ClaimProfile] Profile found:', profile.id)
 
     // Check if there's already a pending claim for this profile/email
-    const { data: existingClaim, error: existingError } = await supabaseAdmin
+    const { data: existingClaim, error: existingError } = await getSupabaseAdmin()
       .from('profile_claims')
       .select('id, status')
       .eq('profile_id', profile.id)
@@ -86,7 +95,7 @@ export async function POST(request: Request) {
     console.log('[ClaimProfile] Inserting claim...')
     
     // Insert the claim
-    const { data: insertedClaim, error: insertError } = await supabaseAdmin
+    const { data: insertedClaim, error: insertError } = await getSupabaseAdmin()
       .from('profile_claims')
       .insert({
         profile_id: profile.id,
