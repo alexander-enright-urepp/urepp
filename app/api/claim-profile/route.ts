@@ -16,7 +16,7 @@ const getSupabaseAdmin = (): SupabaseClient => {
 }
 
 // Your email to notify
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'alex@urepp.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'alex@urepp.tv'
 
 export async function POST(request: Request) {
   try {
