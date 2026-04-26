@@ -321,20 +321,22 @@ export const purchaseIAPProduct = async (
       id: product.id, 
       state: product.state, 
       type: product.type,
-      canPurchase: product.canPurchase
+      canPurchase: product.canPurchase,
+      hasOrderMethod: typeof product.order === 'function'
     });
     
     // StoreKit Config with subscriptions: Try multiple approaches
     let orderPromise;
     
     if (STOREKIT_CONFIG_MODE) {
-      // For StoreKit Config, try product.order() first, then fallback to store.order(productId)
-      if (product.order) {
+      // For StoreKit Config, the product object itself might have order method
+      // or we need to use store.order(product) not store.order(productId)
+      if (typeof product.order === 'function') {
         console.log('[IAP] StoreKit Config: Using product.order()');
         orderPromise = product.order();
       } else {
-        console.log('[IAP] StoreKit Config: Using store.order() with product ID string');
-        orderPromise = store.order(productId);
+        console.log('[IAP] StoreKit Config: Using store.order(product) with full product object');
+        orderPromise = store.order(product);
       }
     } else {
       // Production: Use standard store.order(product)
@@ -439,20 +441,18 @@ const waitForProduct = async (store: any, productId: string): Promise<any> => {
   // Let's check all possible locations
   console.log('[IAP] Checking for product in multiple locations...');
   
-  // 1. Try store.get() first
-  let product = store.get(productId);
+  // 1. Try to find in store.products array first (most reliable for StoreKit Config)
+  let product = store.products?.find((p: any) => p.id === productId);
   if (product) {
-    console.log('[IAP] Product found via store.get():', product.id, 'state:', product.state, 'canPurchase:', product.canPurchase, 'type:', product.type);
+    console.log('[IAP] Product found in store.products array:', product.id, 'state:', product.state, 'canPurchase:', product.canPurchase, 'type:', product.type);
     return product;
   }
   
-  // 2. Check store.products array
-  if (store.products) {
-    product = store.products.find((p: any) => p.id === productId);
-    if (product) {
-      console.log('[IAP] Product found in store.products array:', product.id);
-      return product;
-    }
+  // 2. Try store.get() as fallback
+  product = store.get(productId);
+  if (product) {
+    console.log('[IAP] Product found via store.get():', product.id, 'state:', product.state, 'canPurchase:', product.canPurchase, 'type:', product.type);
+    return product;
   }
   
   // 3. For StoreKit Config, try direct access with longer wait
@@ -460,18 +460,18 @@ const waitForProduct = async (store: any, productId: string): Promise<any> => {
   for (let i = 0; i < 10; i++) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    product = store.get(productId);
+    // Check products array first
+    product = store.products?.find((p: any) => p.id === productId);
     if (product) {
-      console.log(`[IAP] Product found after ${i + 4} seconds:`, product.id, 'state:', product.state);
+      console.log(`[IAP] Product found in array after ${i + 4} seconds:`, product.id);
       return product;
     }
     
-    if (store.products) {
-      product = store.products.find((p: any) => p.id === productId);
-      if (product) {
-        console.log(`[IAP] Product found in array after ${i + 4} seconds:`, product.id);
-        return product;
-      }
+    // Then try store.get()
+    product = store.get(productId);
+    if (product) {
+      console.log(`[IAP] Product found via store.get() after ${i + 4} seconds:`, product.id);
+      return product;
     }
     
     console.log(`[IAP] Check ${i + 1}/10: still waiting...`);
