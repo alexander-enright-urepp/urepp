@@ -86,10 +86,10 @@ export default function DesktopLandingPage() {
                 <div className="px-8 pb-8">
                   <div className="w-24 h-24 bg-white rounded-2xl shadow-lg border-4 border-white -mt-12 mb-4 flex items-center justify-center overflow-hidden">
                     <Image 
-                      src="/urwritinglogo4.png" 
-                      alt="UREPP" 
-                      width={72}
-                      height={72}
+                      src="/urepp-logo copy.png" 
+                      alt="UREPP Logo" 
+                      width={80} 
+                      height={80}
                       className="object-contain"
                     />
                   </div>
@@ -447,14 +447,15 @@ export default function DesktopLandingPage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
               <Image 
-                src="/urwritinglogo4.png" 
-                alt="UREPP" 
-                width={100}
-                height={36}
-                className="h-9 w-auto"
+                src="/urepp-logo copy.png" 
+                alt="UREPP Logo" 
+                width={40} 
+                height={40}
+                className="rounded-xl"
               />
+              <span className="text-2xl font-bold">UREPP</span>
             </div>
             <div className="flex items-center gap-8">
               <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link>
