@@ -37,7 +37,7 @@
     module.exports.metadata =
     // TOP OF METADATA
     {
-      "cordova-plugin-purchase": "13.13.1",
+      "cordova-plugin-purchase": "13.15.3",
       "onesignal-cordova-plugin": "3.3.1"
     };
     // BOTTOM OF METADATA
