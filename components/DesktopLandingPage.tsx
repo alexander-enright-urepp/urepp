@@ -13,7 +13,10 @@ import {
   Star,
   ArrowRight,
   CheckCircle,
-  Mail
+  Mail,
+  Users,
+  Database,
+  Bell
 } from 'lucide-react'
 
 export default function DesktopLandingPage() {
@@ -113,30 +116,86 @@ export default function DesktopLandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[#51b5ff]" />
-                    Upcoming Appointments
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-[#51b5ff]/5 rounded-xl">
-                      <div className="w-10 h-10 bg-[#51b5ff] rounded-lg flex items-center justify-center">
-                        <Video className="w-5 h-5 text-white" />
+                {/* Dashboard Mockup */}
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                  {/* Dashboard Header */}
+                  <div className="bg-gradient-to-r from-[#51b5ff] to-[#3da8f5] p-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">John Davis</p>
+                          <p className="text-xs text-white/80">Class of 2026 • RHP</p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">Coach Mike Johnson</p>
-                        <p className="text-sm text-gray-500">Video Call - Today, 3:00 PM</p>
+                      <div className="flex gap-2">
+                        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                          <MessageCircle className="w-4 h-4" />
+                        </div>
+                        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                          <Bell className="w-4 h-4" />
+                        </div>
                       </div>
-                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Scheduled</span>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <MessageCircle className="w-5 h-5 text-gray-600" />
+                  </div>
+                  
+                  {/* Dashboard Content */}
+                  <div className="p-4">
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <p className="text-lg font-bold text-[#51b5ff]">247</p>
+                        <p className="text-xs text-gray-500">Profile Views</p>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">Coach Sarah Williams</p>
-                        <p className="text-sm text-gray-500">Message - Tomorrow, 10:00 AM</p>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <p className="text-lg font-bold text-green-500">12</p>
+                        <p className="text-xs text-gray-500">Coaches</p>
                       </div>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <p className="text-lg font-bold text-yellow-500">5</p>
+                        <p className="text-xs text-gray-500">Messages</p>
+                      </div>
+                    </div>
+                    
+                    {/* Upcoming Appointments */}
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-[#51b5ff]" />
+                      Upcoming Appointments
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-3 bg-[#51b5ff]/5 rounded-xl">
+                        <div className="w-10 h-10 bg-[#51b5ff] rounded-lg flex items-center justify-center">
+                          <Video className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm">Coach Mike Johnson</p>
+                          <p className="text-xs text-gray-500">Video Call • Today, 3:00 PM</p>
+                        </div>
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Scheduled</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <MessageCircle className="w-5 h-5 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm">Coach Sarah Williams</p>
+                          <p className="text-xs text-gray-500">Message • Tomorrow, 10:00 AM</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <button className="bg-[#51b5ff] text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                        <Users className="w-4 h-4" />
+                        Find Coaches
+                      </button>
+                      <button className="bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                        <Database className="w-4 h-4" />
+                        Browse Athletes
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -144,24 +203,47 @@ export default function DesktopLandingPage() {
             </div>
             <div className="order-1 lg:order-2">
               <span className="text-[#51b5ff] font-semibold text-sm uppercase tracking-wide">Home Dashboard</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-2 mb-4">Stay Connected with Coaches</h2>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Your personalized dashboard keeps you organized with upcoming video calls, 
-                messages from coaches, and important notifications all in one place. 
-                Never miss an opportunity to connect with recruiters.
+              <h2 className="text-4xl font-bold text-gray-900 mt-2 mb-4">Your Command Center</h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-6">
+                Everything you need to manage your recruiting journey in one place. Track your progress, 
+                connect with coaches, and showcase your talent to programs nationwide.
               </p>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#51b5ff]" />
-                  Schedule video calls directly with coaches
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Video className="w-4 h-4 text-[#51b5ff]" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">HD Video Calls</h4>
+                    <p className="text-sm text-gray-600">Schedule and join crystal-clear video meetings with coaches directly from your dashboard</p>
+                  </div>
                 </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#51b5ff]" />
-                  Real-time messaging with recruiting staff
+                <li className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MessageCircle className="w-4 h-4 text-[#51b5ff]" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Real-Time Messaging</h4>
+                    <p className="text-sm text-gray-600">Chat instantly with coaches and recruiting coordinators to answer questions and build relationships</p>
+                  </div>
                 </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#51b5ff]" />
-                  Track all your appointments and follow-ups
+                <li className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Users className="w-4 h-4 text-[#51b5ff]" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Coaches & Network</h4>
+                    <p className="text-sm text-gray-600">Follow your favorite programs, track which coaches view your profile, and discover new opportunities</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-[#51b5ff]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Database className="w-4 h-4 text-[#51b5ff]" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Athlete Database</h4>
+                    <p className="text-sm text-gray-600">Browse thousands of athlete profiles, compare stats, and see where you stack up against the competition</p>
+                  </div>
                 </li>
               </ul>
             </div>
