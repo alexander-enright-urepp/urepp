@@ -86,10 +86,10 @@ export default function DesktopLandingPage() {
                 <div className="px-8 pb-8">
                   <div className="w-24 h-24 bg-white rounded-2xl shadow-lg border-4 border-white -mt-12 mb-4 flex items-center justify-center overflow-hidden">
                     <Image 
-                      src="/urepp-logo copy.png" 
-                      alt="UREPP Logo" 
-                      width={80} 
-                      height={80}
+                      src="/urwritinglogo4.png" 
+                      alt="UREPP" 
+                      width={72}
+                      height={72}
                       className="object-contain"
                     />
                   </div>
