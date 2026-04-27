@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Calendar, 
   MessageCircle, 
@@ -9,7 +10,6 @@ import {
   User, 
   Share2, 
   Tv,
-  Trophy,
   Star,
   ArrowRight,
   CheckCircle,
@@ -22,10 +22,14 @@ export default function DesktopLandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#51b5ff] rounded-xl flex items-center justify-center shadow-lg shadow-[#51b5ff]/20">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-3">
+            <Image 
+              src="/urepp-logo copy.png" 
+              alt="UREPP Logo" 
+              width={48} 
+              height={48} 
+              className="rounded-xl shadow-lg shadow-[#51b5ff]/20"
+            />
             <span className="text-2xl font-bold text-gray-900">UREPP</span>
           </div>
           <Link
@@ -80,8 +84,14 @@ export default function DesktopLandingPage() {
               <div className="relative bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
                 <div className="h-24 bg-gradient-to-r from-[#51b5ff] to-[#3da8f5]"></div>
                 <div className="px-8 pb-8">
-                  <div className="w-24 h-24 bg-white rounded-2xl shadow-lg border-4 border-white -mt-12 mb-4 flex items-center justify-center">
-                    <Trophy className="w-10 h-10 text-[#51b5ff]" />
+                  <div className="w-24 h-24 bg-white rounded-2xl shadow-lg border-4 border-white -mt-12 mb-4 flex items-center justify-center overflow-hidden">
+                    <Image 
+                      src="/urepp-logo copy.png" 
+                      alt="UREPP Logo" 
+                      width={80} 
+                      height={80}
+                      className="object-contain"
+                    />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Path to College Sports</h3>
                   <p className="text-gray-600 mb-4">Join thousands of athletes getting recruited</p>
@@ -437,10 +447,14 @@ export default function DesktopLandingPage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-[#51b5ff] rounded-xl flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-center gap-3">
+              <Image 
+                src="/urepp-logo copy.png" 
+                alt="UREPP Logo" 
+                width={40} 
+                height={40}
+                className="rounded-xl"
+              />
               <span className="text-2xl font-bold">UREPP</span>
             </div>
             <div className="flex items-center gap-8">
