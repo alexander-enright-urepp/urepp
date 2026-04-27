@@ -22,15 +22,15 @@ export default function DesktopLandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center">
             <Image 
-              src="/urepp-logo copy.png" 
-              alt="UREPP Logo" 
-              width={48} 
-              height={48} 
-              className="rounded-xl shadow-lg shadow-[#51b5ff]/20"
+              src="/urwritinglogo4.png" 
+              alt="UREPP" 
+              width={120} 
+              height={40}
+              className="h-10 w-auto"
+              priority
             />
-            <span className="text-2xl font-bold text-gray-900">UREPP</span>
           </div>
           <Link
             href="https://urepp.tv"
@@ -447,15 +447,14 @@ export default function DesktopLandingPage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               <Image 
-                src="/urepp-logo copy.png" 
-                alt="UREPP Logo" 
-                width={40} 
-                height={40}
-                className="rounded-xl"
+                src="/urwritinglogo4.png" 
+                alt="UREPP" 
+                width={100}
+                height={36}
+                className="h-9 w-auto"
               />
-              <span className="text-2xl font-bold">UREPP</span>
             </div>
             <div className="flex items-center gap-8">
               <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link>
