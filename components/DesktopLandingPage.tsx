@@ -362,7 +362,7 @@ export default function DesktopLandingPage() {
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-4">
                   <p className="text-sm text-white/80 mb-1">Your public profile link:</p>
-                  <p className="font-mono text-white">urepp.tv/player/john-davis-2026</p>
+                  <p className="font-mono text-white">urepp.app/player/john-davis-2026</p>
                 </div>
                 <div className="flex gap-3">
                   <button className="flex-1 bg-white text-[#51b5ff] py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
@@ -406,15 +406,15 @@ export default function DesktopLandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-5xl font-bold text-white mb-2">10K+</div>
+              <div className="text-5xl font-bold text-white mb-2">Beta</div>
               <div className="text-white/80">Athlete Profiles</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-white mb-2">500+</div>
+              <div className="text-5xl font-bold text-white mb-2">Beta</div>
               <div className="text-white/80">College Coaches</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-white mb-2">50+</div>
+              <div className="text-5xl font-bold text-white mb-2">Beta</div>
               <div className="text-white/80">Partner Schools</div>
             </div>
             <div>
