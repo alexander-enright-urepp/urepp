@@ -130,6 +130,7 @@
 				F6B2E65E2399564065FCAA5D /* [CP] Copy Pods Resources */,
 				0E5EBAA92F92A656006E7508 /* Embed Foundation Extensions */,
 				C777474E597A7C914A8F8E25 /* [CP] Embed Pods Frameworks */,
+				A1B2C3D4E5F6789012345678 /* Strip Bitcode from Frameworks */,
 			);
 			buildRules = (
 			);
@@ -239,6 +240,22 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-App/Pods-App-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		A1B2C3D4E5F6789012345678 /* Strip Bitcode from Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Bitcode from Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"=== Strip Bitcode Script Starting ===\"\n\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\necho \"Looking for frameworks in: $FRAMEWORKS_DIR\"\n\n# List all frameworks\nls -la \"$FRAMEWORKS_DIR\"/*.framework/ 2>/dev/null || echo \"No frameworks found\"\n\n# Strip bitcode from all frameworks\nfor framework_path in \"$FRAMEWORKS_DIR\"/*.framework; do\n    if [ -d \"$framework_path\" ]; then\n        framework_name=$(basename \"$framework_path\" .framework)\n        binary_path=\"$framework_path/$framework_name\"\n        \n        if [ -f \"$binary_path\" ]; then\n            echo \"Checking $framework_name...\"\n            \n            # Check if it has bitcode\n            if otool -l \"$binary_path\" 2>/dev/null | grep -q '__LLVM'; then\n                echo \"  -> Stripping bitcode from $framework_name\"\n                if xcrun bitcode_strip \"$binary_path\" -r -o \"$binary_path\"; then\n                    echo \"  -> Success!\"\n                else\n                    echo \"  -> FAILED to strip bitcode\"\n                fi\n            else\n                echo \"  -> No bitcode found\"\n            fi\n        fi\n    fi\ndone\n\necho \"=== Strip Bitcode Script Complete ===\"\n";
+			showEnvVarsInLog = 1;
 		};
 /* End PBXShellScriptBuildPhase section */
 
