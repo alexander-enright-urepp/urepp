@@ -32,16 +32,31 @@ export function initNotifications() {
     // v3 API - setAppId then prompt
     OneSignal.setAppId('209456e7-6318-4254-aad7-54df0d7198f4');
     
+    // Try to sync immediately and retry a few times
+    let syncAttempts = 0;
+    const maxAttempts = 5;
+    
+    const trySync = () => {
+      OneSignal.getDeviceState((state: any) => {
+        console.log(`Push: Sync attempt ${syncAttempts + 1}:`, state);
+        if (state?.userId) {
+          syncPlayerIdToServer(state.userId);
+        } else if (syncAttempts < maxAttempts) {
+          syncAttempts++;
+          setTimeout(trySync, 3000);
+        }
+      });
+    };
+    
+    // Start trying immediately
+    setTimeout(trySync, 2000);
+    
     OneSignal.promptForPushNotificationsWithUserResponse((accepted: boolean) => {
       console.log('Push: Permission result:', accepted);
       if (accepted) {
-        // Get player ID using v3 API
-        OneSignal.getDeviceState((state: any) => {
-          console.log('Push: Device state:', state);
-          if (state?.userId) {
-            syncPlayerIdToServer(state.userId);
-          }
-        });
+        // Try again after permission granted
+        syncAttempts = 0;
+        setTimeout(trySync, 1000);
       }
     });
     
