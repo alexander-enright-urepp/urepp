@@ -82,6 +82,7 @@ async function syncPlayerIdToServer(playerId: string) {
     if (user) {
       const { error } = await supabase.from('profiles').update({
         onesignal_player_id: playerId,
+        notifications_enabled: true,
         updated_at: new Date().toISOString()
       }).eq('user_id', user.id);
       
