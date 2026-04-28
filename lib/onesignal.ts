@@ -60,15 +60,23 @@ export function initNotifications() {
 
 async function syncPlayerIdToServer(playerId: string) {
   try {
+    console.log('Push: Syncing player ID to server:', playerId);
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
-      await supabase.from('profiles').update({
+      const { error } = await supabase.from('profiles').update({
         onesignal_player_id: playerId,
         updated_at: new Date().toISOString()
       }).eq('user_id', user.id);
-      console.log('Push: Player ID synced:', playerId);
+      
+      if (error) {
+        console.error('Push: Failed to sync player ID:', error);
+      } else {
+        console.log('Push: Player ID synced successfully:', playerId);
+      }
+    } else {
+      console.log('Push: No user found to sync player ID');
     }
   } catch (err) {
     console.error('Push: Failed to sync player ID:', err);

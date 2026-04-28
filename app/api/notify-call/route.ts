@@ -37,10 +37,12 @@ export async function POST(request: NextRequest) {
       .eq('id', recipientId)
       .single();
 
+    console.log('Profile lookup result:', { profile, error, recipientId });
+
     if (error || !profile?.onesignal_player_id) {
-      console.log('No OneSignal player ID found for user:', recipientId);
+      console.log('No OneSignal player ID found for user:', recipientId, 'Error:', error, 'Profile:', profile);
       return NextResponse.json(
-        { success: false, error: 'User has no push token' },
+        { success: false, error: 'User has no push token - they may need to enable notifications', profile: profile || null },
         { status: 200 }
       );
     }
