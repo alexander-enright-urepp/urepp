@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import VideoCall from '@/components/VideoCall';
+import ManageBookings from '@/components/ManageBookings';
 
 interface Profile {
   id: string;
@@ -302,6 +303,9 @@ export default function CoachesPage() {
 
       {/* Main Content */}
       <main className="max-w-md mx-auto px-4 py-6 space-y-4">
+        {/* Manage Bookings - Show pending bookings that need approval */}
+        <ManageBookings />
+
         {/* Upcoming Appointments */}
         <div className="bg-white rounded-2xl shadow-lg shadow-babyblue-200/50 border border-babyblue-100 p-4">
           <div className="flex items-center gap-2 mb-4">
