@@ -447,8 +447,9 @@ export default function Dashboard() {
             <h3 className="font-semibold text-gray-900">Settings</h3>
           </div>
           <div className="divide-y divide-babyblue-50">
-            {/* DISABLED: Subscription - Shows popup for web premium */}
+            {/* DISABLED: Subscription cell - commented out for future use
             <SettingsButton onClick={() => handlePremiumFeatureClick('Subscription')} icon={<CreditCard className="w-5 h-5" />} label="Subscription" />
+            */}
             <SettingsLink href="/invite" icon={<UserPlus className="w-5 h-5" />} label="Invite" />
             <SettingsLink href="/dashboard/account" icon={<Settings className="w-5 h-5" />} label="Account Settings" />
             <SettingsButton onClick={handleSignOut} icon={<LogOut className="w-5 h-5" />} label="Sign Out" danger />
