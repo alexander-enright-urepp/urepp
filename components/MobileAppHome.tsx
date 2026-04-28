@@ -342,6 +342,11 @@ export default function MobileAppHome() {
         {/* Premium Profile Section */}
         <div className="bg-gradient-to-br from-yellow-400 via-yellow-400 to-amber-500 rounded-2xl p-1 shadow-xl shadow-yellow-200">
           <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-5 relative overflow-hidden">
+            {/* Coming Soon Badge */}
+            <div className="absolute top-3 right-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md z-10">
+              Coming Soon
+            </div>
+            
             {/* Decorative sparkles */}
             <Sparkles className="absolute -top-2 -right-2 w-16 h-16 text-yellow-300/50" />
             <Sparkles className="absolute bottom-4 left-4 w-10 h-10 text-yellow-300/30" />
