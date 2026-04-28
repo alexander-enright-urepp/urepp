@@ -190,22 +190,22 @@ export default function CoachesPage() {
           setProfile(prev => prev ? { ...prev, is_coaching_enabled: true } : prev);
         }
         
-        // Fetch ALL booked_sessions for this user (simple query first)
-        const { data: sessionsData, error: sessionsError } = await supabase
-          .from('booked_sessions')
+        // Fetch accepted appointments from new appointments table
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
           .select('*')
-          .or(`coach_id.eq.${profileData.id},athlete_id.eq.${profileData.id}`)
+          .or(`requested_by.eq.${profileData.id},recipient_id.eq.${profileData.id}`)
+          .eq('status', 'accepted')
           .order('session_date', { ascending: true });
         
-        console.log('Dashboard query debug:', {
+        console.log('Dashboard appointments debug:', {
           profileId: profileData.id,
-          sessionsCount: sessionsData?.length,
-          error: sessionsError?.message,
-          data: sessionsData
+          appointmentsCount: appointmentsData?.length,
+          error: appointmentsError?.message
         });
         
-        // Get all unique profile IDs (both coaches and athletes from sessions)
-        const profileIds = Array.from(new Set((sessionsData || []).flatMap((s: any) => [s.coach_id, s.athlete_id]).filter(Boolean)));
+        // Get all unique profile IDs from appointments
+        const profileIds = Array.from(new Set((appointmentsData || []).flatMap((a: any) => [a.requested_by, a.recipient_id]).filter(Boolean)));
         
         // Fetch profiles for all participants
         let profilesMap = new Map();
@@ -218,36 +218,25 @@ export default function CoachesPage() {
           profilesMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
         }
         
-        // Format sessions with other profile info
-        // Before SQL migration: 
-        // - Coaches see bookings in Manage Bookings only (not Upcoming Sessions)
-        // - Athletes see their bookings in Upcoming Sessions
-        const formattedAppointments: Appointment[] = (sessionsData || [])
-          .filter((s: any) => {
-            // If I'm the coach, DON'T show in Upcoming Sessions
-            // (Coach sees it in Manage Bookings instead)
-            if (s.coach_id === profileData.id) {
-              return false; // Hide from Upcoming Sessions for coach
-            }
-            // If I'm athlete, show my bookings
-            return true;
-          })
-          .map((s: any) => {
-          const isCoach = s.coach_id === profileData.id;
-          const otherProfileId = isCoach ? s.athlete_id : s.coach_id;
+        // Format appointments for Upcoming Sessions
+        // Show accepted appointments where I'm involved (either requested or received)
+        const formattedAppointments: Appointment[] = (appointmentsData || [])
+          .map((a: any) => {
+          const isCoach = a.recipient_id === profileData.id; // I accepted (I'm the recipient)
+          const otherProfileId = isCoach ? a.requested_by : a.recipient_id;
           const otherProfile = profilesMap.get(otherProfileId);
           
           return {
-            id: s.id,
+            id: a.id,
             calendly_event_id: '',
             event_type_name: 'Coaching Session',
-            start_time: `${s.session_date}T${s.start_time}`,
-            end_time: `${s.session_date}T${s.end_time}`,
-            status: s.status,
-            athlete_name: s.athlete_name,
-            athlete_email: s.athlete_email,
-            athlete_id: s.athlete_id,
-            coach_id: s.coach_id,
+            start_time: `${a.session_date}T${a.start_time}`,
+            end_time: `${a.session_date}T${a.end_time}`,
+            status: a.status,
+            athlete_name: a.athlete_name,
+            athlete_email: a.athlete_email,
+            athlete_id: a.athlete_id,
+            coach_id: a.coach_id,
             is_coach: isCoach,
             other_profile: otherProfile
           };

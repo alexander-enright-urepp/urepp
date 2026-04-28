@@ -151,17 +151,23 @@ export default function BookSessionPage({ params }: { params: { id: string } }) 
     const endMinutes = minutes === 30 ? 0 : 30;
     const endTime = `${endHour.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
 
+    // Insert into appointments table with approval workflow
     const { error } = await supabase
-      .from('booked_sessions')
+      .from('appointments')
       .insert({
-        coach_id: params.id,
+        requested_by: athleteProfile.id,
+        requested_by_name: `${athleteProfile.first_name} ${athleteProfile.last_name}`,
+        recipient_id: params.id, // Coach needs to approve
         athlete_id: athleteProfile.id,
-        athlete_email: athleteProfile.email,
         athlete_name: `${athleteProfile.first_name} ${athleteProfile.last_name}`,
+        athlete_email: athleteProfile.email,
+        coach_id: params.id,
+        coach_name: coach ? `${coach.first_name} ${coach.last_name}` : '',
         session_date: selectedDate,
         start_time: selectedTime,
         end_time: endTime,
-        status: 'confirmed'
+        status: 'pending',
+        booked_at: new Date().toISOString()
       });
 
     if (error) {
