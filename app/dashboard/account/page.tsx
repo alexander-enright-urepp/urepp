@@ -16,7 +16,8 @@ import {
   User,
   Tv,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Bell
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { restorePurchases } from '@/lib/iap'
