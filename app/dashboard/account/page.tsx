@@ -306,6 +306,47 @@ export default function AccountPage() {
           </div>
         </div>
 
+        {/* Notification Sync Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-4 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900">Push Notifications</h3>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-gray-500 mb-4">
+              Enable push notifications to receive video call alerts when coaches try to reach you.
+            </p>
+            <button
+              onClick={async () => {
+                const OneSignal = (window as any).plugins?.OneSignal;
+                if (!OneSignal) {
+                  alert('OneSignal not loaded. Try restarting the app.');
+                  return;
+                }
+                OneSignal.getDeviceState(async (state: any) => {
+                  if (state?.userId) {
+                    const response = await fetch('/api/sync-player-id', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ playerId: state.userId })
+                    });
+                    if (response.ok) {
+                      alert('Notifications enabled! Player ID: ' + state.userId.substring(0, 8) + '...');
+                    } else {
+                      alert('Failed to sync. Check console.');
+                    }
+                  } else {
+                    alert('No player ID found. Check notification permissions.');
+                  }
+                });
+              }}
+              className="w-full py-3 px-4 bg-[#51b5ff] hover:bg-[#3da8f5] text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <Bell className="w-5 h-5" />
+              Enable Call Notifications
+            </button>
+          </div>
+        </div>
+
         {/* Sign Out Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-4 py-4 border-b border-gray-100">
