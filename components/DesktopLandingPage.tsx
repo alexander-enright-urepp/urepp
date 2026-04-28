@@ -551,7 +551,7 @@ export default function DesktopLandingPage() {
             <div className="flex justify-center lg:justify-end">
               <div className="bg-white p-4 rounded-2xl shadow-2xl">
                 <Image 
-                  src="/1.png" 
+                  src="/vtp.png" 
                   alt="Video Trimmer Pro Screenshot" 
                   width={500} 
                   height={350}
