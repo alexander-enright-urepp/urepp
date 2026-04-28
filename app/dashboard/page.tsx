@@ -65,7 +65,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [copiedUrl, setCopiedUrl] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
-  const [upgradeError, setUpgradeError] = useState<string | null>(null)
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false)
+  const [popupFeature, setPopupFeature] = useState('')
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
@@ -189,58 +190,9 @@ export default function Dashboard() {
     setTimeout(() => setCopiedUrl(false), 2000)
   }
 
-  const handleUpgrade = async () => {
-    setUpgrading(true)
-    setUpgradeError(null)
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) {
-        router.push('/login')
-        return
-      }
-
-      // Check if iOS native app
-      if (isIOSNative()) {
-        // Use RevenueCat for iOS IAP
-        const result = await purchaseIAPProduct(IAP_PRODUCTS.MONTHLY)
-        
-        if (result.success) {
-          // Purchase succeeded - update local profile
-          setProfile(prev => prev ? { ...prev, is_premium: true } : null)
-          // Refresh to show updated status
-          window.location.reload()
-        } else {
-          throw new Error(result.error || 'Purchase failed')
-        }
-      } else {
-        // Web: Use Stripe
-        const response = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: session.user.id,
-            email: session.user.email,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create checkout session')
-        }
-
-        if (data.url) {
-          window.location.href = data.url
-        } else {
-          throw new Error('No checkout URL returned')
-        }
-      }
-    } catch (err: any) {
-      console.error('Checkout error:', err)
-      setUpgradeError(err.message || 'Something went wrong. Please try again.')
-      setUpgrading(false)
-    }
+  const handlePremiumFeatureClick = (feature: string) => {
+    setPopupFeature(feature)
+    setShowPremiumPopup(true)
   }
 
   if (loading) {
@@ -398,12 +350,12 @@ export default function Dashboard() {
               subtitle="View achievements"
               href="/dashboard/awards"
             />
-            <QuickActionCard 
+            {/* DISABLED: Stats - Shows popup for web premium */}
+            <DisabledQuickActionCard 
               icon={<BarChart3 className="w-5 h-5" />}
               title="Stats"
               subtitle="Advanced Stats"
-              href="/dashboard/stats"
-              isPremium={!isPremium}
+              onClick={() => handlePremiumFeatureClick('Stats')}
             />
             <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}
@@ -411,19 +363,19 @@ export default function Dashboard() {
               subtitle="Manage links"
               href="/dashboard/links"
             />
-            <QuickActionCard 
+            {/* DISABLED: Analytics - Shows popup for web premium */}
+            <DisabledQuickActionCard 
               icon={<TrendingUp className="w-5 h-5" />}
               title="Analytics"
               subtitle="View insights"
-              href="/dashboard/analytics"
-              isPremium={!isPremium}
+              onClick={() => handlePremiumFeatureClick('Analytics')}
             />
-            <QuickActionCard 
+            {/* DISABLED: Themes - Shows popup for web premium */}
+            <DisabledQuickActionCard 
               icon={<LayoutTemplate className="w-5 h-5" />}
               title="Themes"
               subtitle="Customize look"
-              href="/dashboard/themes"
-              isPremium={!isPremium}
+              onClick={() => handlePremiumFeatureClick('Themes')}
             />
             <QuickActionCard 
               icon={<Users className="w-5 h-5" />}
@@ -452,7 +404,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Premium Banner */}
+        {/* DISABLED: Premium Banner - Commented out for future use
         {!isPremium && profile && (
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-2xl p-5 text-white shadow-lg">
             <div className="flex items-start justify-between">
@@ -479,11 +431,6 @@ export default function Dashboard() {
                 <p className="text-sm text-yellow-100">/month</p>
               </div>
             </div>
-            {upgradeError && (
-              <div className="mt-3 text-xs text-red-100 bg-red-500/20 rounded-lg px-3 py-2">
-                {upgradeError}
-              </div>
-            )}
             <Link
               href="/dashboard/subscription"
               className="mt-4 w-full bg-white text-yellow-600 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
@@ -492,6 +439,7 @@ export default function Dashboard() {
             </Link>
           </div>
         )}
+        */}
 
         {/* Settings Menu */}
         <div className="bg-white rounded-2xl shadow-sm border border-babyblue-100 overflow-hidden">
@@ -499,7 +447,8 @@ export default function Dashboard() {
             <h3 className="font-semibold text-gray-900">Settings</h3>
           </div>
           <div className="divide-y divide-babyblue-50">
-            <SettingsLink href="/dashboard/subscription" icon={<CreditCard className="w-5 h-5" />} label="Subscription" />
+            {/* DISABLED: Subscription - Shows popup for web premium */}
+            <SettingsButton onClick={() => handlePremiumFeatureClick('Subscription')} icon={<CreditCard className="w-5 h-5" />} label="Subscription" />
             <SettingsLink href="/invite" icon={<UserPlus className="w-5 h-5" />} label="Invite" />
             <SettingsLink href="/dashboard/account" icon={<Settings className="w-5 h-5" />} label="Account Settings" />
             <SettingsButton onClick={handleSignOut} icon={<LogOut className="w-5 h-5" />} label="Sign Out" danger />
@@ -519,6 +468,37 @@ export default function Dashboard() {
           </p>
         </div>
       </main>
+
+      {/* Premium Popup Modal */}
+      {showPremiumPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Crown className="w-6 h-6 text-yellow-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Premium Feature</h3>
+              <p className="text-sm text-gray-500 mt-2">
+                {popupFeature} is available on the web.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <a
+                href="mailto:alex@urepp.tv?subject=UREPP Premium Support"
+                className="w-full bg-babyblue-500 hover:bg-babyblue-600 text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                Contact Support
+              </a>
+              <button
+                onClick={() => setShowPremiumPopup(false)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium text-sm transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
@@ -548,6 +528,25 @@ function QuickActionCard({ icon, title, subtitle, href, isPremium }: { icon: Rea
       <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
       <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
     </Link>
+  )
+}
+
+// Component: Disabled Quick Action Card (shows popup on click)
+function DisabledQuickActionCard({ icon, title, subtitle, onClick }: { icon: React.ReactNode, title: string, subtitle: string, onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow relative text-left w-full opacity-75"
+    >
+      <div className="absolute top-2 right-2 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+        <Crown className="w-3 h-3 text-yellow-900 fill-current" />
+      </div>
+      <div className="w-10 h-10 rounded-xl bg-babyblue-50 flex items-center justify-center text-babyblue-500 mb-3">
+        {icon}
+      </div>
+      <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
+      <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+    </button>
   )
 }
 
