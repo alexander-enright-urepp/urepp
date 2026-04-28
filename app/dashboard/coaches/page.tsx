@@ -219,7 +219,20 @@ export default function CoachesPage() {
         }
         
         // Format sessions with other profile info
-        const formattedAppointments: Appointment[] = (sessionsData || []).map((s: any) => {
+        // Before SQL migration: 
+        // - Coaches see bookings in Manage Bookings only (not Upcoming Sessions)
+        // - Athletes see their bookings in Upcoming Sessions
+        const formattedAppointments: Appointment[] = (sessionsData || [])
+          .filter((s: any) => {
+            // If I'm the coach, DON'T show in Upcoming Sessions
+            // (Coach sees it in Manage Bookings instead)
+            if (s.coach_id === profileData.id) {
+              return false; // Hide from Upcoming Sessions for coach
+            }
+            // If I'm athlete, show my bookings
+            return true;
+          })
+          .map((s: any) => {
           const isCoach = s.coach_id === profileData.id;
           const otherProfileId = isCoach ? s.athlete_id : s.coach_id;
           const otherProfile = profilesMap.get(otherProfileId);
