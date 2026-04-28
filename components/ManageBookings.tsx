@@ -97,19 +97,23 @@ export default function ManageBookings() {
         .order('session_date', { ascending: true })
 
       if (sessionsData) {
-        const formatted: Booking[] = sessionsData.map((s: any) => ({
-          id: s.id,
-          athlete_name: s.athlete_name,
-          coach_name: s.coach_name || 'Coach',
-          scheduled_at: `${s.session_date}T${s.start_time}`,
-          status: 'pending' as const,
-          requested_by: s.athlete_id,
-          requested_by_name: s.athlete_name,
-          profile_id: s.coach_id,
-          other_profile_id: s.athlete_id
-        }))
+        // Show bookings where I am the recipient (someone booked ME)
+        // For booked_sessions: if I'm the coach, athlete booked me
+        const formatted: Booking[] = sessionsData
+          .filter((s: any) => s.coach_id === profileData.id) // I'm the coach, athlete requested
+          .map((s: any) => ({
+            id: s.id,
+            athlete_name: s.athlete_name,
+            coach_name: s.coach_name || 'Coach',
+            scheduled_at: `${s.session_date}T${s.start_time}`,
+            status: 'pending' as const,
+            requested_by: s.athlete_id,
+            requested_by_name: s.athlete_name,
+            profile_id: s.coach_id,
+            other_profile_id: s.athlete_id
+          }))
 
-        setBookings(formatted.filter((b: any) => b.other_profile_id === profileData.id))
+        setBookings(formatted)
       }
 
     } catch (err) {
