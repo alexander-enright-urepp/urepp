@@ -525,6 +525,44 @@ export default function DesktopLandingPage() {
         </div>
       </section>
 
+      {/* Video Trimmer Pro Section */}
+      <section className="py-20 bg-[#51b5ff]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Video className="w-4 h-4" />
+                Desktop App
+              </div>
+              <h2 className="text-4xl font-bold text-white mb-4">Try UREPP&apos;s Video Trimmer Pro</h2>
+              <p className="text-lg text-white/90 leading-relaxed mb-8">
+                On a Mac? Download our desktop app for a quick and easy way to trim, crop and export clips from your large video files.
+              </p>
+              <a
+                href="https://apps.apple.com/us/app/videotrimmerpro/id1493856204?mt=12"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-[#51b5ff] px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-xl"
+              >
+                Download Video Trimmer Pro on Mac
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
+            <div className="flex justify-center lg:justify-end">
+              <div className="bg-white p-4 rounded-2xl shadow-2xl">
+                <Image 
+                  src="/1.png" 
+                  alt="Video Trimmer Pro Screenshot" 
+                  width={500} 
+                  height={350}
+                  className="rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
