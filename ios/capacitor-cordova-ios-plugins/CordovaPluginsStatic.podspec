@@ -13,5 +13,5 @@
     s.dependency 'CapacitorCordova'
     s.swift_version  = '5.1'
     s.static_framework = true
-    s.dependency 'OneSignalXCFramework', '3.12.4'
+    s.dependency 'OneSignalXCFramework', '5.2.10'
   end

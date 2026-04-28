@@ -24,13 +24,48 @@
           "pluginId": "onesignal-cordova-plugin"
         },
       {
-          "id": "onesignal-cordova-plugin.Subscription",
-          "file": "plugins/onesignal-cordova-plugin/dist/Subscription.js",
+          "id": "onesignal-cordova-plugin.OSNotification",
+          "file": "plugins/onesignal-cordova-plugin/dist/OSNotification.js",
           "pluginId": "onesignal-cordova-plugin"
         },
       {
-          "id": "onesignal-cordova-plugin.OSNotification",
-          "file": "plugins/onesignal-cordova-plugin/dist/OSNotification.js",
+          "id": "onesignal-cordova-plugin.UserNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/UserNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.PushSubscriptionNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/PushSubscriptionNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.DebugNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/DebugNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.InAppMessagesNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/InAppMessagesNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.SessionNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/SessionNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.LocationNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/LocationNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.NotificationsNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/NotificationsNamespace.js",
+          "pluginId": "onesignal-cordova-plugin"
+        },
+      {
+          "id": "onesignal-cordova-plugin.LiveActivitiesNamespace",
+          "file": "plugins/onesignal-cordova-plugin/dist/LiveActivitiesNamespace.js",
           "pluginId": "onesignal-cordova-plugin"
         }
     ];
@@ -38,7 +73,7 @@
     // TOP OF METADATA
     {
       "cordova-plugin-purchase": "13.15.3",
-      "onesignal-cordova-plugin": "3.3.1"
+      "onesignal-cordova-plugin": "5.2.11"
     };
     // BOTTOM OF METADATA
     });
