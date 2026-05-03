@@ -26,8 +26,11 @@ import {
   Bell
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import VideoCall from '@/components/VideoCall';
+import dynamic from 'next/dynamic';
 import ManageBookings from '@/components/ManageBookings';
+
+// Dynamic import for VideoCall to avoid SSR issues with Daily.co
+const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false });
 
 interface Profile {
   id: string;
