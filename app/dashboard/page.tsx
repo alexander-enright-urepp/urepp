@@ -350,12 +350,11 @@ export default function Dashboard() {
               subtitle="View achievements"
               href="/dashboard/awards"
             />
-            {/* DISABLED: Stats - Shows popup for web premium */}
-            <DisabledQuickActionCard 
+            {/* DISABLED: Stats - Disabled for now */}
+            <DisabledBox 
               icon={<BarChart3 className="w-5 h-5" />}
               title="Stats"
               subtitle="Advanced Stats"
-              onClick={() => handlePremiumFeatureClick('Stats')}
             />
             <QuickActionCard 
               icon={<LinkIcon className="w-5 h-5" />}
@@ -363,19 +362,17 @@ export default function Dashboard() {
               subtitle="Manage links"
               href="/dashboard/links"
             />
-            {/* DISABLED: Analytics - Shows popup for web premium */}
-            <DisabledQuickActionCard 
+            {/* DISABLED: Analytics - Disabled for now */}
+            <DisabledBox 
               icon={<TrendingUp className="w-5 h-5" />}
               title="Analytics"
               subtitle="View insights"
-              onClick={() => handlePremiumFeatureClick('Analytics')}
             />
-            {/* DISABLED: Themes - Shows popup for web premium */}
-            <DisabledQuickActionCard 
+            {/* DISABLED: Themes - Disabled for now */}
+            <DisabledBox 
               icon={<LayoutTemplate className="w-5 h-5" />}
               title="Themes"
               subtitle="Customize look"
-              onClick={() => handlePremiumFeatureClick('Themes')}
             />
             <QuickActionCard 
               icon={<Users className="w-5 h-5" />}
@@ -532,22 +529,18 @@ function QuickActionCard({ icon, title, subtitle, href, isPremium }: { icon: Rea
   )
 }
 
-// Component: Disabled Quick Action Card (shows popup on click)
-function DisabledQuickActionCard({ icon, title, subtitle, onClick }: { icon: React.ReactNode, title: string, subtitle: string, onClick: () => void }) {
+// Component: Disabled Box (no click, fully disabled)
+function DisabledBox({ icon, title, subtitle }: { icon: React.ReactNode, title: string, subtitle: string }) {
   return (
-    <button 
-      onClick={onClick}
-      className="bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow relative text-left w-full opacity-75"
+    <div 
+      className="bg-gray-100 rounded-2xl p-4 border border-gray-200 opacity-50 cursor-not-allowed"
     >
-      <div className="absolute top-2 right-2 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
-        <Crown className="w-3 h-3 text-yellow-900 fill-current" />
-      </div>
-      <div className="w-10 h-10 rounded-xl bg-babyblue-50 flex items-center justify-center text-babyblue-500 mb-3">
+      <div className="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 mb-3">
         {icon}
       </div>
-      <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
-      <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
-    </button>
+      <h3 className="font-semibold text-gray-500 text-sm">{title}</h3>
+      <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+    </div>
   )
 }
 
