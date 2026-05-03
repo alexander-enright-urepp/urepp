@@ -43,103 +43,114 @@ export const initializeIAP = (): Promise<void> => {
     return storeInitPromise!;
   }
 
-  if (!isIOSNative()) {
-    console.log('[IAP] Not iOS native, skipping initialization');
+  // STRICT CHECK: Must be native iOS AND have CdvPurchase available
+  const hasCdvPurchase = typeof (window as any).CdvPurchase !== 'undefined';
+  const isNative = isIOSNative();
+  
+  console.log('[IAP] Checks - isIOSNative:', isNative, 'hasCdvPurchase:', hasCdvPurchase);
+  
+  if (!isNative || !hasCdvPurchase) {
+    console.log('[IAP] Not iOS native or CdvPurchase not available, skipping initialization');
     storeInitPromise = Promise.resolve();
     return storeInitPromise!;
   }
 
-  if (typeof (window as any).CdvPurchase === 'undefined') {
-    console.error('[IAP] CdvPurchase not available on window');
-    storeInitPromise = Promise.resolve();
-    return storeInitPromise!;
-  }
+  // Wrap everything in try-catch to prevent app crashes
+  storeInitPromise = (async () => {
+    try {
+      console.log('[IAP] CdvPurchase available, creating Store...');
 
-  console.log('[IAP] CdvPurchase available, creating Store...');
+      const { Store, Platform, ProductType } = (window as any).CdvPurchase;
 
-  const { Store, Platform, ProductType } = (window as any).CdvPurchase;
+      storeInstance = new Store({ platform: Platform.APPLE_APPSTORE });
+      console.log('[IAP] Store instance created');
 
-  storeInstance = new Store({ platform: Platform.APPLE_APPSTORE });
-  console.log('[IAP] Store instance created');
+      // Register ALL products once
+      storeInstance.register([
+        {
+          id: IAP_PRODUCTS.MONTHLY,
+          type: ProductType.PAID_SUBSCRIPTION,
+          platform: Platform.APPLE_APPSTORE,
+        },
+        {
+          id: IAP_PRODUCTS.YEARLY,
+          type: ProductType.PAID_SUBSCRIPTION,
+          platform: Platform.APPLE_APPSTORE,
+        },
+      ]);
+      console.log('[IAP] Products registered:', [IAP_PRODUCTS.MONTHLY, IAP_PRODUCTS.YEARLY]);
 
-  // Register ALL products once
-  storeInstance.register([
-    {
-      id: IAP_PRODUCTS.MONTHLY,
-      type: ProductType.PAID_SUBSCRIPTION,
-      platform: Platform.APPLE_APPSTORE,
-    },
-    {
-      id: IAP_PRODUCTS.YEARLY,
-      type: ProductType.PAID_SUBSCRIPTION,
-      platform: Platform.APPLE_APPSTORE,
-    },
-  ]);
-  console.log('[IAP] Products registered:', [IAP_PRODUCTS.MONTHLY, IAP_PRODUCTS.YEARLY]);
-
-  // Set up global receipt handler - just log, don't finish transactions
-  // (purchaseIAPProduct will handle finishing)
-  storeInstance.when('receipt').updated((receipt: any) => {
-    console.log('[IAP] Receipt updated globally:', receipt);
-    console.log('[IAP] Receipt transactions:', receipt?.transactions?.length || 0);
-    receipt?.transactions?.forEach((t: any, i: number) => {
-      console.log(`[IAP] Receipt transaction ${i}:`, {
-        state: t.state,
-        productId: t.products?.[0]?.id,
-        className: t.constructor?.name
+      // Set up global receipt handler - just log, don't finish transactions
+      // (purchaseIAPProduct will handle finishing)
+      storeInstance.when('receipt').updated((receipt: any) => {
+        try {
+          console.log('[IAP] Receipt updated globally:', receipt);
+          console.log('[IAP] Receipt transactions:', receipt?.transactions?.length || 0);
+          receipt?.transactions?.forEach((t: any, i: number) => {
+            console.log(`[IAP] Receipt transaction ${i}:`, {
+              state: t.state,
+              productId: t.products?.[0]?.id,
+              className: t.constructor?.name
+            });
+          });
+        } catch (e) {
+          console.error('[IAP] Error in receipt handler:', e);
+        }
       });
-      if (t.state === 'approved') {
-        console.log('[IAP] Approved transaction:', t.products?.[0]?.id);
-        // DON'T call t.finish() here - let purchaseIAPProduct handle it
-      }
-    });
-  });
 
-  // Listen for product updates (helpful for StoreKit debugging)
-  storeInstance.when('product').updated((product: any) => {
-    console.log('[IAP] Product updated:', {
-      id: product.id,
-      state: product.state,
-      title: product.title,
-      price: product.price,
-      canPurchase: product.canPurchase
-    });
-  });
+      // Listen for product updates (helpful for StoreKit debugging)
+      storeInstance.when('product').updated((product: any) => {
+        try {
+          console.log('[IAP] Product updated:', {
+            id: product.id,
+            state: product.state,
+            title: product.title,
+            price: product.price,
+            canPurchase: product.canPurchase
+          });
+        } catch (e) {
+          console.error('[IAP] Error in product handler:', e);
+        }
+      });
 
-  // Listen for all transaction updates (critical for StoreKit)
-  storeInstance.when('transaction').updated((transaction: any) => {
-    console.log('[IAP] Transaction updated:', {
-      id: transaction.id,
-      state: transaction.state,
-      productId: transaction.products?.[0]?.id,
-      error: transaction.error
-    });
-  });
+      // Listen for all transaction updates (critical for StoreKit)
+      storeInstance.when('transaction').updated((transaction: any) => {
+        try {
+          console.log('[IAP] Transaction updated:', {
+            id: transaction.id,
+            state: transaction.state,
+            productId: transaction.products?.[0]?.id,
+            error: transaction.error
+          });
+        } catch (e) {
+          console.error('[IAP] Error in transaction handler:', e);
+        }
+      });
 
-  // Log store errors
-  storeInstance.error((err: any) => {
-    console.error('[IAP] Store error:', err);
-    console.error('[IAP] Store error details:', {
-      code: err.code,
-      message: err.message,
-      productId: err.productId
-    });
-  });
+      // Log store errors
+      storeInstance.error((err: any) => {
+        console.error('[IAP] Store error:', err);
+        console.error('[IAP] Store error details:', {
+          code: err.code,
+          message: err.message,
+          productId: err.productId
+        });
+      });
 
-  storeInitPromise = storeInstance
-    .initialize()
-    .then(() => {
+      await storeInstance.initialize();
       storeReady = true;
       console.log('[IAP] Store initialized successfully');
-    })
-    .catch((err: any) => {
+    } catch (err: any) {
       console.error('[IAP] Store initialization failed:', err);
       // Reset so it can be retried
       storeInitPromise = null;
       storeInstance = null;
-    });
+      // Don't throw - just log the error
+      return;
+    }
+  })();
 
-  return storeInitPromise!;
+  return storeInitPromise;
 };
 
 // Returns the singleton store, waiting for it to be ready

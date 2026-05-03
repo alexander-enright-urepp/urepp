@@ -36,10 +36,10 @@ export default function AppInit() {
           console.error('[AppInit] UREPPApp.init failed:', e)
         })
         
-        // IAP temporarily disabled - causing Application Error
-        // await initializeIAP().catch((e: any) => {
-        //   console.error('[AppInit] IAP init failed:', e)
-        // })
+        // Initialize IAP (with proper error handling)
+        await initializeIAP().catch((e: any) => {
+          console.error('[AppInit] IAP init failed:', e)
+        })
         
         // Initialize notifications
         initNotifications()
