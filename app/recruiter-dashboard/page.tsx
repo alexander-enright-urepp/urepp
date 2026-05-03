@@ -174,7 +174,9 @@ export default function RecruiterDashboard() {
   const toggleSaveAthlete = async (athleteId: string) => {
     // iOS: Allow saving without payment
     // Web: Require payment
-    if (!profile?.recruiter_paid && !isIOSNative()) {
+    if (!profile) return
+    
+    if (!profile.recruiter_paid && !isIOSNative()) {
       setShowPaymentModal(true)
       return
     }
@@ -185,14 +187,14 @@ export default function RecruiterDashboard() {
       await supabase
         .from('recruiter_saved_athletes')
         .delete()
-        .eq('recruiter_id', profile.id)
+        .eq('recruiter_id', profile!.id)
         .eq('athlete_id', athleteId)
       
       setSavedAthletes(prev => prev.filter(id => id !== athleteId))
     } else {
       await supabase
         .from('recruiter_saved_athletes')
-        .insert({ recruiter_id: profile.id, athlete_id: athleteId })
+        .insert({ recruiter_id: profile!.id, athlete_id: athleteId })
       
       setSavedAthletes(prev => [...prev, athleteId])
     }
