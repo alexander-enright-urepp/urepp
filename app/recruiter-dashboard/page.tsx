@@ -21,6 +21,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { isIOSNative } from '@/lib/iap'
 
 // Force dynamic rendering - no static generation
 export const dynamic = 'force-dynamic'
@@ -102,12 +103,17 @@ export default function RecruiterDashboard() {
 
       setProfile(profileData)
 
+      // iOS: Give full access (no payment required)
+      // Web: Limit to 5 athletes unless paid
+      const isIOS = isIOSNative()
+      const athleteLimit = isIOS || profileData.recruiter_paid ? 100 : 5
+      
       const { data: athletesData } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, username, profile_picture_url, high_school_sports, grad_year, hometown, state, high_school')
         .eq('role', 'athlete')
         .order('created_at', { ascending: false })
-        .limit(profileData.recruiter_paid ? 100 : 5)
+        .limit(athleteLimit)
 
       if (athletesData) {
         setAthletes(athletesData as Athlete[])
@@ -137,6 +143,11 @@ export default function RecruiterDashboard() {
   const initiateCheckout = async () => {
     if (!profile) return
     
+    // iOS: No external payment - already has full access
+    if (isIOSNative()) {
+      return
+    }
+    
     setProcessingPayment(true)
     try {
       const response = await fetch('/api/create-recruiter-subscription', {
@@ -161,7 +172,9 @@ export default function RecruiterDashboard() {
   }
 
   const toggleSaveAthlete = async (athleteId: string) => {
-    if (!profile?.recruiter_paid) {
+    // iOS: Allow saving without payment
+    // Web: Require payment
+    if (!profile?.recruiter_paid && !isIOSNative()) {
       setShowPaymentModal(true)
       return
     }
@@ -217,7 +230,8 @@ export default function RecruiterDashboard() {
         </Link>
         
         <div className="flex items-center gap-2">
-          {!profile?.recruiter_paid && (
+          {/* Show Upgrade button only on web (not iOS) */}
+          {!profile?.recruiter_paid && !isIOSNative() && (
             <button
               onClick={() => setShowPaymentModal(true)}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium"
@@ -227,10 +241,11 @@ export default function RecruiterDashboard() {
               Upgrade
             </button>
           )}
-          {profile?.recruiter_paid && (
+          {/* Show Premium badge if paid (any platform) or on iOS (free full access) */}
+          {(profile?.recruiter_paid || isIOSNative()) && (
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium">
               <Check className="w-3 h-3" />
-              Premium
+              {isIOSNative() ? 'Full Access' : 'Premium'}
             </div>
           )}
           <button onClick={handleSignOut} className="p-2 text-gray-500">
@@ -291,8 +306,8 @@ export default function RecruiterDashboard() {
           </select>
         </div>
 
-        {/* Free User Banner */}
-        {!profile?.recruiter_paid && (
+        {/* Free User Banner - Hidden on iOS */}
+        {!profile?.recruiter_paid && !isIOSNative() && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
             <div className="flex items-start gap-2">
               <Lock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -376,7 +391,9 @@ export default function RecruiterDashboard() {
                     <Star className={`w-4 h-4 ${savedAthletes.includes(athlete.id) ? 'fill-current' : ''}`} />
                   </button>
                   
-                  {profile?.recruiter_paid ? (
+                  {/* iOS or paid: Full access to profile */}
+                  {/* Web unpaid: Locked */}
+                  {profile?.recruiter_paid || isIOSNative() ? (
                     <Link
                       href={`/players/${athlete.username}`}
                       target="_blank"
