@@ -29,20 +29,63 @@ export default function Home() {
     const checkDevice = () => {
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
       
-      // Check for mobile devices
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+      // Check if running in Capacitor native app - ALWAYS show mobile app
+      const isCapacitorNative = typeof (window as any).Capacitor !== 'undefined' && 
+                                (window as any).Capacitor?.isNativePlatform?.()
       
-      // Check screen size - tablets and smaller should see mobile app
-      const isSmallScreen = window.innerWidth < 1024
+      if (isCapacitorNative) {
+        console.log('[Device Detection] Capacitor native app detected - showing mobile app')
+        setIsMobile(true)
+        return
+      }
       
-      setIsMobile(isMobileDevice || isSmallScreen)
+      // PHONES: iPhone, Android phones, etc. - exclude tablets
+      const isPhone = /iPhone|iPod/.test(userAgent) || 
+                      (/Android/.test(userAgent) && /Mobile/.test(userAgent)) ||
+                      /webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+      
+      // TABLETS: iPad, Android tablets, touch devices that aren't phones
+      // iPad reports as iPad in older versions, as Macintosh in iPadOS 13+
+      // Android tablets don't have "Mobile" in UA
+      const isTablet = /iPad/.test(userAgent) || 
+                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                       (/Android/.test(userAgent) && !/Mobile/.test(userAgent))
+      
+      // Touch-capable devices (any size) that aren't traditional laptops/desktops
+      const hasTouch = navigator.maxTouchPoints > 0
+      const screenWidth = window.screen.width
+      const screenHeight = window.screen.height
+      const smallerScreenDimension = Math.min(screenWidth, screenHeight)
+      
+      // If it has touch AND screen is tablet-sized or smaller, treat as mobile
+      const isTouchDevice = hasTouch && smallerScreenDimension < 1400
+      
+      console.log('[Device Detection]', {
+        userAgent: userAgent.substring(0, 60),
+        isPhone,
+        isTablet,
+        isTouchDevice,
+        screenWidth,
+        screenHeight,
+        maxTouchPoints: navigator.maxTouchPoints
+      })
+      
+      // Show mobile app for: phones, tablets, and any touch device (not desktop)
+      // Desktop/laptops ALWAYS get landing page
+      const shouldShowMobile = isPhone || isTablet || isTouchDevice
+      
+      setIsMobile(shouldShowMobile)
     }
 
     checkDevice()
     
-    // Update on resize
-    window.addEventListener('resize', checkDevice)
-    return () => window.removeEventListener('resize', checkDevice)
+    // Add resize listener for orientation changes on tablets
+    const handleResize = () => {
+      checkDevice()
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   // Show loading state while detecting
