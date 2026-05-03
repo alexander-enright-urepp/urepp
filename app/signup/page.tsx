@@ -13,10 +13,10 @@ export default function SignUp() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   
-  // Age verification fields
+  // Date of Birth (optional)
   const [dateOfBirth, setDateOfBirth] = useState({ year: '', month: '', day: '' })
-  const [isAgeVerified, setIsAgeVerified] = useState(false)
   const [ageError, setAgeError] = useState('')
+  const [isUnder13, setIsUnder13] = useState(false)
   
   // Consent
   const [consentChecked, setConsentChecked] = useState(false)
@@ -43,49 +43,19 @@ export default function SignUp() {
   ]
   const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'))
 
-  // Calculate age in real-time
-  const calculateAge = () => {
-    const { year, month, day } = dateOfBirth
-    if (year && month && day) {
-      const birthDate = new Date(`${year}-${month}-${day}`)
-      const today = new Date()
-      
-      if (isNaN(birthDate.getTime()) || birthDate > today) {
-        setIsAgeVerified(false)
-        setAgeError('Please enter a valid date')
-        return
-      }
-
-      let age = today.getFullYear() - birthDate.getFullYear()
-      const monthDiff = today.getMonth() - birthDate.getMonth()
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--
-      }
-
-      if (age >= 13) {
-        setIsAgeVerified(true)
-        setAgeError('')
-      } else {
-        setIsAgeVerified(false)
-        setAgeError('You must be at least 13 years old to use UREPP')
-      }
-    }
-  }
-
-  // Update age calculation when DOB changes
+  // Update DOB when changed
   const updateDOB = (field: 'year' | 'month' | 'day', value: string) => {
     const newDOB = { ...dateOfBirth, [field]: value }
     setDateOfBirth(newDOB)
     
-    // Calculate age immediately when all fields are filled
+    // If all DOB fields filled, validate age
     if (newDOB.year && newDOB.month && newDOB.day) {
       const birthDate = new Date(`${newDOB.year}-${newDOB.month}-${newDOB.day}`)
       const today = new Date()
       
       if (isNaN(birthDate.getTime()) || birthDate > today) {
-        setIsAgeVerified(false)
         setAgeError('Please enter a valid date')
+        setIsUnder13(false)
         return
       }
 
@@ -96,13 +66,17 @@ export default function SignUp() {
         age--
       }
 
-      if (age >= 13) {
-        setIsAgeVerified(true)
-        setAgeError('')
-      } else {
-        setIsAgeVerified(false)
+      if (age < 13) {
         setAgeError('You must be at least 13 years old to use UREPP')
+        setIsUnder13(true)
+      } else {
+        setAgeError('')
+        setIsUnder13(false)
       }
+    } else {
+      // Partial DOB - clear errors
+      setAgeError('')
+      setIsUnder13(false)
     }
   }
 
@@ -111,8 +85,8 @@ export default function SignUp() {
     setIsLoading(true)
     setError('')
 
-    // Validate age (already calculated in updateDOB)
-    if (!isAgeVerified) {
+    // Validate age: either DOB shows 13+ OR user confirms via checkbox
+    if (isUnder13) {
       setError('You must be at least 13 years old to create an account')
       setIsLoading(false)
       return
@@ -144,7 +118,10 @@ export default function SignUp() {
       setIsLoading(false)
     } else if (data.user) {
       // Store age verification in profile
-      const birthDateStr = `${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}`
+      // If DOB provided, use it; otherwise just confirm age_verified with no DOB
+      const birthDateStr = dateOfBirth.year && dateOfBirth.month && dateOfBirth.day
+        ? `${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}`
+        : null
       
       const { error: updateError } = await supabase.rpc('verify_user_age', {
         user_uuid: data.user.id,
@@ -299,17 +276,16 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Date of Birth */}
+            {/* Date of Birth (Optional) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Date of Birth <span className="text-red-500">*</span>
+                Date of Birth <span className="text-gray-400">(optional)</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <select
                   value={dateOfBirth.month}
                   onChange={(e) => updateDOB('month', e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all bg-white"
                 >
                   <option value="">Month</option>
                   {months.map((m) => (
@@ -320,8 +296,7 @@ export default function SignUp() {
                 <select
                   value={dateOfBirth.day}
                   onChange={(e) => updateDOB('day', e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all bg-white"
                 >
                   <option value="">Day</option>
                   {days.map((d) => (
@@ -332,8 +307,7 @@ export default function SignUp() {
                 <select
                   value={dateOfBirth.year}
                   onChange={(e) => updateDOB('year', e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all bg-white"
                 >
                   <option value="">Year</option>
                   {years.map((y) => (
@@ -343,9 +317,6 @@ export default function SignUp() {
               </div>
               {ageError && (
                 <p className="text-red-500 text-xs mt-1">{ageError}</p>
-              )}
-              {isAgeVerified && (
-                <p className="text-green-600 text-xs mt-1">✓ Age verified (13+)</p>
               )}
             </div>
 

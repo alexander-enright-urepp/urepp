@@ -21,40 +21,58 @@ COMMENT ON COLUMN profiles.age_verified IS 'COPPA compliance: true if user confi
 COMMENT ON COLUMN profiles.date_of_birth IS 'User birth date - stored only for 13+ users per COPPA';
 
 -- Create a function to verify age (used by app, not direct DB access)
+-- If birth_date is NULL, assumes user confirmed 13+ via checkbox
 CREATE OR REPLACE FUNCTION verify_user_age(
     user_uuid UUID,
-    birth_date DATE,
+    birth_date DATE DEFAULT NULL,
     app_version TEXT DEFAULT '1.0.0'
 ) RETURNS BOOLEAN AS $$
 DECLARE
     user_age INTEGER;
 BEGIN
-    -- Calculate age
-    user_age := EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date));
-    
-    -- Only proceed if 13 or older
-    IF user_age >= 13 THEN
+    -- If birth_date provided, validate it
+    IF birth_date IS NOT NULL THEN
+        -- Calculate age
+        user_age := EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date));
+        
+        -- Only proceed if 13 or older
+        IF user_age >= 13 THEN
+            UPDATE profiles 
+            SET 
+                age_verified = TRUE,
+                age_verified_at = NOW(),
+                consent_given_at = NOW(),
+                consent_app_version = app_version,
+                date_of_birth = birth_date,
+                updated_at = NOW()
+            WHERE user_id = user_uuid;
+            
+            RETURN TRUE;
+        ELSE
+            -- Log attempt but don't store DOB for under-13s (COPPA)
+            -- Store anonymous flag only
+            UPDATE profiles 
+            SET 
+                age_verified = FALSE,
+                updated_at = NOW()
+            WHERE user_id = user_uuid;
+            
+            RETURN FALSE;
+        END IF;
+    ELSE
+        -- No birth_date provided - user confirmed 13+ via checkbox
+        -- Verify without storing DOB (COPPA compliant)
         UPDATE profiles 
         SET 
             age_verified = TRUE,
             age_verified_at = NOW(),
             consent_given_at = NOW(),
             consent_app_version = app_version,
-            date_of_birth = birth_date,
+            -- date_of_birth stays NULL
             updated_at = NOW()
         WHERE user_id = user_uuid;
         
         RETURN TRUE;
-    ELSE
-        -- Log attempt but don't store DOB for under-13s (COPPA)
-        -- Store anonymous flag only
-        UPDATE profiles 
-        SET 
-            age_verified = FALSE,
-            updated_at = NOW()
-        WHERE user_id = user_uuid;
-        
-        RETURN FALSE;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
