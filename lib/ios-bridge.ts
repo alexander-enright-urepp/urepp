@@ -66,11 +66,21 @@ export class UREPPApp {
   static async init() {
     if (this.isNative()) {
       // Hide splash screen after loading
-      await SplashScreen.hide();
+      try {
+        await SplashScreen.hide();
+      } catch (e) {
+        console.log('[iOS Bridge] SplashScreen.hide failed:', e);
+      }
       
-      // Configure status bar
-      await StatusBar.setStyle({ style: Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#0ea5e9' });
+      // Configure status bar - only style is supported on iOS
+      try {
+        await StatusBar.setStyle({ style: Style.Dark });
+      } catch (e) {
+        console.log('[iOS Bridge] StatusBar.setStyle failed:', e);
+      }
+      
+      // setBackgroundColor is NOT supported on iOS - skip it
+      // await StatusBar.setBackgroundColor({ color: '#0ea5e9' });
     }
   }
 

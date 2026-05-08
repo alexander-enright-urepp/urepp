@@ -49,6 +49,12 @@ export default function AccountPage() {
     setRestoring(true)
     setRestoreMessage('')
     
+    // IAP DISABLED for App Store submission
+    setRestoreMessage('In-app purchases are temporarily disabled.')
+    setRestoring(false)
+    return
+    
+    /*
     try {
       const result = await restorePurchases()
       if (result.success) {
@@ -61,6 +67,7 @@ export default function AccountPage() {
     } finally {
       setRestoring(false)
     }
+    */
   }
 
   const handleDeleteAccount = async () => {
@@ -277,7 +284,7 @@ export default function AccountPage() {
           )}
         </div>
 
-        {/* Restore Purchases Section - iOS only */}
+        {/* Restore Purchases Section - iOS only
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" id="restore-section">
           <div className="px-4 py-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-900">Subscription</h3>
@@ -305,6 +312,7 @@ export default function AccountPage() {
             )}
           </div>
         </div>
+        */}
 
         {/* Sign Out Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">

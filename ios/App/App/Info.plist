@@ -30,11 +30,14 @@
 	<string>UREPP needs permission to save photos and videos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>UREPP needs access to your photo library to upload profile photos and highlight videos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>UREPP uses your location to show nearby coaches and recruiting events in your area.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+<string>UREPP sends notifications for messages, video calls, and recruiting updates.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 		<string>fetch</string>
-		<string>location</string>
 		<string>audio</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

@@ -88,6 +88,13 @@ export default function SubscriptionPage() {
       // Check if iOS native app
       console.log('[Subscription] Checking platform, isIOSNative:', isIOSNative())
       if (isIOSNative()) {
+        // IAP DISABLED for App Store submission
+        setUpgradeError('In-app purchases are temporarily disabled. Please subscribe on the website.')
+        setUpgradingMonthly(false)
+        setUpgradingYearly(false)
+        return
+        
+        /* IAP DISABLED - commented out
         // Use IAP for iOS
         const productId = plan === 'yearly' ? IAP_PRODUCTS.YEARLY : IAP_PRODUCTS.MONTHLY
         console.log('[Subscription] Starting IAP purchase for product:', productId)
@@ -134,6 +141,7 @@ export default function SubscriptionPage() {
           // No success or no receipt - DON'T activate premium
           throw new Error(result.error || 'Purchase failed - no receipt received')
         }
+        */
       } else {
         // Web: Use Stripe
         const response = await fetch('/api/stripe/checkout', {

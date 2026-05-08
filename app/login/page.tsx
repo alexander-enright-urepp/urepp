@@ -9,7 +9,7 @@ import { Loader2, Mail, Lock, ArrowLeft, User } from 'lucide-react'
 export default function Login() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams?.get('redirect') || '/dashboard'
+  const redirectTo = searchParams?.get('redirect') || '/search'
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

@@ -23,10 +23,10 @@ export default function AppInit() {
         }
         
         // Dynamically import to avoid errors on web
-        const [{ UREPPApp }, { initializeIAP }, { initNotifications }] = await Promise.all([
-          import('@/lib/ios-bridge'),
-          import('@/lib/iap'),
-          import('@/lib/onesignal')
+        const [{ UREPPApp }] = await Promise.all([
+          import('@/lib/ios-bridge')
+          // Notifications now handled natively in AppDelegate.swift
+          // import('@/lib/onesignal')
         ])
         
         console.log('[AppInit] Starting native app initialization...')
@@ -36,13 +36,13 @@ export default function AppInit() {
           console.error('[AppInit] UREPPApp.init failed:', e)
         })
         
-        // Initialize IAP (with proper error handling)
-        await initializeIAP().catch((e: any) => {
-          console.error('[AppInit] IAP init failed:', e)
-        })
+        // IAP DISABLED - Commented out for App Store submission
+        // await initializeIAP().catch((e: any) => {
+        //   console.error('[AppInit] IAP init failed:', e)
+        // })
         
-        // Initialize notifications
-        initNotifications()
+        // Notifications now handled natively in AppDelegate.swift
+        // initNotifications()
         
         console.log('[AppInit] Native app initialization complete')
         setInitStatus('complete')

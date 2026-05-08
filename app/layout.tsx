@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 import AppInit from '@/components/AppInit'
 
@@ -17,7 +18,6 @@ export const metadata: Metadata = {
   viewport: {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
     viewportFit: 'cover',
   },
 }
@@ -92,9 +92,11 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ErrorBoundary>
         <AppInit />
       </body>
     </html>

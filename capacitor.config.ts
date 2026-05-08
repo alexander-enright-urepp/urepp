@@ -4,12 +4,13 @@ const config: CapacitorConfig = {
   appId: 'com.urepp.app',
   appName: 'UREPP',
   webDir: 'dist',
-  // Use production site for app
+  // Use production site for app - this requires server-side rendering
   server: {
     url: 'https://www.urepp.app',
     cleartext: false,
     allowNavigation: ['urepp.app', '*.urepp.app']
   },
+  // Using bundled local assets (no external URL)
   ios: {
     scheme: 'UREPP',
     contentInset: 'always'

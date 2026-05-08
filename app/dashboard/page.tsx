@@ -72,10 +72,11 @@ export default function Dashboard() {
   useEffect(() => {
     setIsIOS(isIOSNative())
     
+    // IAP DISABLED for App Store submission
     // Initialize IAP for iOS at app startup
-    if (isIOSNative()) {
-      initializeIAP()
-    }
+    // if (isIOSNative()) {
+    //   initializeIAP()
+    // }
   }, [])
 
   // Pull to refresh for iOS
