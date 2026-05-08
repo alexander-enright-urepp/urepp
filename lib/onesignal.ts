@@ -75,12 +75,23 @@ async function syncPlayerId() {
     const OneSignal = (window as any).OneSignal;
     if (!OneSignal) return;
     
-    // v5 API: Get user ID
-    const userId = await OneSignal.User.getOnesignalId();
-    console.log('[Push] OneSignal User ID:', userId);
+    // v5 API: Get PUSH subscription ID (not User ID)
+    const subscriptions = await OneSignal.User.getSubscriptions();
+    console.log('[Push] All subscriptions:', subscriptions);
     
-    if (userId) {
-      await syncPlayerIdToServer(userId);
+    const pushSubscription = subscriptions?.find((s: any) => s.type === 'push');
+    console.log('[Push] Push subscription:', pushSubscription);
+    
+    if (pushSubscription?.id) {
+      await syncPlayerIdToServer(pushSubscription.id);
+      console.log('[Push] Subscription ID synced:', pushSubscription.id);
+    } else {
+      // Fallback to User ID if no subscription found
+      const userId = await OneSignal.User.getOnesignalId();
+      console.log('[Push] No push subscription, using User ID:', userId);
+      if (userId) {
+        await syncPlayerIdToServer(userId);
+      }
     }
   } catch (err) {
     console.error('[Push] Error getting player ID:', err);
