@@ -12,7 +12,6 @@ interface Profile {
   last_name: string;
   username: string;
   profile_picture_url?: string;
-  calendly_link?: string;
   email?: string;
 }
 
@@ -29,11 +28,14 @@ interface BookNativeClientProps {
 export default function BookNativeClient({ coachId }: BookNativeClientProps) {
   const router = useRouter();
   const [coach, setCoach] = useState<Profile | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [booked, setBooked] = useState(false);
   const [booking, setBooking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Generate dates for next 14 days
   const generateDates = () => {
@@ -55,39 +57,116 @@ export default function BookNativeClient({ coachId }: BookNativeClientProps) {
   const timeSlots: TimeSlot[] = [
     { id: '1', time: '9:00 AM', available: true },
     { id: '2', time: '10:00 AM', available: true },
-    { id: '3', time: '11:00 AM', available: false },
+    { id: '3', time: '11:00 AM', available: true },
     { id: '4', time: '1:00 PM', available: true },
     { id: '5', time: '2:00 PM', available: true },
     { id: '6', time: '3:00 PM', available: true },
-    { id: '7', time: '4:00 PM', available: false },
+    { id: '7', time: '4:00 PM', available: true },
     { id: '8', time: '5:00 PM', available: true },
   ];
 
   useEffect(() => {
-    const fetchCoach = async () => {
-      const { data } = await supabase
+    const fetchData = async () => {
+      // Fetch coach profile
+      const { data: coachData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', coachId)
         .single();
       
-      if (data) {
-        setCoach(data);
+      if (coachData) {
+        setCoach(coachData);
       }
+
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+
+      if (user) {
+        // Fetch current user's profile
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .eq('user_id', user.id)
+          .single();
+        
+        setCurrentProfile(userProfile);
+      }
+      
       setLoading(false);
     };
 
-    fetchCoach();
+    fetchData();
   }, [coachId]);
 
   const handleBook = async () => {
     if (!selectedDate || !selectedTime) return;
     
+    // Check auth
+    if (!currentUser || !currentProfile) {
+      // Store booking intent in localStorage and redirect to login
+      localStorage.setItem('booking_redirect', JSON.stringify({
+        coachId,
+        date: selectedDate,
+        time: selectedTime,
+        returnUrl: window.location.pathname
+      }));
+      router.push('/login');
+      return;
+    }
+    
     setBooking(true);
-    // Simulate booking API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setBooked(true);
-    setBooking(false);
+    setError(null);
+    
+    try {
+      // Parse time
+      const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!timeMatch) {
+        throw new Error('Invalid time format');
+      }
+      
+      let hours = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2];
+      const ampm = timeMatch[3].toUpperCase();
+      
+      if (ampm === 'PM' && hours !== 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+      
+      const startTime = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+      
+      // Calculate end time (1 hour later)
+      let endHours = hours + 1;
+      if (endHours === 24) endHours = 0;
+      const endTime = `${endHours.toString().padStart(2, '0')}:${minutes}:00`;
+      
+      // Insert into booked_sessions
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('booked_sessions')
+        .insert({
+          coach_id: coachId,
+          athlete_id: currentProfile.id,
+          athlete_name: `${currentProfile.first_name} ${currentProfile.last_name}`,
+          athlete_email: currentProfile.email || currentUser.email,
+          session_date: selectedDate,
+          start_time: startTime,
+          end_time: endTime,
+          status: 'pending',
+          booked_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      
+      if (bookingError) {
+        throw bookingError;
+      }
+      
+      setBooked(true);
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      setError(err.message || 'Failed to book session');
+    } finally {
+      setBooking(false);
+    }
   };
 
   if (loading) {
@@ -111,6 +190,49 @@ export default function BookNativeClient({ coachId }: BookNativeClientProps) {
     );
   }
 
+  // Login prompt if not authenticated
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+            <Link href={`/players/${coach.username}`} className="p-2 -ml-2 text-gray-600">
+              <ArrowLeft className="w-6 h-6" />
+            </Link>
+            <h1 className="font-semibold text-gray-900">Book Session</h1>
+            <div className="w-10" />
+          </div>
+        </header>
+
+        <div className="max-w-md mx-auto px-4 py-12">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-[#51b5ff]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-[#51b5ff]" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign In Required</h1>
+            <p className="text-gray-600 mb-6">
+              Please sign in to book a session with {coach.first_name} {coach.last_name}.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+                className="w-full block py-3 bg-[#51b5ff] text-white rounded-xl font-semibold text-center hover:bg-blue-600 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href={`/players/${coach.username}`}
+                className="w-full block py-3 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Cancel
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (booked) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -119,15 +241,15 @@ export default function BookNativeClient({ coachId }: BookNativeClientProps) {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Booking Request Sent!</h1>
             <p className="text-gray-600 mb-6">
-              Your session with {coach.first_name} {coach.last_name} is scheduled for {selectedDate} at {selectedTime}.
+              Your session request with {coach.first_name} {coach.last_name} for {selectedDate} at {selectedTime} has been sent. You'll be notified when they confirm.
             </p>
             <button
-              onClick={() => router.push('/dashboard/appointments')}
-              className="w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+              onClick={() => router.push('/dashboard/coaches')}
+              className="w-full py-3 bg-[#51b5ff] text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
             >
-              View My Appointments
+              Go to Dashboard
             </button>
           </div>
         </div>
@@ -149,6 +271,13 @@ export default function BookNativeClient({ coachId }: BookNativeClientProps) {
       </header>
 
       <div className="max-w-md mx-auto px-4 py-6">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Coach Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
           <div className="flex items-center gap-4">

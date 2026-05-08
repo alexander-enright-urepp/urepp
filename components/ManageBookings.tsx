@@ -6,9 +6,9 @@ import { Check, X, Calendar, Clock, User } from 'lucide-react'
 
 interface Booking {
   id: string
-  requested_by_name: string
   athlete_name: string
-  coach_name: string
+  athlete_email: string
+  coach_id: string
   session_date: string
   start_time: string
   end_time: string
@@ -46,14 +46,14 @@ export default function ManageBookings() {
         return
       }
 
-      // Fetch pending appointments where I'm the recipient (someone requested me)
-      const { data: appointmentsData, error: appointmentsError } = await supabase
-        .from('appointments')
+      // Fetch pending booked_sessions where I'm the coach (someone booked me)
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('booked_sessions')
         .select(`
           id,
-          requested_by_name,
           athlete_name,
-          coach_name,
+          athlete_email,
+          coach_id,
           session_date,
           start_time,
           end_time,
@@ -61,17 +61,17 @@ export default function ManageBookings() {
           booked_at,
           notes
         `)
-        .eq('recipient_id', profileData.id)
+        .eq('coach_id', profileData.id)
         .eq('status', 'pending')
         .order('booked_at', { ascending: false })
 
-      if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError)
+      if (sessionsError) {
+        console.error('Error fetching sessions:', sessionsError)
         setLoading(false)
         return
       }
 
-      setBookings(appointmentsData || [])
+      setBookings(sessionsData || [])
     } catch (err) {
       console.error('Error:', err)
     } finally {
@@ -82,10 +82,9 @@ export default function ManageBookings() {
   const respondToBooking = async (bookingId: string, accept: boolean) => {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('booked_sessions')
         .update({
           status: accept ? 'accepted' : 'declined'
-          // responded_at will auto-update via trigger
         })
         .eq('id', bookingId)
 
@@ -153,7 +152,7 @@ export default function ManageBookings() {
 
               <div className="flex-1">
                 <p className="font-medium text-gray-900">
-                  {booking.requested_by_name || booking.athlete_name}
+                  {booking.athlete_name}
                 </p>
                 <p className="text-sm text-gray-500 mb-2">
                   Requested a coaching session

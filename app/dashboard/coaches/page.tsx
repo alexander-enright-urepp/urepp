@@ -92,7 +92,7 @@ export default function CoachesPage() {
   const handleDeleteAppointment = async (apptId: string) => {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('booked_sessions')
         .delete()
         .eq('id', apptId);
       
@@ -193,22 +193,27 @@ export default function CoachesPage() {
           setProfile(prev => prev ? { ...prev, is_coaching_enabled: true } : prev);
         }
         
-        // Fetch accepted appointments from new appointments table
-        const { data: appointmentsData, error: appointmentsError } = await supabase
-          .from('appointments')
+        // Fetch accepted sessions from booked_sessions table
+        const { data: sessionsData, error: sessionsError } = await supabase
+          .from('booked_sessions')
           .select('*')
-          .or(`requested_by.eq.${profileData.id},recipient_id.eq.${profileData.id}`)
+          .or(`coach_id.eq.${profileData.id},athlete_id.eq.${profileData.id}`)
           .eq('status', 'accepted')
           .order('session_date', { ascending: true });
         
-        console.log('Dashboard appointments debug:', {
+        console.log('Dashboard sessions debug:', {
           profileId: profileData.id,
-          appointmentsCount: appointmentsData?.length,
-          error: appointmentsError?.message
+          sessionsCount: sessionsData?.length,
+          error: sessionsError?.message
         });
         
-        // Get all unique profile IDs from appointments
-        const profileIds = Array.from(new Set((appointmentsData || []).flatMap((a: any) => [a.requested_by, a.recipient_id]).filter(Boolean)));
+        // Get all unique profile IDs from sessions
+        const profileIds = Array.from(new Set((sessionsData || []).flatMap((s: any) => {
+          const ids = [];
+          if (s.coach_id && s.coach_id !== profileData.id) ids.push(s.coach_id);
+          if (s.athlete_id && s.athlete_id !== profileData.id) ids.push(s.athlete_id);
+          return ids;
+        }).filter(Boolean)));
         
         // Fetch profiles for all participants
         let profilesMap = new Map();
@@ -221,25 +226,24 @@ export default function CoachesPage() {
           profilesMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
         }
         
-        // Format appointments for Upcoming Sessions
-        // Show accepted appointments where I'm involved (either requested or received)
-        const formattedAppointments: Appointment[] = (appointmentsData || [])
-          .map((a: any) => {
-          const isCoach = a.recipient_id === profileData.id; // I accepted (I'm the recipient)
-          const otherProfileId = isCoach ? a.requested_by : a.recipient_id;
-          const otherProfile = profilesMap.get(otherProfileId);
+        // Format sessions for Upcoming Sessions
+        const formattedAppointments: Appointment[] = (sessionsData || [])
+          .map((s: any) => {
+          const isCoach = s.coach_id === profileData.id;
+          const otherId = isCoach ? s.athlete_id : s.coach_id;
+          const otherProfile = profilesMap.get(otherId);
           
           return {
-            id: a.id,
+            id: s.id,
             calendly_event_id: '',
             event_type_name: 'Coaching Session',
-            start_time: `${a.session_date}T${a.start_time}`,
-            end_time: `${a.session_date}T${a.end_time}`,
-            status: a.status,
-            athlete_name: a.athlete_name,
-            athlete_email: a.athlete_email,
-            athlete_id: a.athlete_id,
-            coach_id: a.coach_id,
+            start_time: `${s.session_date}T${s.start_time}`,
+            end_time: `${s.session_date}T${s.end_time}`,
+            status: s.status,
+            athlete_name: s.athlete_name,
+            athlete_email: s.athlete_email,
+            athlete_id: s.athlete_id,
+            coach_id: s.coach_id,
             is_coach: isCoach,
             other_profile: otherProfile
           };
