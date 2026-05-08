@@ -92,7 +92,7 @@ export default function CoachesPage() {
   const handleDeleteAppointment = async (apptId: string) => {
     try {
       const { error } = await supabase
-        .from('booked_sessions')
+        .from('appointments')
         .delete()
         .eq('id', apptId);
       
