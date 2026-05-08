@@ -75,7 +75,7 @@ export default function MobileAppHome() {
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
-        <div className="max-w-md mx-auto px-4 py-4">
+        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <span className="text-xl font-bold text-babyblue-600">UREPP</span>
@@ -102,7 +102,7 @@ export default function MobileAppHome() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-md md:max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Hero Card */}
         <div className="bg-white rounded-3xl p-6 shadow-xl shadow-babyblue-200/50 border border-babyblue-100 text-center">
           <div className="inline-flex items-center gap-1 bg-babyblue-100 text-babyblue-700 px-3 py-1 rounded-full text-xs font-medium mb-4">
@@ -458,8 +458,8 @@ export default function MobileAppHome() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
-        <div className="max-w-md mx-auto flex justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 md:py-3 z-50">
+        <div className="max-w-md md:max-w-3xl mx-auto flex justify-around">
           <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-babyblue-600">
             <HomeIcon className="w-6 h-6" />
             <span className="text-xs font-medium">Home</span>

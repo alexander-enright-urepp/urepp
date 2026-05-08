@@ -284,7 +284,7 @@ export default function CoachesPage() {
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Home</h1>
             <p className="text-sm text-gray-500">Book Coaching Sessions</p>
@@ -307,7 +307,7 @@ export default function CoachesPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-md mx-auto px-4 py-6 space-y-4">
+      <main className="max-w-md md:max-w-3xl mx-auto px-4 py-6 space-y-4">
         {/* Manage Bookings - Show pending bookings that need approval */}
         <ManageBookings />
 
@@ -500,7 +500,7 @@ export default function CoachesPage() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
-        <div className="max-w-md mx-auto flex justify-around">
+        <div className="max-w-md md:max-w-3xl mx-auto flex justify-around">
           <Link href="/dashboard/coaches" className="flex flex-col items-center gap-1 text-[#51b5ff]">
             <Home className="w-6 h-6" />
             <span className="text-xs font-medium">Home</span>

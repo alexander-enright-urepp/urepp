@@ -93,7 +93,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
-        <div className="max-w-md mx-auto px-4 py-4">
+        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button 
@@ -119,7 +119,7 @@ export default function SearchPage() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-4">
+      <main className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
         {/* Search Input */}
         <div className="relative mb-4">
           <input
@@ -203,7 +203,7 @@ export default function SearchPage() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
-        <div className="max-w-md mx-auto flex justify-around">
+        <div className="max-w-md md:max-w-3xl mx-auto flex justify-around">
           <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
             <Home className="w-6 h-6" />
             <span className="text-xs font-medium">Home</span>

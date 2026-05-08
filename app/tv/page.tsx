@@ -124,7 +124,7 @@ export default function TVPage() {
     <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
-        <div className="max-w-md mx-auto px-4 py-4">
+        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-center">
             <h1 className="text-xl font-bold text-gray-900">UREPP TV</h1>
           </div>
@@ -132,7 +132,7 @@ export default function TVPage() {
       </header>
 
       {/* Tabs */}
-      <div className="max-w-md mx-auto px-4 pt-4">
+      <div className="max-w-md md:max-w-3xl mx-auto px-4 pt-4">
         <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
           <button
             onClick={() => setActiveTab('explore')}
@@ -157,7 +157,7 @@ export default function TVPage() {
         </div>
       </div>
 
-      <main className="max-w-md mx-auto px-4 py-8">
+      <main className="max-w-md md:max-w-3xl mx-auto px-4 py-8">
         {activeTab === 'explore' ? (
           /* Explore Tab - YouTube Videos Grid */
           <div className="space-y-6">
@@ -351,7 +351,7 @@ export default function TVPage() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
-        <div className="max-w-md mx-auto flex justify-around">
+        <div className="max-w-md md:max-w-3xl mx-auto flex justify-around">
           <BottomNavLink href="/dashboard/coaches" icon={<Home className="w-6 h-6" />} label="Home" />
           <BottomNavLink href="/tv" icon={<Tv className="w-6 h-6" />} label="TV" active />
           <BottomNavLink href="/search" icon={<Search className="w-6 h-6" />} label="Search" />
