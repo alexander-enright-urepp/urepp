@@ -21,8 +21,9 @@ interface VideoCallProps {
 export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isJoined, setIsJoined] = useState(false);
+  const [showCancel, setShowCancel] = useState(true);
   const callFrameRef = useRef<DailyCall | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleLeftMeeting = useCallback(() => {
     window._dailyFrameActive = false;
@@ -58,6 +59,7 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     try {
       window._dailyFrameActive = true;
 
+      // Create frame without auto-show, we'll control visibility
       const callFrame = DailyIframe.createFrame({
         iframeStyle: {
           position: 'fixed',
@@ -66,7 +68,7 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
           width: '100%',
           height: '100%',
           border: '0',
-          zIndex: '1000',
+          zIndex: '1',
         },
         showLeaveButton: true,
         showFullscreenButton: true,
@@ -81,8 +83,9 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
         showParticipantsBar: true,
       });
 
+      // Keep cancel button visible until joined
       callFrame.on('joined-meeting', () => {
-        setIsJoined(true);
+        setShowCancel(false);
       });
 
       callFrame.on('left-meeting', handleLeftMeeting);
@@ -134,22 +137,23 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     );
   }
 
-  // Always show close button overlay for easy exit
   return (
-    <>
-      {/* Close button - fixed above Daily iframe */}
-      <button
-        onClick={handleCancel}
-        className="fixed top-4 right-4 z-[2147483647] bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors flex items-center justify-center shadow-2xl border-2 border-white"
-        style={{ 
-          WebkitTransform: 'translateZ(0)',
-          transform: 'translateZ(0)'
-        }}
-        aria-label="Leave call"
-      >
-        <X className="w-6 h-6" />
-      </button>
-    </>
+    <div ref={containerRef} className="fixed inset-0">
+      {/* Cancel button - always on top until joined */}
+      {showCancel && (
+        <button
+          onClick={handleCancel}
+          className="fixed top-4 right-4 z-[2147483647] bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-2xl border-2 border-white flex items-center gap-2 font-medium"
+          style={{ 
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)',
+          }}
+        >
+          <X className="w-5 h-5" />
+          Cancel
+        </button>
+      )}
+    </div>
   );
 }
 
