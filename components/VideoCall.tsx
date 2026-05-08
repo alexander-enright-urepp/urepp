@@ -21,9 +21,7 @@ interface VideoCallProps {
 export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [showCancel, setShowCancel] = useState(true);
   const callFrameRef = useRef<DailyCall | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleLeftMeeting = useCallback(() => {
     window._dailyFrameActive = false;
@@ -33,19 +31,6 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
       router.back();
     }
   }, [onLeave, router]);
-
-  const handleCancel = useCallback(() => {
-    try {
-      if (callFrameRef.current) {
-        callFrameRef.current.destroy();
-        callFrameRef.current = null;
-      }
-    } catch (e) {
-      console.log('Error destroying frame:', e);
-    }
-    window._dailyFrameActive = false;
-    handleLeftMeeting();
-  }, [handleLeftMeeting]);
 
   useEffect(() => {
     if (!roomUrl) return;
@@ -59,7 +44,6 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     try {
       window._dailyFrameActive = true;
 
-      // Create frame without auto-show, we'll control visibility
       const callFrame = DailyIframe.createFrame({
         iframeStyle: {
           position: 'fixed',
@@ -68,7 +52,7 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
           width: '100%',
           height: '100%',
           border: '0',
-          zIndex: '1',
+          zIndex: '1000',
         },
         showLeaveButton: true,
         showFullscreenButton: true,
@@ -83,13 +67,7 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
         showParticipantsBar: true,
       });
 
-      // Keep cancel button visible until joined
-      callFrame.on('joined-meeting', () => {
-        setShowCancel(false);
-      });
-
       callFrame.on('left-meeting', handleLeftMeeting);
-      
       callFrame.on('error', (e: any) => {
         console.error('Daily error:', e);
         setError('Video call error: ' + (e.errorMsg || 'Unknown error'));
@@ -137,24 +115,7 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     );
   }
 
-  return (
-    <div ref={containerRef} className="fixed inset-0">
-      {/* Cancel button - always on top until joined */}
-      {showCancel && (
-        <button
-          onClick={handleCancel}
-          className="fixed top-4 right-4 z-[2147483647] bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-2xl border-2 border-white flex items-center gap-2 font-medium"
-          style={{ 
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)',
-          }}
-        >
-          <X className="w-5 h-5" />
-          Cancel
-        </button>
-      )}
-    </div>
-  );
+  return null;
 }
 
 // Simple button component for starting a call
