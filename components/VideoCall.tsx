@@ -21,6 +21,7 @@ interface VideoCallProps {
 export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [isJoined, setIsJoined] = useState(false);
   const callFrameRef = useRef<DailyCall | null>(null);
 
   const handleLeftMeeting = useCallback(() => {
@@ -31,6 +32,19 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
       router.back();
     }
   }, [onLeave, router]);
+
+  const handleCancel = useCallback(() => {
+    try {
+      if (callFrameRef.current) {
+        callFrameRef.current.destroy();
+        callFrameRef.current = null;
+      }
+    } catch (e) {
+      console.log('Error destroying frame:', e);
+    }
+    window._dailyFrameActive = false;
+    handleLeftMeeting();
+  }, [handleLeftMeeting]);
 
   useEffect(() => {
     if (!roomUrl) return;
@@ -67,7 +81,12 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
         showParticipantsBar: true,
       });
 
+      callFrame.on('joined-meeting', () => {
+        setIsJoined(true);
+      });
+
       callFrame.on('left-meeting', handleLeftMeeting);
+      
       callFrame.on('error', (e: any) => {
         console.error('Daily error:', e);
         setError('Video call error: ' + (e.errorMsg || 'Unknown error'));
@@ -115,7 +134,19 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
     );
   }
 
-  return null;
+  // Always show close button overlay for easy exit
+  return (
+    <div className="fixed inset-0 z-50 pointer-events-none">
+      {/* Close button - visible before and during call */}
+      <button
+        onClick={handleCancel}
+        className="absolute top-4 right-4 z-[1001] pointer-events-auto bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-colors flex items-center justify-center shadow-lg border border-white/20"
+        aria-label="Leave call"
+      >
+        <X className="w-6 h-6" />
+      </button>
+    </div>
+  );
 }
 
 // Simple button component for starting a call
