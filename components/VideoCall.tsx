@@ -136,16 +136,20 @@ export default function VideoCall({ roomUrl, userName, onLeave }: VideoCallProps
 
   // Always show close button overlay for easy exit
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* Close button - visible before and during call */}
+    <>
+      {/* Close button - fixed above Daily iframe */}
       <button
         onClick={handleCancel}
-        className="absolute top-4 right-4 z-[1001] pointer-events-auto bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-colors flex items-center justify-center shadow-lg border border-white/20"
+        className="fixed top-4 right-4 z-[2147483647] bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors flex items-center justify-center shadow-2xl border-2 border-white"
+        style={{ 
+          WebkitTransform: 'translateZ(0)',
+          transform: 'translateZ(0)'
+        }}
         aria-label="Leave call"
       >
         <X className="w-6 h-6" />
       </button>
-    </div>
+    </>
   );
 }
 
