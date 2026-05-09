@@ -145,23 +145,60 @@ export default function SignUp() {
         console.log('Updating profile for user:', data.user.id);
         console.log('Birth date to save:', birthDateStr);
         
-        const { data: updateData, error: consentError } = await supabase
-          .from('profiles')
-          .update({
-            date_of_birth: birthDateStr,
-            consent_given_at: new Date().toISOString(),
-            consent_app_version: '1.0.0',
-            terms_version_accepted: '1.0.0',
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', data.user.id)
-          .select()
+        // Wait a moment for trigger to create profile, then update
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (consentError) {
-          console.error('Failed to store consent data:', consentError);
-          console.error('Error details:', JSON.stringify(consentError));
+        // First check if profile exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        if (!existingProfile) {
+          console.log('Profile not found, creating manually...');
+          // Create profile if trigger hasn't run yet
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              email: data.user.email,
+              username: data.user.email?.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'user',
+              first_name: '',
+              last_name: '',
+              date_of_birth: birthDateStr,
+              consent_given_at: new Date().toISOString(),
+              consent_app_version: '1.0.0',
+              terms_version_accepted: '1.0.0',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          
+          if (insertError) {
+            console.error('Failed to create profile:', insertError);
+          } else {
+            console.log('Profile created successfully with consent data');
+          }
         } else {
-          console.log('Consent data saved successfully:', updateData);
+          // Profile exists, update it
+          const { data: updateData, error: consentError } = await supabase
+            .from('profiles')
+            .update({
+              date_of_birth: birthDateStr,
+              consent_given_at: new Date().toISOString(),
+              consent_app_version: '1.0.0',
+              terms_version_accepted: '1.0.0',
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', data.user.id)
+            .select();
+          
+          if (consentError) {
+            console.error('Failed to store consent data:', consentError);
+            console.error('Error details:', JSON.stringify(consentError));
+          } else {
+            console.log('Consent data saved successfully:', updateData);
+          }
         }
         
         // Redirect to create profile
