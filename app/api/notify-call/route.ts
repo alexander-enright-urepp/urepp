@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_subscription_ids: [profile.onesignal_player_id],
+        include_onesignal_ids: [profile.onesignal_player_id],
         headings: { en: 'Incoming Call 📹' },
         contents: { en: `${callerName || 'Someone'} is calling you on UREPP` },
         data: {
