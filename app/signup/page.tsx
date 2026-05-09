@@ -117,7 +117,7 @@ export default function SignUp() {
       setError(error.message)
       setIsLoading(false)
     } else if (data.user) {
-      // Store age verification in profile
+      // Store age verification and consent data in profile
       // If DOB provided, use it; otherwise just confirm age_verified with no DOB
       const birthDateStr = dateOfBirth.year && dateOfBirth.month && dateOfBirth.day
         ? `${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}`
@@ -132,6 +132,22 @@ export default function SignUp() {
       if (updateError) {
         console.error('Failed to store age verification:', updateError)
         // Continue anyway - user is signed up
+      }
+      
+      // Also store consent data directly
+      const { error: consentError } = await supabase
+        .from('profiles')
+        .update({
+          date_of_birth: birthDateStr,
+          consent_given_at: new Date().toISOString(),
+          consent_app_version: '1.0.0',
+          terms_version_accepted: '1.0.0',
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', data.user.id)
+      
+      if (consentError) {
+        console.error('Failed to store consent data:', consentError)
       }
       
       // Auto sign in after signup
