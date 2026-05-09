@@ -142,7 +142,10 @@ export default function SignUp() {
       
       if (!signInError) {
         // NOW update consent data (user is authenticated)
-        const { error: consentError } = await supabase
+        console.log('Updating profile for user:', data.user.id);
+        console.log('Birth date to save:', birthDateStr);
+        
+        const { data: updateData, error: consentError } = await supabase
           .from('profiles')
           .update({
             date_of_birth: birthDateStr,
@@ -152,9 +155,13 @@ export default function SignUp() {
             updated_at: new Date().toISOString()
           })
           .eq('user_id', data.user.id)
+          .select()
         
         if (consentError) {
-          console.error('Failed to store consent data:', consentError)
+          console.error('Failed to store consent data:', consentError);
+          console.error('Error details:', JSON.stringify(consentError));
+        } else {
+          console.log('Consent data saved successfully:', updateData);
         }
         
         // Redirect to create profile
