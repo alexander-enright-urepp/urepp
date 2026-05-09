@@ -134,29 +134,29 @@ export default function SignUp() {
         // Continue anyway - user is signed up
       }
       
-      // Also store consent data directly
-      const { error: consentError } = await supabase
-        .from('profiles')
-        .update({
-          date_of_birth: birthDateStr,
-          consent_given_at: new Date().toISOString(),
-          consent_app_version: '1.0.0',
-          terms_version_accepted: '1.0.0',
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', data.user.id)
-      
-      if (consentError) {
-        console.error('Failed to store consent data:', consentError)
-      }
-      
-      // Auto sign in after signup
+      // Auto sign in after signup FIRST (required for RLS)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
       
       if (!signInError) {
+        // NOW update consent data (user is authenticated)
+        const { error: consentError } = await supabase
+          .from('profiles')
+          .update({
+            date_of_birth: birthDateStr,
+            consent_given_at: new Date().toISOString(),
+            consent_app_version: '1.0.0',
+            terms_version_accepted: '1.0.0',
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', data.user.id)
+        
+        if (consentError) {
+          console.error('Failed to store consent data:', consentError)
+        }
+        
         // Redirect to create profile
         router.push('/profile/create')
       } else {
