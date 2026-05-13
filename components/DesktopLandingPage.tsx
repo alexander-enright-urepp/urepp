@@ -36,7 +36,7 @@ export default function DesktopLandingPage() {
             />
           </div>
           <Link
-            href="https://urepp.tv"
+            href="https://apps.apple.com/us/app/urepp-inc/id6761732073"
             className="bg-[#51b5ff] hover:bg-[#3da8f5] text-white px-6 py-2.5 rounded-full font-medium transition-all shadow-lg shadow-[#51b5ff]/30 flex items-center gap-2"
           >
             Download in the App Store
@@ -64,7 +64,7 @@ export default function DesktopLandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="https://urepp.tv"
+                  href="https://apps.apple.com/us/app/urepp-inc/id6761732073"
                   className="inline-flex items-center justify-center gap-2 bg-[#51b5ff] hover:bg-[#3da8f5] text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-xl shadow-[#51b5ff]/30"
                 >
                   Download in the App Store
@@ -515,7 +515,7 @@ export default function DesktopLandingPage() {
             Join thousands of athletes who have connected with college coaches through UREPP.
           </p>
           <Link
-            href="https://urepp.tv"
+            href="https://apps.apple.com/us/app/urepp-inc/id6761732073"
             className="inline-flex items-center gap-2 bg-[#51b5ff] hover:bg-[#3da8f5] text-white px-10 py-4 rounded-full font-semibold text-lg transition-all shadow-xl shadow-[#51b5ff]/30"
           >
             Download in the App Store
