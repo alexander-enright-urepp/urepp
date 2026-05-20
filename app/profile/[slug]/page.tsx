@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { notFound, useParams } from 'next/navigation'
+import { notFound, useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Mail, 
@@ -231,7 +231,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#2980cc] via-[#51b5ff] to-[#1a5a99] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-babyblue-500" />
       </div>
     )
@@ -241,15 +241,28 @@ export default function ProfilePage() {
     return notFound()
   }
 
+  const router = useRouter()
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1 && document.referrer.includes(window.location.hostname)) {
+      window.history.back()
+    } else {
+      router.push('/')
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#2980cc] via-[#51b5ff] to-[#1a5a99] py-8 px-4">
       {/* Navigation */}
       <nav className="max-w-md mx-auto mb-6">
         <div className="flex justify-between items-center">
-          <Link href="/" className="text-babyblue-600 hover:text-babyblue-700 flex items-center gap-1 text-sm font-medium">
+          <button 
+            onClick={handleBack}
+            className="text-white hover:text-white/80 flex items-center gap-1 text-sm font-medium transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
             Back
-          </Link>
+          </button>
           <button className="text-babyblue-600 hover:text-babyblue-700 p-2 rounded-full hover:bg-babyblue-100/50 transition-colors">
             <Share2 className="w-5 h-5" />
           </button>
