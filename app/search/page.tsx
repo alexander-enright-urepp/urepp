@@ -1,49 +1,282 @@
-import ProfileSearch from '@/components/ProfileSearch'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { 
+  Search, 
+  ArrowLeft, 
+  User, 
+  Home,
+  User as UserIcon,
+  Filter,
+  MapPin,
+  Calendar,
+  Loader2,
+  ChevronRight,
+  Tv
+} from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+
+interface Profile {
+  id: string
+  first_name: string
+  last_name: string
+  username: string
+  profile_picture_url: string | null
+  grad_year: number | null
+  position: string | null
+  high_school: string | null
+  hometown: string | null
+  state: string | null
+  role?: string
+  sport?: string
+  high_school_sports?: string[]
+}
 
 export default function SearchPage() {
+  const router = useRouter()
+  const [query, setQuery] = useState('')
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [selectedSport, setSelectedSport] = useState('')
+
+  const sports = ['Baseball', 'Basketball', 'Cross Country', 'Football', 'Golf', 'Soccer', 'Softball', 'Swimming', 'Tennis', 'Track & Field', 'Volleyball', 'Wrestling']
+
+  const loadProfiles = useCallback(async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('role', ['athlete', 'coach'])
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    
+    setProfiles(data || [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    loadProfiles()
+  }, [loadProfiles])
+
+  const handleSearch = async () => {
+    setLoading(true)
+    
+    // Build base query
+    let queryBuilder = supabase.from('profiles').select('*').in('role', ['athlete', 'coach']).is('deleted_at', null)
+    
+    // Apply text search filter
+    if (query.trim()) {
+      queryBuilder = queryBuilder.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%`)
+    }
+    
+    // Fetch results
+    const { data: rawData } = await queryBuilder.limit(50)
+    let filteredData = rawData || []
+    
+    // Apply sport filter client-side if selected (avoids complex query building)
+    if (selectedSport && filteredData.length > 0) {
+      filteredData = filteredData.filter((p: any) => 
+        p.high_school_sports?.includes(selectedSport) || 
+        p.college_sports?.includes(selectedSport)
+      )
+    }
+    
+    setProfiles(filteredData.slice(0, 20))
+    setLoading(false)
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-babyblue-600">UREPP</Link>
-            <div className="flex gap-4 items-center">
-              <Link
-                href="/search"
-                className="text-gray-600 hover:text-babyblue-600 font-medium transition-colors"
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
+        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => router.back()}
+                className="w-10 h-10 rounded-xl bg-babyblue-50 hover:bg-babyblue-100 flex items-center justify-center text-babyblue-600 transition-colors"
               >
-                Search
-              </Link>
-              <Link
-                href="/signup"
-                className="bg-babyblue-500 hover:bg-babyblue-600 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-md shadow-babyblue-200"
-              >
-                Create Profile
-              </Link>
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Search</h1>
+                <p className="text-sm text-gray-500">Find athletes and coaches</p>
+              </div>
             </div>
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                showFilters ? 'bg-babyblue-100 text-babyblue-600' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Players</h1>
-          <p className="text-gray-600">
-            Find baseball players by name, position, graduation year, or location.
-          </p>
+      <main className="max-w-md md:max-w-3xl mx-auto px-4 py-4">
+        {/* Search Input */}
+        <div className="relative mb-4">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="Search by name or username..."
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-400 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+          />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <button 
+            onClick={handleSearch}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-babyblue-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium"
+          >
+            Go
+          </button>
         </div>
 
-        <ProfileSearch />
+        {/* Filters */}
+        {showFilters && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-babyblue-100 mb-4">
+            <div>
+              <label className="text-xs text-gray-500 mb-1.5 block">Sport</label>
+              <select
+                value={selectedSport}
+                onChange={(e) => setSelectedSport(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-babyblue-400 outline-none text-sm"
+              >
+                <option value="">All Sports</option>
+                {sports.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <button 
+              onClick={handleSearch}
+              className="w-full mt-3 bg-babyblue-500 text-white py-2 rounded-xl text-sm font-medium"
+            >
+              Apply Filters
+            </button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm text-gray-500">
+            {loading ? 'Searching...' : `${profiles.length} members found`}
+          </p>
+          {selectedSport && (
+            <button 
+              onClick={() => { setSelectedSport(''); handleSearch(); }}
+              className="text-xs text-babyblue-600 hover:underline"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+
+        {/* Results */}
+        <div className="space-y-3">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-babyblue-500" />
+            </div>
+          ) : (
+            profiles.map(profile => (
+              <ProfileCard key={profile.id} profile={profile} />
+            ))
+          )}
+          
+          {!loading && profiles.length === 0 && (
+            <div className="text-center py-12">
+              <User className="w-12 h-12 mx-auto mb-3 text-babyblue-200" />
+              <p className="text-gray-500 mb-1">No profiles found</p>
+              <p className="text-sm text-gray-400">Try adjusting your search</p>
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-babyblue-200/50 bg-white/50 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          <p>UREPP - The Baseball Recruitment Platform</p>
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-babyblue-100 px-4 py-2 z-50">
+        <div className="max-w-md md:max-w-3xl mx-auto flex justify-around">
+          <Link href="/" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Home className="w-6 h-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link href="/tv" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <Tv className="w-6 h-6" />
+            <span className="text-xs font-medium">TV</span>
+          </Link>
+          <Link href="/search" className="flex flex-col items-center gap-0.5 py-2 px-6 text-babyblue-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs font-medium">Search</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2 px-6 text-gray-400 hover:text-gray-600">
+            <UserIcon className="w-6 h-6" />
+            <span className="text-xs font-medium">Profile</span>
+          </Link>
         </div>
-      </footer>
+      </nav>
     </div>
+  )
+}
+
+function ProfileCard({ profile }: { profile: Profile }) {
+  return (
+    <Link 
+      href={`/players/${profile.username}`}
+      className="flex items-center gap-4 bg-white rounded-2xl p-4 border border-babyblue-100 shadow-sm hover:shadow-md transition-shadow"
+    >
+      {/* Avatar */}
+      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 flex items-center justify-center text-babyblue-600 font-bold text-lg flex-shrink-0 overflow-hidden">
+        {profile.profile_picture_url ? (
+          <img src={profile.profile_picture_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <span>{profile.first_name?.[0]}{profile.last_name?.[0]}</span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 truncate">
+            {profile.first_name} {profile.last_name}
+          </h3>
+          {profile.role && (
+            <span className="bg-babyblue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium uppercase">
+              {profile.role}
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-babyblue-500">@{profile.username}</p>
+        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+          {profile.grad_year && (
+            <span className="flex items-center gap-0.5">
+              <Calendar className="w-3 h-3" />
+              Class of {profile.grad_year}
+            </span>
+          )}
+          {(profile.high_school_sports?.[0] || profile.position) && (
+            <span className="bg-babyblue-50 text-babyblue-600 px-1.5 py-0.5 rounded">
+              {profile.high_school_sports?.[0] || profile.position}
+            </span>
+          )}
+          {profile.state && (
+            <span className="flex items-center gap-0.5">
+              <MapPin className="w-3 h-3" />
+              {profile.state}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Arrow */}
+      <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+    </Link>
   )
 }

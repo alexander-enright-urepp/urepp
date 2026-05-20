@@ -23,3 +23,36 @@ body {
     text-wrap: balance;
   }
 }
+
+/* iPad Responsive Optimizations */
+@media (min-width: 768px) {
+  .ipad-container {
+    max-width: 720px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  
+  .ipad-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 24px !important;
+  }
+  
+  .ipad-hero-text {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+  }
+}
+
+/* iPad Landscape optimizations */
+@media (min-width: 1024px) {
+  .ipad-container {
+    max-width: 900px !important;
+  }
+  
+  .ipad-hero-text {
+    font-size: 3rem !important;
+  }
+}

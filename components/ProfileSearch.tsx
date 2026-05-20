@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { SPORT_OPTIONS, getSportConfig, Sport, isValidSport } from '@/lib/sports'
 import { Search, Filter, Loader2, User } from 'lucide-react'
 import Link from 'next/link'
 
@@ -11,13 +12,11 @@ interface Profile {
   last_name: string
   username: string
   profile_picture_url: string | null
+  sport: string
   grad_year: number
   primary_position: string
   city: string
   state: string
-  exit_velocity: number | null
-  pitch_velocity: number | null
-  sixty_time: number | null
 }
 
 export default function ProfileSearch() {
@@ -25,21 +24,13 @@ export default function ProfileSearch() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState({
+    sport: '',
     gradYear: '',
     position: '',
     state: '',
-    minExitVel: '',
-    minPitchVel: '',
-    maxSixtyTime: '',
   })
   const [showFilters, setShowFilters] = useState(false)
-
-  const positions = [
-    'RHP', 'LHP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'OF', 'UTIL'
-  ]
-
-  const currentYear = new Date().getFullYear()
-  const gradYears = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4]
+  const [selectedSport, setSelectedSport] = useState<Sport | null>(null)
 
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -49,16 +40,30 @@ export default function ProfileSearch() {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ]
 
+  const currentYear = new Date().getFullYear()
+  const gradYears = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4]
+
+  const sportConfig = selectedSport ? getSportConfig(selectedSport) : null
+
   useEffect(() => {
     searchProfiles()
   }, [])
+
+  // Update positions when sport changes
+  useEffect(() => {
+    if (filters.sport) {
+      setSelectedSport(filters.sport as Sport)
+    } else {
+      setSelectedSport(null)
+    }
+  }, [filters.sport])
 
   const searchProfiles = async () => {
     setLoading(true)
     try {
       let supabaseQuery = supabase
         .from('profiles')
-        .select('id, first_name, last_name, username, profile_picture_url, grad_year, primary_position, city, state, exit_velocity, pitch_velocity, sixty_time')
+        .select('id, first_name, last_name, username, profile_picture_url, sport, grad_year, primary_position, city, state')
         .order('created_at', { ascending: false })
 
       // Search by name or username
@@ -69,6 +74,9 @@ export default function ProfileSearch() {
       }
 
       // Apply filters
+      if (filters.sport) {
+        supabaseQuery = supabaseQuery.eq('sport', filters.sport)
+      }
       if (filters.gradYear) {
         supabaseQuery = supabaseQuery.eq('grad_year', parseInt(filters.gradYear))
       }
@@ -77,15 +85,6 @@ export default function ProfileSearch() {
       }
       if (filters.state) {
         supabaseQuery = supabaseQuery.eq('state', filters.state)
-      }
-      if (filters.minExitVel) {
-        supabaseQuery = supabaseQuery.gte('exit_velocity', parseInt(filters.minExitVel))
-      }
-      if (filters.minPitchVel) {
-        supabaseQuery = supabaseQuery.gte('pitch_velocity', parseInt(filters.minPitchVel))
-      }
-      if (filters.maxSixtyTime) {
-        supabaseQuery = supabaseQuery.lte('sixty_time', parseFloat(filters.maxSixtyTime))
       }
 
       const { data, error } = await supabaseQuery.limit(50)
@@ -106,15 +105,19 @@ export default function ProfileSearch() {
 
   const clearFilters = () => {
     setFilters({
+      sport: '',
       gradYear: '',
       position: '',
       state: '',
-      minExitVel: '',
-      minPitchVel: '',
-      maxSixtyTime: '',
     })
+    setSelectedSport(null)
     setQuery('')
     searchProfiles()
+  }
+
+  const getSportDisplayName = (sport: string) => {
+    const option = SPORT_OPTIONS.find(s => s.value === sport)
+    return option?.label || sport
   }
 
   return (
@@ -156,7 +159,22 @@ export default function ProfileSearch() {
       {/* Filters */}
       {showFilters && (
         <div className="bg-white/80 backdrop-blur-sm border border-babyblue-200 rounded-xl p-4 mb-6 shadow-lg shadow-babyblue-100">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sport
+              </label>
+              <select
+                value={filters.sport}
+                onChange={(e) => setFilters({ ...filters, sport: e.target.value, position: '' })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
+              >
+                <option value="">Any Sport</option>
+                {SPORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Graduation Year
@@ -182,7 +200,9 @@ export default function ProfileSearch() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
               >
                 <option value="">Any Position</option>
-                {positions.map((pos) => (
+                {sportConfig?.positions.map((pos) => (
+                  <option key={pos} value={pos}>{pos}</option>
+                )) || SPORT_OPTIONS[0].value === 'baseball' && getSportConfig('baseball').positions.map((pos) => (
                   <option key={pos} value={pos}>{pos}</option>
                 ))}
               </select>
@@ -201,43 +221,6 @@ export default function ProfileSearch() {
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Min Exit Velocity (mph)
-              </label>
-              <input
-                type="number"
-                value={filters.minExitVel}
-                onChange={(e) => setFilters({ ...filters, minExitVel: e.target.value })}
-                placeholder="e.g. 90"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Min Pitch Velocity (mph)
-              </label>
-              <input
-                type="number"
-                value={filters.minPitchVel}
-                onChange={(e) => setFilters({ ...filters, minPitchVel: e.target.value })}
-                placeholder="e.g. 85"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max 60 Time (sec)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={filters.maxSixtyTime}
-                onChange={(e) => setFilters({ ...filters, maxSixtyTime: e.target.value })}
-                placeholder="e.g. 7.0"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-              />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -273,13 +256,19 @@ export default function ProfileSearch() {
                   />
                 ) : (
                   <div className="w-12 h-12 bg-babyblue-100 rounded-full flex items-center justify-center text-babyblue-600 font-bold">
-                    {profile.first_name[0]}{profile.last_name[0]}
+                    {profile.first_name?.[0]}{profile.last_name?.[0]}
                   </div>
                 )}
+                
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">
-                    {profile.first_name} {profile.last_name}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {profile.first_name} {profile.last_name}
+                    </h3>
+                    <span className="text-xs bg-babyblue-100 text-babyblue-700 px-2 py-0.5 rounded-full">
+                      {getSportDisplayName(profile.sport)}
+                    </span>
+                  </div>
                   <p className="text-sm text-babyblue-600">
                     @{profile.username}
                   </p>
@@ -297,7 +286,7 @@ export default function ProfileSearch() {
       ) : (
         <div className="text-center py-12 bg-white/50 rounded-2xl border border-babyblue-100">
           <User className="w-12 h-12 text-babyblue-300 mx-auto mb-3" />
-          <p className="text-gray-600 font-medium">No players found</p>
+          <p className="text-gray-600 font-medium">No athletes found</p>
           <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
         </div>
       )}

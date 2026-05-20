@@ -1,52 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Upload, User } from 'lucide-react'
+import { ArrowLeft, Loader2, Upload, User, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface ProfileFormData {
   firstName: string
   lastName: string
   username: string
-  city: string
-  state: string
-  highSchool: string
-  teamsPlayedFor: string
-  primaryPosition: string
-  secondaryPosition: string
-  bats: string
-  throws: string
-  gradYear: string
-  height: string
-  weight: string
-  exitVelocity: string
-  pitchVelocity: string
-  sixtyTime: string
-  gpa: string
-  instagram: string
-  twitter: string
-  youtube: string
+  role: string
   bio: string
-  awards: string
 }
 
-const positions = [
-  'RHP', 'LHP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'OF', 'UTIL'
+const roles = [
+  { value: 'athlete', label: 'Athlete' },
+  { value: 'coach', label: 'Coach' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'fan', label: 'Fan' }
 ]
-
-const states = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-]
-
-const currentYear = new Date().getFullYear()
-const gradYears = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4]
 
 export default function CreateProfile() {
   const router = useRouter()
@@ -57,10 +30,15 @@ export default function CreateProfile() {
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [createdUsername, setCreatedUsername] = useState('')
-
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<ProfileFormData>()
+  const [formData, setFormData] = useState<ProfileFormData>({
+    firstName: '',
+    lastName: '',
+    username: '',
+    role: '',
+    bio: ''
+  })
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+  const [checkingUsername, setCheckingUsername] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -77,17 +55,45 @@ export default function CreateProfile() {
         .eq('user_id', session.user.id)
         .single()
       
-      if (existingProfile) {
-        // User already has a profile, redirect to edit
-        router.push('/edit-profile')
+      if (existingProfile?.username) {
+        router.push('/dashboard')
         return
       }
       
       setUser(session.user)
+      
+      // Pre-fill username from email
+      const emailUsername = session.user.email?.split('@')[0].toLowerCase() || ''
+      setFormData(prev => ({ ...prev, username: emailUsername }))
+      
       setLoading(false)
     }
+    
     checkAuth()
   }, [router])
+
+  // Check username availability
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!formData.username || formData.username.length < 3) {
+        setUsernameAvailable(null)
+        return
+      }
+      
+      setCheckingUsername(true)
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', formData.username.toLowerCase())
+        .single()
+      
+      setUsernameAvailable(!data)
+      setCheckingUsername(false)
+    }
+    
+    const timeout = setTimeout(checkUsername, 500)
+    return () => clearTimeout(timeout)
+  }, [formData.username])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -96,8 +102,13 @@ export default function CreateProfile() {
         setSubmitError('Image must be less than 5MB')
         return
       }
+      
       setProfileImage(file)
-      setImagePreview(URL.createObjectURL(file))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -126,69 +137,80 @@ export default function CreateProfile() {
     return publicUrl
   }
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsSubmitting(true)
     setSubmitError('')
-
+    
     try {
-      // Check if username is taken
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', data.username.toLowerCase())
-        .single()
-
-      if (existingUser) {
-        setSubmitError('Username is already taken. Please choose another.')
-        setIsSubmitting(false)
-        return
+      if (!user) throw new Error('Not authenticated')
+      if (!formData.firstName || !formData.lastName || !formData.username || !formData.role) {
+        throw new Error('Please fill in all required fields')
       }
-
+      if (usernameAvailable === false) {
+        throw new Error('Username is already taken')
+      }
+      
       // Upload profile image if selected
-      let profilePictureUrl = null
+      let profileImageUrl = null
       if (profileImage) {
-        profilePictureUrl = await uploadProfileImage(user.id)
+        profileImageUrl = await uploadProfileImage(user.id)
       }
-
-      const { error } = await supabase
+      
+      const username = formData.username.toLowerCase().replace(/[^a-z0-9]/g, '')
+      
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .insert([
-          {
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            username: username,
+            role: formData.role,
+            bio: formData.bio || null,
+            profile_picture_url: profileImageUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+        
+        if (updateError) throw updateError
+      } else {
+        // Create new profile (shouldn't happen, but just in case)
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
             user_id: user.id,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            username: data.username.toLowerCase(),
-            profile_picture_url: profilePictureUrl,
-            city: data.city || null,
-            state: data.state || null,
-            high_school: data.highSchool,
-            teams_played_for: data.teamsPlayedFor || null,
-            primary_position: data.primaryPosition,
-            secondary_position: data.secondaryPosition || null,
-            bats: data.bats || null,
-            throws: data.throws || null,
-            grad_year: parseInt(data.gradYear),
-            height: data.height || null,
-            weight: data.weight || null,
-            exit_velocity: data.exitVelocity ? parseInt(data.exitVelocity) : null,
-            pitch_velocity: data.pitchVelocity ? parseInt(data.pitchVelocity) : null,
-            sixty_time: data.sixtyTime ? parseFloat(data.sixtyTime) : null,
-            gpa: data.gpa ? parseFloat(data.gpa) : null,
-            instagram: data.instagram || null,
-            twitter: data.twitter || null,
-            youtube: data.youtube || null,
-            bio: data.bio || null,
-            awards: data.awards || null,
-          }
-        ])
-
-      if (error) throw error
-
-      setCreatedUsername(data.username.toLowerCase())
-      setSuccess(true)
+            email: user.email,
+            username: username,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: formData.role,
+            bio: formData.bio || null,
+            profile_picture_url: profileImageUrl,
+            grad_year: null,
+            slug: username,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+        
+        if (insertError) throw insertError
+      }
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
+      router.refresh()
+      
     } catch (err: any) {
-      console.error('Profile creation error:', err)
-      setSubmitError(err.message || 'Failed to create profile. Please try again.')
+      console.error('Error creating profile:', err)
+      setSubmitError(err.message || 'Failed to create profile')
     } finally {
       setIsSubmitting(false)
     }
@@ -197,420 +219,177 @@ export default function CreateProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-babyblue-600 animate-spin" />
-      </div>
-    )
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="text-2xl font-bold text-babyblue-600">UREPP</Link>
-            </div>
-          </div>
-        </nav>
-
-        <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Profile Created!
-            </h1>
-            <p className="text-gray-600 mb-6">
-              Your recruiting profile is now live and visible to coaches.
-            </p>
-            <div className="space-y-3">
-              <Link
-                href={`/players/${createdUsername}`}
-                className="block w-full bg-babyblue-500 hover:bg-babyblue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
-              >
-                View Your Profile
-              </Link>
-              <Link
-                href="/dashboard"
-                className="block w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-semibold transition-colors"
-              >
-                Go to Dashboard
-              </Link>
-            </div>
-          </div>
-        </main>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-babyblue-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-babyblue-200/50 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-babyblue-600">UREPP</Link>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
-              Sign Out
-            </button>
+    <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 pb-20">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-babyblue-100 sticky top-0 z-50">
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="w-10 h-10 rounded-xl bg-babyblue-50 flex items-center justify-center">
+              <ArrowLeft className="w-5 h-5 text-babyblue-600" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Create Profile</h1>
+              <p className="text-sm text-gray-500">Set up your profile</p>
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/dashboard" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Link>
+      <main className="max-w-md mx-auto px-4 py-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Picture */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="font-semibold text-gray-900 mb-4">Profile Picture</h3>
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-babyblue-100 to-babyblue-200 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-12 h-12 text-babyblue-600" />
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 w-10 h-10 bg-babyblue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-babyblue-600 transition-colors">
+                  <Upload className="w-5 h-5 text-white" />
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                </label>
+              </div>
+              <p className="text-sm text-gray-500 mt-3">Tap to upload photo</p>
+            </div>
+          </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-babyblue-200/50 border border-babyblue-100 p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Profile</h1>
-          <p className="text-gray-600 mb-8">Build your professional baseball recruiting profile to get discovered by coaches.</p>
+          {/* Basic Information */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="font-semibold text-gray-900 mb-4">Basic Information</h3>
+            <div className="space-y-4">
+              {/* First Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  placeholder="John"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  required
+                />
+              </div>
 
+              {/* Last Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  placeholder="Doe"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
+                    placeholder="johndoe"
+                    className={`w-full px-4 py-3 pr-10 rounded-xl border outline-none transition-all ${
+                      usernameAvailable === false 
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-100' 
+                        : usernameAvailable === true
+                        ? 'border-green-300 focus:border-green-500 focus:ring-green-100'
+                        : 'border-gray-200 focus:border-babyblue-500 focus:ring-babyblue-100'
+                    }`}
+                    required
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {checkingUsername ? (
+                      <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                    ) : usernameAvailable === true ? (
+                      <Check className="w-5 h-5 text-green-500" />
+                    ) : usernameAvailable === false ? (
+                      <span className="text-red-500 text-xs">Taken</span>
+                    ) : null}
+                  </div>
+                </div>
+                {usernameAvailable === false && (
+                  <p className="text-sm text-red-500 mt-1">This username is already taken</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Letters and numbers only</p>
+              </div>
+
+              {/* Role */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all"
+                  required
+                >
+                  <option value="">Select your role</option>
+                  {roles.map((role) => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Bio */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="font-semibold text-gray-900 mb-4">Bio</h3>
+            <textarea
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              placeholder="Tell us about yourself..."
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-babyblue-500 focus:ring-2 focus:ring-babyblue-100 outline-none transition-all resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-2">{formData.bio.length}/500 characters</p>
+          </div>
+
+          {/* Error Message */}
           {submitError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+            <div className="bg-red-100 border border-red-200 rounded-xl p-4 text-red-900">
               {submitError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Profile Picture */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Profile Picture</h2>
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Profile preview"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-babyblue-100"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 bg-babyblue-100 rounded-full flex items-center justify-center border-4 border-white">
-                      <User className="w-10 h-10 text-babyblue-400" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="block">
-                    <span className="sr-only">Choose profile photo</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-xl file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-babyblue-50 file:text-babyblue-700
-                        hover:file:bg-babyblue-100
-                        cursor-pointer"
-                    />
-                  </label>
-                  <p className="text-sm text-gray-500 mt-2">JPG, PNG or GIF. Max 5MB.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Basic Information */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Basic Information</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                  <input
-                    {...register('firstName', { required: 'First name is required' })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="John"
-                  />
-                  {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                  <input
-                    {...register('lastName', { required: 'Last name is required' })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="Doe"
-                  />
-                  {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
-                  <input
-                    {...register('username', { 
-                      required: 'Username is required',
-                      pattern: { value: /^[a-zA-Z0-9-]+$/, message: 'Only letters, numbers, and hyphens' }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="john-doe-2026"
-                  />
-                  {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>}
-                  <p className="text-xs text-gray-500 mt-1">This will be your public profile URL</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Year *</label>
-                  <select
-                    {...register('gradYear', { required: 'Graduation year is required' })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select Year</option>
-                    {gradYears.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                  {errors.gradYear && <p className="text-red-500 text-sm mt-1">{errors.gradYear.message}</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Location & School */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Location & School</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">High School *</label>
-                  <input
-                    {...register('highSchool', { required: 'High school is required' })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="Lincoln High School"
-                  />
-                  {errors.highSchool && <p className="text-red-500 text-sm mt-1">{errors.highSchool.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input
-                    {...register('city')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="Springfield"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                  <select
-                    {...register('state')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select State</option>
-                    {states.map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Teams Played For</label>
-                  <input
-                    {...register('teamsPlayedFor')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="Travel team, summer league, etc."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Baseball Information */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Baseball Information</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Primary Position *</label>
-                  <select
-                    {...register('primaryPosition', { required: 'Primary position is required' })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select Position</option>
-                    {positions.map(pos => (
-                      <option key={pos} value={pos}>{pos}</option>
-                    ))}
-                  </select>
-                  {errors.primaryPosition && <p className="text-red-500 text-sm mt-1">{errors.primaryPosition.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Position</label>
-                  <select
-                    {...register('secondaryPosition')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select Position</option>
-                    {positions.map(pos => (
-                      <option key={pos} value={pos}>{pos}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bats</label>
-                  <select
-                    {...register('bats')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select</option>
-                    <option value="R">Right</option>
-                    <option value="L">Left</option>
-                    <option value="S">Switch</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Throws</label>
-                  <select
-                    {...register('throws')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  >
-                    <option value="">Select</option>
-                    <option value="R">Right</option>
-                    <option value="L">Left</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
-                  <input
-                    {...register('height')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="6'1&quot;"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Weight (lbs)</label>
-                  <input
-                    {...register('weight')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="185"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Metrics */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Baseball Metrics</h2>
-              <div className="grid md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Exit Velocity (mph)</label>
-                  <input
-                    type="number"
-                    {...register('exitVelocity')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="95"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pitch Velocity (mph)</label>
-                  <input
-                    type="number"
-                    {...register('pitchVelocity')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="88"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">60 Yard Dash (sec)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    {...register('sixtyTime')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="6.8"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">GPA</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="4"
-                    {...register('gpa')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="3.8"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Social Links */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Social Links</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
-                  <input
-                    {...register('instagram')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="@username"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Twitter / X</label>
-                  <input
-                    {...register('twitter')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="@username"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Channel</label>
-                  <input
-                    {...register('youtube')}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                    placeholder="youtube.com/channel/..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bio */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Player Bio</h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tell coaches about yourself</label>
-                <textarea
-                  {...register('bio')}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  placeholder="I'm a hard-working player focused on developing my skills..."
-                />
-              </div>
-            </div>
-
-            {/* Awards & Achievements */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-babyblue-200">Awards & Achievements</h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">List your awards and achievements (one per line)</label>
-                <textarea
-                  {...register('awards')}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-babyblue-400 focus:border-babyblue-400 transition-colors"
-                  placeholder="First-team All-Conference (2024)
-Team MVP (2023)
-Perfect Game All-American..."
-                />
-              </div>
-            </div>
-
-            {/* Submit */}
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting || uploadingImage}
-                className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-babyblue-200"
-              >
-                {isSubmitting || uploadingImage ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating Profile...
-                  </>
-                ) : (
-                  'Create Profile'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting || uploadingImage || usernameAvailable === false}
+            className="w-full bg-babyblue-500 hover:bg-babyblue-600 disabled:bg-babyblue-300 text-white py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+          >
+            {isSubmitting || uploadingImage ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Creating Profile...
+              </>
+            ) : (
+              'Create Profile'
+            )}
+          </button>
+        </form>
       </main>
     </div>
   )
