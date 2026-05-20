@@ -272,7 +272,7 @@ export function getThemeClasses(theme: ThemeConfig): Record<string, string> {
   } else if (theme.background === 'glass') {
     classes.container = 'bg-gradient-to-br from-blue-900/80 to-purple-900/80 text-white'
   } else {
-    classes.container = 'bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100'
+    classes.container = 'bg-gradient-to-br from-[#2980cc] via-[#51b5ff] to-[#1a5a99]'
   }
   
   // Header height (reduced by 25%)

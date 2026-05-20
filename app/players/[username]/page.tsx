@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Mail,
@@ -115,6 +115,7 @@ interface PlayerStat {
 }
 
 export default function PlayerProfilePage({ params }: { params: { username: string } }) {
+  const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [playerStats, setPlayerStats] = useState<PlayerStat[]>([])
   const [loading, setLoading] = useState(true)
@@ -272,7 +273,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#2980cc] via-[#51b5ff] to-[#1a5a99] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-babyblue-500"></div>
       </div>
     )
@@ -359,7 +360,7 @@ export default function PlayerProfilePage({ params }: { params: { username: stri
 // DEFAULT LAYOUT (Centered, standard)
 function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, copied, copyProfileLink, trackSocialClick, trackStatsView, trackMediaClick }: any) {
   const isDark = theme.background === 'dark' || theme.headerStyle === 'dark'
-  const bgClass = isDark ? 'bg-[#0B0B0F] text-white' : 'bg-gradient-to-br from-babyblue-50 via-white to-babyblue-100'
+  const bgClass = isDark ? 'bg-[#0B0B0F] text-white' : 'bg-gradient-to-br from-[#2980cc] via-[#51b5ff] to-[#1a5a99]'
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
   
   return (
@@ -368,7 +369,7 @@ function DefaultLayout({ profile, playerStats, theme, activeTab, setActiveTab, c
       <header className="bg-white/90 backdrop-blur-sm border-b sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <button onClick={() => window.history.back()} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+            <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <button onClick={copyProfileLink} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center relative">
@@ -563,7 +564,7 @@ function RecruiterCardLayout({ profile, playerStats, theme, activeTab, setActive
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
-          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+          <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <button onClick={copyProfileLink} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
@@ -691,7 +692,7 @@ function CompactScoutLayout({ profile, playerStats, theme, copied, copyProfileLi
     <div className="min-h-screen bg-white pb-20">
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <button onClick={() => window.history.back()} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+          <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
             <ArrowLeft className="w-4 h-4 text-gray-600" />
           </button>
           <button onClick={copyProfileLink} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -898,7 +899,7 @@ function MinimalProLayout({ profile, playerStats, copied, copyProfileLink, track
     <div className="min-h-screen bg-white pb-20">
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <button onClick={() => window.history.back()} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+          <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200">
             <ArrowLeft className="w-4 h-4 text-gray-600" />
           </button>
           <button onClick={copyProfileLink} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200">
@@ -1004,7 +1005,7 @@ function BannerLayout({ profile, playerStats, theme, activeTab, setActiveTab, co
         style={headerStyle}
       >
         <div className="absolute top-4 left-4 right-4 flex justify-between">
-          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white">
+          <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <button onClick={copyProfileLink} className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white">
@@ -1134,7 +1135,7 @@ function AthleteDarkLayout({ profile, playerStats, theme, activeTab, setActiveTa
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#0B0B0F]/90 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
-          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+          <button onClick={() => { if (typeof window !== "undefined" && window.history.length > 1 && document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href = /; } }} className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
           <button onClick={copyProfileLink} className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
